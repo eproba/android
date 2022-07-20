@@ -25,6 +25,11 @@ class FirstFragment : Fragment() {
     ): View {
 
         _binding = FragmentFirstBinding.inflate(inflater, container, false)
+        binding.textviewFirst.text =
+            activity?.let {
+                AuthStateManager.getInstance(it.applicationContext).current.jsonSerializeString()
+                    .toString()
+            }
         return binding.root
 
     }
@@ -34,6 +39,9 @@ class FirstFragment : Fragment() {
 
         binding.buttonFirst.setOnClickListener {
             findNavController().navigate(R.id.action_FirstFragment_to_CameraFragment)
+        }
+        binding.authButton.setOnClickListener {
+            (activity as MainActivity).startAuth()
         }
     }
 

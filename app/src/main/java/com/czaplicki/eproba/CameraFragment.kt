@@ -1,27 +1,29 @@
 package com.czaplicki.eproba
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.czaplicki.eproba.databinding.FragmentCameraBinding
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.Text
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import net.openid.appauth.AuthorizationService
 import okhttp3.*
-import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
@@ -41,9 +43,8 @@ class CameraFragment : Fragment() {
     private val binding get() = _binding!!
     private val client = OkHttpClient()
 
-    companion object {
-        val MEDIA_TYPE_MARKDOWN = "text/x-markdown; charset=utf-8".toMediaType()
-    }
+
+    private lateinit var authService: AuthorizationService
 
 
     override fun onCreateView(
@@ -52,6 +53,7 @@ class CameraFragment : Fragment() {
     ): View {
 
         _binding = FragmentCameraBinding.inflate(inflater, container, false)
+        authService = AuthorizationService(requireContext())
         pickImage()
         return binding.root
 
@@ -70,18 +72,24 @@ class CameraFragment : Fragment() {
         _binding = null
     }
 
-    private fun extractTasks(textBlocks: List<Text.TextBlock>, tableTop: Int?, averageLineHeight: Float?): MutableList<String> {
+    private fun extractTasks(
+        textBlocks: List<Text.TextBlock>,
+        tableTop: Int?,
+        averageLineHeight: Float?
+    ): MutableList<String> {
         if (tableTop == null) {
             return mutableListOf()
         }
         val tasks = mutableListOf<String>()
         for (block in textBlocks) {
             val cornerPoints = block.cornerPoints ?: continue
-            if ((cornerPoints[2]?.y ?: 0) > tableTop && cornerPoints[3].y > tableTop && block.text.length > 10) {
+            if ((cornerPoints[2]?.y
+                    ?: 0) > tableTop && cornerPoints[3].y > tableTop && block.text.length > 10
+            ) {
                 if (block.lines.size > 1 && averageLineHeight != null) {
                     if (block.lines.size * 1.5 * averageLineHeight < block.boundingBox!!.height()) {
                         block.lines.forEach { line ->
-                            var task = line.text.replace("\n"," ")
+                            var task = line.text.replace("\n", " ")
                             while (task[0].isDigit() || task[0] == '.') {
                                 task = task.substring(1)
                             }
@@ -96,7 +104,7 @@ class CameraFragment : Fragment() {
                         continue
                     }
                 }
-                var task = block.text.replace("\n"," ")
+                var task = block.text.replace("\n", " ")
                 while (task[0].isDigit() || task[0] == '.') {
                     task = task.substring(1)
                 }
@@ -123,26 +131,41 @@ class CameraFragment : Fragment() {
         }
     }
 
-    private val getContentOld = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        if (uri != null) {
-            recognizeExam(uri)
-        } else {
-            Toast.makeText(context, "No image selected", Toast.LENGTH_SHORT).show()
-            binding.refreshButton.visibility = View.VISIBLE
-            binding.refreshButton.setOnClickListener {
-                binding.textviewCamera.text = ""
-                binding.textviewCamera.visibility = View.GONE
-                binding.submitButton.visibility = View.GONE
-                binding.refreshButton.visibility = View.GONE
-                pickImage()
+    private val getContentOld =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            if (uri != null) {
+                recognizeExam(uri)
+            } else {
+                Toast.makeText(context, "No image selected", Toast.LENGTH_SHORT).show()
+                binding.refreshButton.visibility = View.VISIBLE
+                binding.refreshButton.setOnClickListener {
+                    binding.textviewCamera.text = ""
+                    binding.textviewCamera.visibility = View.GONE
+                    binding.submitButton.visibility = View.GONE
+                    binding.refreshButton.visibility = View.GONE
+                    pickImage()
+                }
             }
         }
-    }
 
-    private val getContent = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        if (it.resultCode == Activity.RESULT_OK) {
-            val uri: Uri? = it.data?.data
-            if (uri == null) {
+    private val getContent =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (it.resultCode == Activity.RESULT_OK) {
+                val uri: Uri? = it.data?.data
+                if (uri == null) {
+                    Toast.makeText(context, "No photo picked", Toast.LENGTH_SHORT).show()
+                    binding.refreshButton.visibility = View.VISIBLE
+                    binding.refreshButton.setOnClickListener {
+                        binding.textviewCamera.text = ""
+                        binding.textviewCamera.visibility = View.GONE
+                        binding.submitButton.visibility = View.GONE
+                        binding.refreshButton.visibility = View.GONE
+                        pickImage()
+                    }
+                    return@registerForActivityResult
+                }
+                recognizeExam(uri)
+            } else {
                 Toast.makeText(context, "No photo picked", Toast.LENGTH_SHORT).show()
                 binding.refreshButton.visibility = View.VISIBLE
                 binding.refreshButton.setOnClickListener {
@@ -152,21 +175,8 @@ class CameraFragment : Fragment() {
                     binding.refreshButton.visibility = View.GONE
                     pickImage()
                 }
-                return@registerForActivityResult
-            }
-            recognizeExam(uri)
-        } else {
-            Toast.makeText(context, "No photo picked", Toast.LENGTH_SHORT).show()
-            binding.refreshButton.visibility = View.VISIBLE
-            binding.refreshButton.setOnClickListener {
-                binding.textviewCamera.text = ""
-                binding.textviewCamera.visibility = View.GONE
-                binding.submitButton.visibility = View.GONE
-                binding.refreshButton.visibility = View.GONE
-                pickImage()
             }
         }
-    }
 
     private fun recognizeExam(uri: Uri) {
         val image: InputImage
@@ -193,27 +203,56 @@ class CameraFragment : Fragment() {
                         text.contains("zadani") || ((text.contains("lp") || text.contains("podpis")) && exam.tasksTableTopCoordinate == null) -> {
                             exam.setTaskTableTopCoordinate(line.cornerPoints?.get(3)?.y ?: 0)
                         }
-                        (text.contains("próba na") || text.contains("proba na")) && exam.name == null -> exam.name = line.text
+                        (text.contains("próba na") || text.contains("proba na")) && exam.name == null -> exam.name =
+                            line.text
                         (text.contains("imię") || text.contains("imie")) && exam.first_name == null -> when {
-                            text.contains("imię: ") || text.contains("imie: ") -> exam.setFirstName(line.text.substring(6).trim())
-                            text.contains("imię:") || text.contains("imię ") || text.contains("imie:") || text.contains("imie ") -> exam.setFirstName(line.text.substring(5).trim())
-                            text.contains("imię") || text.contains("imie") -> exam.setFirstName(line.text.substring(4).trim())
+                            text.contains("imię: ") || text.contains("imie: ") -> exam.setFirstName(
+                                line.text.substring(6).trim()
+                            )
+                            text.contains("imię:") || text.contains("imię ") || text.contains("imie:") || text.contains(
+                                "imie "
+                            ) -> exam.setFirstName(line.text.substring(5).trim())
+                            text.contains("imię") || text.contains("imie") -> exam.setFirstName(
+                                line.text.substring(
+                                    4
+                                ).trim()
+                            )
                         }
                         text.contains("nazwisko") && exam.last_name == null -> when {
-                            text.contains("nazwisko: ") -> exam.setLastName(line.text.substring(10).trim())
-                            text.contains("nazwisko:") || text.contains("nazwisko ") -> exam.setLastName(line.text.substring(9).trim())
-                            text.contains("nazwisko") -> exam.setLastName(line.text.substring(8).trim())
+                            text.contains("nazwisko: ") -> exam.setLastName(
+                                line.text.substring(10).trim()
+                            )
+                            text.contains("nazwisko:") || text.contains("nazwisko ") -> exam.setLastName(
+                                line.text.substring(9).trim()
+                            )
+                            text.contains("nazwisko") -> exam.setLastName(
+                                line.text.substring(8).trim()
+                            )
                         }
                         text.contains("pseudonim") && exam.nickname == null -> when {
-                            text.contains("pseudonim: ") -> exam.setNickname(line.text.substring(11).trim())
-                            text.contains("pseudonim:") || text.contains("pseudonim ") -> exam.setNickname(line.text.substring(10).trim())
-                            text.contains("pseudonim") -> exam.setNickname(line.text.substring(9).trim())
+                            text.contains("pseudonim: ") -> exam.setNickname(
+                                line.text.substring(11).trim()
+                            )
+                            text.contains("pseudonim:") || text.contains("pseudonim ") -> exam.setNickname(
+                                line.text.substring(10).trim()
+                            )
+                            text.contains("pseudonim") -> exam.setNickname(
+                                line.text.substring(9).trim()
+                            )
 
                         }
                         (text.contains("drużyna") || text.contains("druzyna")) && exam.team == null -> when {
-                            text.contains("drużyna: ") || text.contains("druzyna: ") -> exam.setTeam(line.text.substring(9).trim())
-                            text.contains("drużyna:") || text.contains("drużyna ") || text.contains("druzyna:") || text.contains("druzyna ") -> exam.setTeam(line.text.substring(8).trim())
-                            text.contains("drużyna") || text.contains("druzyna") -> exam.setTeam(line.text.substring(7).trim())
+                            text.contains("drużyna: ") || text.contains("druzyna: ") -> exam.setTeam(
+                                line.text.substring(9).trim()
+                            )
+                            text.contains("drużyna:") || text.contains("drużyna ") || text.contains(
+                                "druzyna:"
+                            ) || text.contains("druzyna ") -> exam.setTeam(
+                                line.text.substring(8).trim()
+                            )
+                            text.contains("drużyna") || text.contains("druzyna") -> exam.setTeam(
+                                line.text.substring(7).trim()
+                            )
                         }
                         else -> {
                             exam.updateAverageLineHeight(line.boundingBox!!.height())
@@ -222,13 +261,16 @@ class CameraFragment : Fragment() {
                     }
 
                 }
-                exam.tasks = extractTasks(visionText.textBlocks, exam.tasksTableTopCoordinate, exam.averageLineHeight)
+                exam.tasks = extractTasks(
+                    visionText.textBlocks,
+                    exam.tasksTableTopCoordinate,
+                    exam.averageLineHeight
+                )
                 binding.progressBar.visibility = View.GONE
                 binding.textviewCamera.text = exam.toFormattedString()
                 binding.textviewCamera.visibility = View.VISIBLE
                 binding.submitButton.visibility = View.VISIBLE
                 binding.submitButton.setOnClickListener {
-                    Snackbar.make(it, "Not implemented yet", Snackbar.LENGTH_SHORT).show()
                     submitExam(exam)
                 }
                 binding.refreshButton.visibility = View.VISIBLE
@@ -255,31 +297,133 @@ class CameraFragment : Fragment() {
 
     }
 
-    fun submitExam(exam: Exam) {
-        // send post request to server using okhttp
-//        val json = exam.toJson()
+    private fun submitExam(exam: Exam) {
 
+        val authStateManager = AuthStateManager.getInstance(requireContext())
 
-        val request = Request.Builder()
-            .url("https://scouts-exams.herokuapp.com/api/exam/")
-            .build()
+        if (authStateManager.current.accessToken == null) {
+            Snackbar.make(
+                binding.root,
+                "You are not logged in",
+                Snackbar.LENGTH_LONG
+            ).show()
+            return
+        }
 
-        client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                e.printStackTrace()
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                response.use {
-                    if (!response.isSuccessful) throw IOException("Unexpected code $response")
-
-                    for ((name, value) in response.headers) {
-                        println("$name: $value")
-                    }
-
-                    Log.d("Response", response.body!!.string())
+        if (exam.name == null) {
+            val examNameInput: View =
+                LayoutInflater.from(context).inflate(R.layout.exam_name_alert, null)
+            val mAlertDialog = MaterialAlertDialogBuilder(
+                requireContext(),
+                com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
+            )
+                .setTitle("Uzupełnij dane")
+                .setMessage("Jak chcesz nazwać swoją próbę?")
+                .setIcon(R.drawable.ic_help)
+                .setNegativeButton("Anuluj") { dialog, _ ->
+                    dialog.dismiss()
+                    Snackbar.make(binding.root, "Próba nie została zapisana", Snackbar.LENGTH_SHORT)
+                        .show()
+                }
+                .setPositiveButton("Zatwierdź", null)
+                .setView(examNameInput)
+                .show()
+            val mPositiveButton = mAlertDialog.getButton(AlertDialog.BUTTON_POSITIVE)
+            mPositiveButton.setOnClickListener {
+                val examName =
+                    examNameInput.findViewById<com.google.android.material.textfield.TextInputLayout>(
+                        R.id.textField
+                    ).editText?.text.toString()
+                if (examName.isEmpty()) {
+                    examNameInput.findViewById<com.google.android.material.textfield.TextInputLayout>(
+                        R.id.textField
+                    ).error = "To pole jest wymagane"
+                } else {
+                    exam.name = examName
+                    binding.textviewCamera.text = exam.toFormattedString()
+                    mAlertDialog.dismiss()
+                    submitExam(exam)
                 }
             }
-        })
+            return
+        }
+        binding.progressBar.visibility = View.VISIBLE
+        authStateManager.current.performActionWithFreshTokens(
+            authService
+        ) { accessToken, _, _ ->
+            val request = Request.Builder()
+                .url("https://scouts-exams.herokuapp.com/api/exam/")
+                .header(
+                    "Authorization",
+                    "Bearer $accessToken"
+                )
+                .method("POST", exam.toJson().toRequestBody("application/json".toMediaTypeOrNull()))
+                .build()
+
+
+            client.newCall(request).enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    e.printStackTrace()
+                    activity?.runOnUiThread {
+                        binding.progressBar.visibility = View.GONE
+                        Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    response.use {
+                        if (!response.isSuccessful) {
+                            activity?.runOnUiThread {
+                                binding.progressBar.visibility = View.GONE
+                            }
+                            when (response.code) {
+                                401, 403 -> {
+                                    activity?.runOnUiThread {
+                                        MaterialAlertDialogBuilder(
+                                            requireContext(),
+                                            com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
+                                        )
+                                            .setTitle("Próba nie została zapisana")
+                                            .setMessage("Nie jesteś autoryzowany do utworzenia próby, spróbuj ponownie, a jeśli problem będźie się dalej powtarzał autoryzuj ponownie aplikację. ${response.code} ${response.message}")
+                                            .setIcon(R.drawable.ic_error)
+                                            .setPositiveButton(R.string.retry) { _, _ ->
+                                                binding.progressBar.visibility = View.VISIBLE
+                                                authStateManager.current.needsTokenRefresh = true
+                                                submitExam(exam)
+                                            }
+                                            .setNegativeButton(R.string.cancel, null)
+                                            .show()
+                                    }
+                                }
+                                else -> {
+                                    activity?.runOnUiThread {
+                                        Snackbar.make(
+                                            binding.root,
+                                            "Error: ${response.code}",
+                                            Snackbar.LENGTH_LONG
+                                        ).show()
+                                    }
+                                }
+                            }
+                            return
+                        }
+                        activity?.runOnUiThread {
+                            binding.progressBar.visibility = View.GONE
+                            MaterialAlertDialogBuilder(
+                                requireContext(),
+                                com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
+                            )
+                                .setTitle("Próba zapisana")
+                                .setMessage("Próba została utworzona")
+                                .setIcon(R.drawable.ic_success)
+                                .setPositiveButton("OK", null)
+                                .show()
+                        }
+
+                        Log.d("Response", response.body.string())
+                    }
+                }
+            })
+        }
     }
 }

@@ -63,9 +63,9 @@ class Exam {
 
     fun toJson(): String {
         return """{
-"name": "$name",
+"name": "${name?.replace("\"", "\\\"")}",
 "tasks": 
-    [${tasks.joinToString { "\n{\"task\":\"${it.replace('"', '\"')}\"}" }}
+    [${tasks.joinToString { "\n{\"task\":\"${it.replace("\"", "\\\"")}\"}" }}
     ]
 }"""
     }
