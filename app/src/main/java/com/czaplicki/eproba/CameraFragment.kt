@@ -301,14 +301,14 @@ class CameraFragment : Fragment() {
 
         val authStateManager = AuthStateManager.getInstance(requireContext())
 
-        if (authStateManager.current.accessToken == null) {
-            Snackbar.make(
-                binding.root,
-                "You are not logged in",
-                Snackbar.LENGTH_LONG
-            ).show()
-            return
-        }
+//        if (authStateManager.current.accessToken == null) {
+//            Snackbar.make(
+//                binding.root,
+//                "You are not logged in",
+//                Snackbar.LENGTH_LONG
+//            ).show()
+//            return
+//        }
 
         if (exam.name == null) {
             val examNameInput: View =
@@ -419,8 +419,6 @@ class CameraFragment : Fragment() {
                                 .setPositiveButton("OK", null)
                                 .show()
                         }
-
-                        Log.d("Response", response.body.string())
                     }
                 }
             })
