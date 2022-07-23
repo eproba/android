@@ -1,14 +1,8 @@
 package com.czaplicki.eproba
 
-import android.app.Activity
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import androidx.navigation.findNavController
@@ -16,20 +10,11 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import com.czaplicki.eproba.databinding.ActivityMainBinding
-import net.openid.appauth.*
 
 
 class MainActivity : AppCompatActivity() {
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
-
-    private lateinit var authService: AuthorizationService
-
-    private val serviceConfig = AuthorizationServiceConfiguration(
-        Uri.parse("https://scouts-exams.herokuapp.com/oauth2/authorize/"), // authorization endpoint
-        Uri.parse("https://scouts-exams.herokuapp.com/oauth2/token/") // token endpoint
-    )
-
 
     private lateinit var mAuthStateManager: AuthStateManager
 
