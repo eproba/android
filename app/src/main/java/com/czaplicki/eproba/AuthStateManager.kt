@@ -42,6 +42,11 @@ class AuthStateManager private constructor(context: Context) {
     }
 
     @AnyThread
+    fun updateSavedState() {
+        writeState(mCurrentAuthState.get())
+    }
+
+    @AnyThread
     fun updateAfterAuthorization(
         response: AuthorizationResponse?,
         ex: AuthorizationException?
@@ -112,6 +117,7 @@ class AuthStateManager private constructor(context: Context) {
         private const val TAG = "AuthStateManager"
         private const val STORE_NAME = "AuthState"
         private const val KEY_STATE = "state"
+
         @AnyThread
         fun getInstance(context: Context): AuthStateManager {
             var manager = INSTANCE_REF.get().get()

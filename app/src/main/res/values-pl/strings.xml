@@ -6,9 +6,12 @@
     <string name="previous">Poprzedni ekran</string>
     <string name="next">Następny ekran</string>
     <string name="submit">Zatwierdź</string>
-    <string name="first_fragment_label">Autoryzacja</string>
     <string name="exam_name_hint">np. Próba na biszkopta</string>
     <string name="cancel">Anuluj</string>
     <string name="retry">Spróbuj ponownie</string>
     <string name="account">Konto</string>
+    <string name="title_activity_profile">Profil</string>
+    <string name="logged_out">Wylogowano</string>
+    <string name="button_login">Zaloguj się</string>
+    <string name="button_logout">Wyloguj</string>
 </resources>

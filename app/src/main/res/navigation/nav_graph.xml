@@ -25,14 +25,12 @@
             android:id="@+id/action_CameraFragment_to_FirstFragment"
             app:destination="@id/FirstFragment" />
     </fragment>
-    <fragment
-        android:id="@+id/AccountFragment"
-        android:name="com.czaplicki.eproba.AccountFragment"
-        android:label="@string/account"
-        tools:layout="@layout/fragment_account">
-
-    </fragment>
+    <activity
+        android:id="@+id/profileActivity"
+        android:name="com.czaplicki.eproba.ProfileActivity"
+        android:label="activity_profile"
+        tools:layout="@layout/activity_profile" />
     <action
-        android:id="@+id/action_global_AccountFragment"
-        app:destination="@id/AccountFragment" />
+        android:id="@+id/action_global_profileActivity"
+        app:destination="@id/profileActivity" />
 </navigation>

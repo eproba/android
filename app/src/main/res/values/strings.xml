@@ -2,7 +2,7 @@
     <string name="app_name">Epróba</string>
     <string name="action_settings">Settings</string>
     <!-- Strings used for fragments for navigation -->
-    <string name="first_fragment_label">Auth</string>
+    <string name="first_fragment_label">Epróba</string>
     <string name="camera_fragment_label">Scan exam</string>
     <string name="next">Next</string>
     <string name="previous">Previous</string>
@@ -12,4 +12,9 @@
     <string name="cancel">Cancel</string>
     <string name="retry">Try again</string>
     <string name="account">Account</string>
+    <string name="title_activity_profile">Profile</string>
+
+    <string name="logged_out">Logged out</string>
+    <string name="button_login">Login</string>
+    <string name="button_logout">Logout</string>
 </resources>

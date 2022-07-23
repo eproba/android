@@ -1,6 +1,7 @@
 package com.czaplicki.eproba
 
 import android.app.Activity
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -71,11 +72,8 @@ class MainActivity : AppCompatActivity() {
         // as you specify a parent activity in AndroidManifest.xml.
         return when (item.itemId) {
             R.id.account -> {
-                val authState = mAuthStateManager.current
-                if (authState.isAuthorized) {
-                    val navController = findNavController(R.id.nav_host_fragment_content_main)
-                    navController.navigate(R.id.action_global_AccountFragment)
-                }
+                val navController = findNavController(R.id.nav_host_fragment_content_main)
+                navController.navigate(R.id.action_global_profileActivity)
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -88,53 +86,5 @@ class MainActivity : AppCompatActivity() {
                 || super.onSupportNavigateUp()
     }
 
-    fun startAuth() {
-        val redirectUri = Uri.parse("com.czaplicki.eproba://oauth2redirect")
-        val clientId = "57wXiwkX1865qziVedFEXXum01m9QHJ6MDMVD03i"
-        val builder = AuthorizationRequest.Builder(
-            serviceConfig,
-            clientId,
-            ResponseTypeValues.CODE,
-            redirectUri
-        )
-        builder.setScopes("read write")
-
-        val authRequest = builder.build()
-        authService = AuthorizationService(this)
-        val authIntent = authService.getAuthorizationRequestIntent(authRequest)
-        getAuthorizationCode.launch(authIntent)
-    }
-
-    private val getAuthorizationCode =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            if (it.resultCode == Activity.RESULT_OK) {
-                val resp = AuthorizationResponse.fromIntent(it.data!!)
-                val ex = AuthorizationException.fromIntent(it.data)
-                if (resp != null) {
-                    mAuthStateManager.updateAfterAuthorization(resp, ex)
-                    exchangeCodeForToken()
-                }
-            }
-        }
-
-    // exchange authorization code for access token
-    private fun exchangeCodeForToken() {
-        if (mAuthStateManager.current.lastAuthorizationResponse == null) {
-            Toast.makeText(this, "Authorization response is null", Toast.LENGTH_LONG).show()
-            return
-        }
-        authService.performTokenRequest(
-            mAuthStateManager.current.lastAuthorizationResponse!!.createTokenExchangeRequest()
-        ) { resp, ex ->
-            if (resp != null) {
-                mAuthStateManager.updateAfterTokenResponse(resp, ex)
-                Log.d("MainActivity", "authState: ${mAuthStateManager.current.accessToken}")
-            } else {
-                if (ex != null) {
-                    Toast.makeText(this, "Error: ${ex.error}", Toast.LENGTH_LONG).show()
-                }
-            }
-        }
-    }
 
 }

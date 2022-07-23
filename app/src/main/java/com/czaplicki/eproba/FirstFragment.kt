@@ -40,9 +40,6 @@ class FirstFragment : Fragment() {
         binding.buttonFirst.setOnClickListener {
             findNavController().navigate(R.id.action_FirstFragment_to_CameraFragment)
         }
-        binding.authButton.setOnClickListener {
-            (activity as MainActivity).startAuth()
-        }
     }
 
     override fun onDestroyView() {
