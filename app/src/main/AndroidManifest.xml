@@ -2,8 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.czaplicki.eproba">
+
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
     <application
         android:name=".EprobaApplication"
         android:allowBackup="true"
@@ -15,6 +17,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Epróba"
         tools:targetApi="31">
+        <service
+            android:name=".api.EprobaService"
+            android:enabled="true"
+            android:exported="true"></service>
+
         <activity
             android:name=".ProfileActivity"
             android:exported="false"
@@ -33,13 +40,15 @@
         </activity>
         <activity
             android:name="net.openid.appauth.RedirectUriReceiverActivity"
-            tools:node="replace"
-            android:exported="true">
-            <intent-filter  android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:scheme="com.czaplicki.eproba"/>
+            android:exported="true"
+            tools:node="replace">
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="com.czaplicki.eproba" />
             </intent-filter>
         </activity>
     </application>

@@ -1,14 +1,24 @@
 package com.czaplicki.eproba
 
+import com.google.gson.annotations.SerializedName
+import java.time.LocalDateTime
 import java.util.*
 
 class Exam {
+    var id: Int? = null
     var name: String? = null
+    var scout: Int? = null
+    var supervisor: Int? = null
+
+    @SerializedName("is_archived")
+    var isArchived: Boolean = false
+
+    var tasks: MutableList<Task> = mutableListOf()
+
     var first_name: String? = null
     var last_name: String? = null
     var nickname: String? = null
     var team: String? = null
-    var tasks: MutableList<String> = mutableListOf()
     var tasksTableTopCoordinate: Int? = null
     var averageLineHeight: Float? = null
 
@@ -65,8 +75,17 @@ class Exam {
         return """{
 "name": "${name?.replace("\"", "\\\"")}",
 "tasks": 
-    [${tasks.joinToString { "\n{\"task\":\"${it.replace("\"", "\\\"")}\"}" }}
+    [${tasks.joinToString { "\n{\"task\":\"${it.task.replace("\"", "\\\"")}\"}" }}
     ]
 }"""
     }
 }
+
+data class Task(
+    val task: String,
+    val description: String = "",
+    val status: Int = 0,
+    val approver: Int? = null,
+    @SerializedName("approval_date")
+    val approvalDate: LocalDateTime = LocalDateTime.now(),
+)

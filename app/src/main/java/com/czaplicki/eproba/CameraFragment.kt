@@ -7,7 +7,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -76,11 +75,11 @@ class CameraFragment : Fragment() {
         textBlocks: List<Text.TextBlock>,
         tableTop: Int?,
         averageLineHeight: Float?
-    ): MutableList<String> {
+    ): MutableList<Task> {
         if (tableTop == null) {
             return mutableListOf()
         }
-        val tasks = mutableListOf<String>()
+        val tasks = mutableListOf<Task>()
         for (block in textBlocks) {
             val cornerPoints = block.cornerPoints ?: continue
             if ((cornerPoints[2]?.y
@@ -98,7 +97,7 @@ class CameraFragment : Fragment() {
                                 task = task.substringBeforeLast(".")
                             }
                             if (task.isNotEmpty()) {
-                                tasks.add(task)
+                                tasks.add(Task(task))
                             }
                         }
                         continue
@@ -113,7 +112,7 @@ class CameraFragment : Fragment() {
                     task = task.substringBeforeLast(".")
                 }
                 if (task.isNotEmpty()) {
-                    tasks.add(task)
+                    tasks.add(Task(task))
                 }
             }
         }
@@ -351,6 +350,7 @@ class CameraFragment : Fragment() {
         authStateManager.current.performActionWithFreshTokens(
             authService
         ) { accessToken, _, _ ->
+            authStateManager.updateSavedState()
             val request = Request.Builder()
                 .url("https://scouts-exams.herokuapp.com/api/exam/")
                 .header(

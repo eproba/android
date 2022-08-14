@@ -3,7 +3,6 @@ package com.czaplicki.eproba
 import android.app.Activity
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,12 +10,14 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import com.czaplicki.eproba.api.EprobaApi
+import com.czaplicki.eproba.api.EprobaService
 import com.czaplicki.eproba.databinding.FragmentProfileBinding
 import com.google.android.material.snackbar.Snackbar
-import com.google.gson.Gson
 import net.openid.appauth.*
-import okhttp3.*
-import java.io.IOException
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class ProfileFragment : Fragment() {
 
@@ -26,7 +27,6 @@ class ProfileFragment : Fragment() {
 
     private lateinit var mAuthStateManager: AuthStateManager
     private lateinit var authService: AuthorizationService
-    private val client = OkHttpClient()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -121,71 +121,65 @@ class ProfileFragment : Fragment() {
             authService
         ) { accessToken, _, _ ->
             mAuthStateManager.updateSavedState()
-            val request = Request.Builder()
-                .url("https://scouts-exams.herokuapp.com/api/user/")
-                .header(
-                    "Authorization",
-                    "Bearer $accessToken"
-                )
-                .build()
-
-
-            client.newCall(request).enqueue(object : Callback {
-                override fun onFailure(call: Call, e: IOException) {
-                    e.printStackTrace()
-                    activity?.runOnUiThread {
-                        binding.progressBar.visibility = View.GONE
-                        Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
+            val apiService: EprobaService =
+                EprobaApi().getRetrofitInstance(accessToken!!)!!
+                    .create(EprobaService::class.java)
+            apiService.getUserInfo().enqueue(object : Callback<User> {
+                override fun onResponse(call: Call<User>, response: Response<User>) {
+                    when (response.code()) {
+                        200 -> {
+                            if (response.body() == null) {
+                                Toast.makeText(
+                                    requireContext(),
+                                    "Response body is empty, try again later",
+                                    Toast.LENGTH_LONG
+                                )
+                                    .show()
+                                return
+                            }
+                            val user: User = response.body()!!
+                            activity?.runOnUiThread {
+                                binding.progressBar.visibility = View.GONE
+                                binding.name.text = user.fullName
+                            }
+                        }
+                        401, 403 -> {
+                            activity?.runOnUiThread {
+                                binding.name.text = "Unauthorized"
+                            }
+                            mAuthStateManager.current.needsTokenRefresh = true
+                            if (isAfterUnauthorized) {
+                                activity?.runOnUiThread {
+                                    Snackbar.make(
+                                        binding.root,
+                                        "Unauthorized",
+                                        Snackbar.LENGTH_SHORT
+                                    ).setAction(R.string.retry) {
+                                        getUserInfo(isAfterUnauthorized = true)
+                                    }.show()
+                                }
+                            } else {
+                                activity?.runOnUiThread {
+                                    getUserInfo(isAfterUnauthorized = true)
+                                }
+                            }
+                        }
+                        else -> {
+                            activity?.runOnUiThread {
+                                Snackbar.make(
+                                    binding.root,
+                                    "Error: ${response.code()}",
+                                    Snackbar.LENGTH_LONG
+                                ).show()
+                            }
+                        }
                     }
                 }
 
-                override fun onResponse(call: Call, response: Response) {
-                    response.use {
-                        if (!response.isSuccessful) {
-                            activity?.runOnUiThread {
-                                binding.progressBar.visibility = View.GONE
-                            }
-                            when (response.code) {
-                                401, 403 -> {
-                                    activity?.runOnUiThread {
-                                        binding.name.text = "Unauthorized"
-                                    }
-                                    mAuthStateManager.current.needsTokenRefresh = true
-                                    if (isAfterUnauthorized) {
-                                        activity?.runOnUiThread {
-                                            Snackbar.make(
-                                                binding.root,
-                                                "Unauthorized",
-                                                Snackbar.LENGTH_SHORT
-                                            ).setAction(R.string.retry) {
-                                                getUserInfo(isAfterUnauthorized = true)
-                                            }.show()
-                                        }
-                                    } else {
-                                        activity?.runOnUiThread {
-                                            getUserInfo(isAfterUnauthorized = true)
-                                        }
-                                    }
-                                }
-                                else -> {
-                                    activity?.runOnUiThread {
-                                        Snackbar.make(
-                                            binding.root,
-                                            "Error: ${response.code}",
-                                            Snackbar.LENGTH_LONG
-                                        ).show()
-                                    }
-                                }
-                            }
-                            return
-                        }
-                        val body = response.body.string()
-                        val user = Gson().fromJson(body, User::class.java)
-                        Log.d("ProfileFragment", user.toString())
-                        activity?.runOnUiThread {
-                            binding.progressBar.visibility = View.GONE
-                            binding.name.text = user.fullName
-                        }
+                override fun onFailure(call: Call<User>, t: Throwable) {
+                    activity?.runOnUiThread {
+                        binding.progressBar.visibility = View.GONE
+                        Toast.makeText(context, t.message, Toast.LENGTH_SHORT).show()
                     }
                 }
             })
