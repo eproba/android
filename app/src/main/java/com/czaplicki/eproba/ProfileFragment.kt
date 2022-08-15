@@ -144,6 +144,7 @@ class ProfileFragment : Fragment() {
                             }
                         }
                         401, 403 -> {
+                            binding.progressBar.visibility = View.GONE
                             activity?.runOnUiThread {
                                 binding.name.text = "Unauthorized"
                             }
@@ -154,8 +155,14 @@ class ProfileFragment : Fragment() {
                                         binding.root,
                                         "Unauthorized",
                                         Snackbar.LENGTH_SHORT
-                                    ).setAction(R.string.retry) {
-                                        getUserInfo(isAfterUnauthorized = true)
+                                    ).setAction(R.string.button_logout) {
+                                        mAuthStateManager.replace(AuthState())
+                                        Toast.makeText(
+                                            requireContext(),
+                                            "Logged out",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        requireActivity().finish()
                                     }.show()
                                 }
                             } else {
