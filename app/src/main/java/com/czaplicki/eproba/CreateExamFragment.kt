@@ -14,7 +14,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import com.czaplicki.eproba.databinding.FragmentCameraBinding
+import com.czaplicki.eproba.databinding.FragmentCreateExamBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.google.mlkit.vision.common.InputImage
@@ -31,9 +31,9 @@ import java.util.*
 /**
  * A simple [Fragment] subclass as the second destination in the navigation.
  */
-class CameraFragment : Fragment() {
+class CreateExamFragment : Fragment() {
 
-    private var _binding: FragmentCameraBinding? = null
+    private var _binding: FragmentCreateExamBinding? = null
     private val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
 
 
@@ -51,9 +51,13 @@ class CameraFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
 
-        _binding = FragmentCameraBinding.inflate(inflater, container, false)
+        _binding = FragmentCreateExamBinding.inflate(inflater, container, false)
         authService = AuthorizationService(requireContext())
-        pickImage()
+        binding.refreshButton.visibility = View.VISIBLE
+        binding.refreshButton.setOnClickListener {
+            binding.refreshButton.visibility = View.GONE
+            pickImage()
+        }
         return binding.root
 
     }
@@ -62,7 +66,7 @@ class CameraFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.buttonSecond.setOnClickListener {
-            findNavController().navigate(R.id.action_CameraFragment_to_FirstFragment)
+            findNavController().navigate(R.id.action_CreateExamFragment_to_FirstFragment)
         }
     }
 

@@ -10,11 +10,13 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import com.czaplicki.eproba.databinding.ActivityMainBinding
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 
 
 class MainActivity : AppCompatActivity() {
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
+    lateinit var fab: ExtendedFloatingActionButton
 
     private lateinit var mAuthStateManager: AuthStateManager
 
@@ -31,14 +33,15 @@ class MainActivity : AppCompatActivity() {
         val navController = findNavController(R.id.nav_host_fragment_content_main)
         appBarConfiguration = AppBarConfiguration(navController.graph)
         setupActionBarWithNavController(navController, appBarConfiguration)
+        fab = binding.fab
         binding.fab.setOnClickListener {
-            navController.navigate(R.id.action_FirstFragment_to_CameraFragment)
+            navController.navigate(R.id.action_FirstFragment_to_CreateExamFragment)
         }
         navController.addOnDestinationChangedListener { _, destination, _ ->
             if (destination.id == R.id.FirstFragment) {
-                binding.fab.show()
+                fab.show()
             } else {
-                binding.fab.hide()
+                fab.hide()
             }
         }
         mAuthStateManager = AuthStateManager.getInstance(this)

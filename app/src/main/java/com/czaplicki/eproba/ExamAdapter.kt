@@ -4,9 +4,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.divider.MaterialDividerItemDecoration
 
 
 class ExamAdapter(private val dataSet: List<Exam>) :
@@ -40,7 +40,7 @@ class ExamAdapter(private val dataSet: List<Exam>) :
 
         taskList = view.findViewById(R.id.task_list) as RecyclerView
         taskList!!.layoutManager = LinearLayoutManager(viewGroup.context)
-        val mDividerItemDecoration = DividerItemDecoration(
+        val mDividerItemDecoration = MaterialDividerItemDecoration(
             taskList!!.context,
             LinearLayoutManager(viewGroup.context).orientation
         )
@@ -59,7 +59,10 @@ class ExamAdapter(private val dataSet: List<Exam>) :
             viewHolder.supervisor.visibility = View.VISIBLE
             viewHolder.supervisor.text = dataSet[position].supervisor.toString()
         }
-        viewHolder.progressPercentage.text = dataSet[position].tasks.size.toString() + "%"
+        viewHolder.progressPercentage.text = viewHolder.itemView.context.getString(
+            R.string.progress_percentage,
+            dataSet[position].tasks.filter { it.status == Task.Status.APPROVED }.size * 100 / dataSet[position].tasks.size
+        )
         taskList!!.adapter = TaskAdapter(dataSet[position].tasks)
     }
 

@@ -16,11 +16,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Epróba"
-        tools:targetApi="31">
-        <service
-            android:name=".api.EprobaService"
-            android:enabled="true"
-            android:exported="true"></service>
+        tools:targetApi="33">
 
         <activity
             android:name=".ProfileActivity"

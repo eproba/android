@@ -12,17 +12,17 @@
         tools:layout="@layout/fragment_first">
 
         <action
-            android:id="@+id/action_FirstFragment_to_CameraFragment"
-            app:destination="@id/CameraFragment" />
+            android:id="@+id/action_FirstFragment_to_CreateExamFragment"
+            app:destination="@id/CreateExamFragment" />
     </fragment>
     <fragment
-        android:id="@+id/CameraFragment"
-        android:name="com.czaplicki.eproba.CameraFragment"
+        android:id="@+id/CreateExamFragment"
+        android:name="com.czaplicki.eproba.CreateExamFragment"
         android:label="@string/camera_fragment_label"
-        tools:layout="@layout/fragment_camera">
+        tools:layout="@layout/fragment_create_exam">
 
         <action
-            android:id="@+id/action_CameraFragment_to_FirstFragment"
+            android:id="@+id/action_CreateExamFragment_to_FirstFragment"
             app:destination="@id/FirstFragment" />
     </fragment>
     <activity

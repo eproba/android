@@ -64,10 +64,10 @@ class Exam {
     }
 
     fun updateAverageLineHeight(height: Int) {
-        if (averageLineHeight == null) {
-            averageLineHeight = height.toFloat()
+        averageLineHeight = if (averageLineHeight == null) {
+            height.toFloat()
         } else {
-            averageLineHeight = (averageLineHeight!! + height) / 2
+            (averageLineHeight!! + height) / 2
         }
     }
 
@@ -88,4 +88,13 @@ data class Task(
     val approver: Int? = null,
     @SerializedName("approval_date")
     val approvalDate: LocalDateTime = LocalDateTime.now(),
-)
+) {
+    class Status {
+        companion object {
+            const val PENDING = 0
+            const val AWAITING_APPROVAL = 1
+            const val APPROVED = 2
+            const val REJECTED = 3
+        }
+    }
+}

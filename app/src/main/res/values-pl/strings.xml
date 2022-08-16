@@ -14,4 +14,7 @@
     <string name="logged_out">Wylogowano</string>
     <string name="button_login">Zaloguj się</string>
     <string name="button_logout">Wyloguj</string>
+    <string name="create_exam">Utwórz nową próbę</string>
+    <string name="progress_percentage">Procent wykonanych zadań: %d%%</string>
+    <string name="first_fragment_label">Epróba</string>
 </resources>
