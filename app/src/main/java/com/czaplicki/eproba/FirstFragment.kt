@@ -42,13 +42,11 @@ class FirstFragment : Fragment() {
         _binding = FragmentFirstBinding.inflate(inflater, container, false)
         recyclerView = binding.recyclerView
         recyclerView?.layoutManager = LinearLayoutManager(view?.context)
-        recyclerView?.adapter = ExamAdapter(examList)
-        binding.progressBar.visibility = View.VISIBLE
+        recyclerView?.adapter = ExamAdapter(requireContext(), examList)
         mAuthStateManager.current.performActionWithFreshTokens(
             authService
         ) { accessToken, _, _ ->
             if (accessToken == null) {
-                binding.progressBar.visibility = View.GONE
                 Toast.makeText(
                     requireContext(),
                     "No access token",
@@ -58,10 +56,10 @@ class FirstFragment : Fragment() {
             }
             mAuthStateManager.updateSavedState()
             apiService =
-                EprobaApi().getRetrofitInstance(accessToken)!!.create(EprobaService::class.java)
+                EprobaApi().getRetrofitInstance(requireContext(), accessToken)!!
+                    .create(EprobaService::class.java)
             mSwipeRefreshLayout.isRefreshing = true
             updateExams()
-            binding.progressBar.visibility = View.GONE
         }
         mSwipeRefreshLayout.setOnRefreshListener {
             updateExams()
@@ -113,7 +111,7 @@ class FirstFragment : Fragment() {
                         Snackbar.LENGTH_LONG
                     ).show()
                 }
-                recyclerView?.adapter = ExamAdapter(examList)
+                recyclerView?.adapter = ExamAdapter(requireContext(), examList)
                 mSwipeRefreshLayout.isRefreshing = false
             }
         })

@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.preference.PreferenceManager
 import com.czaplicki.eproba.api.EprobaApi
 import com.czaplicki.eproba.api.EprobaService
 import com.czaplicki.eproba.databinding.FragmentProfileBinding
@@ -65,10 +66,12 @@ class ProfileFragment : Fragment() {
     private fun startAuth() {
         val redirectUri = Uri.parse("com.czaplicki.eproba://oauth2redirect")
         val clientId = "57wXiwkX1865qziVedFEXXum01m9QHJ6MDMVD03i"
+        val baseUrl = PreferenceManager.getDefaultSharedPreferences(requireContext())
+            .getString("server", "https://scouts-exams.herokuapp.com")
         val builder = AuthorizationRequest.Builder(
             AuthorizationServiceConfiguration(
-                Uri.parse("https://scouts-exams.herokuapp.com/oauth2/authorize/"), // authorization endpoint
-                Uri.parse("https://scouts-exams.herokuapp.com/oauth2/token/") // token endpoint
+                Uri.parse("$baseUrl/oauth2/authorize/"), // authorization endpoint
+                Uri.parse("$baseUrl/oauth2/token/") // token endpoint
             ),
             clientId,
             ResponseTypeValues.CODE,
@@ -122,7 +125,7 @@ class ProfileFragment : Fragment() {
         ) { accessToken, _, _ ->
             mAuthStateManager.updateSavedState()
             val apiService: EprobaService =
-                EprobaApi().getRetrofitInstance(accessToken!!)!!
+                EprobaApi().getRetrofitInstance(requireContext(), accessToken!!)!!
                     .create(EprobaService::class.java)
             apiService.getUserInfo().enqueue(object : Callback<User> {
                 override fun onResponse(call: Call<User>, response: Response<User>) {

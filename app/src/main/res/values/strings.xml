@@ -19,4 +19,14 @@
     <string name="button_logout">Logout</string>
     <string name="create_exam">Create a new exam</string>
     <string name="progress_percentage">Progress: %d%%</string>
+    <string name="advertisement">Advertisement</string>
+    <string name="settings">Settings</string>
+
+    <!-- Preference Titles -->
+
+    <!-- Messages Preferences -->
+    <string name="display_ads">Display ads</string>
+
+    <!-- Sync Preferences -->
+    <string name="select_server">App server</string>
 </resources>

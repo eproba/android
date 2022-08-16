@@ -10,6 +10,8 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import com.czaplicki.eproba.databinding.ActivityMainBinding
+import com.google.android.gms.ads.MobileAds
+import com.google.android.gms.ads.RequestConfiguration
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 
 
@@ -45,6 +47,11 @@ class MainActivity : AppCompatActivity() {
             }
         }
         mAuthStateManager = AuthStateManager.getInstance(this)
+        MobileAds.initialize(this)
+        MobileAds.setRequestConfiguration(
+            RequestConfiguration.Builder()
+                .setTestDeviceIds(listOf("59822EDA71A89C033EEBD914F011B2EA")).build()
+        )
 
     }
 
@@ -62,6 +69,11 @@ class MainActivity : AppCompatActivity() {
             R.id.account -> {
                 val navController = findNavController(R.id.nav_host_fragment_content_main)
                 navController.navigate(R.id.action_global_profileActivity)
+                true
+            }
+            R.id.settings -> {
+                val navController = findNavController(R.id.nav_host_fragment_content_main)
+                navController.navigate(R.id.action_global_settingsActivity)
                 true
             }
             else -> super.onOptionsItemSelected(item)

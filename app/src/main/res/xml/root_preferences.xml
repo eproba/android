@@ -1,0 +1,16 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <ListPreference
+        app:defaultValue="https://scouts-exams.herokuapp.com"
+        app:entries="@array/server_entries"
+        app:entryValues="@array/server_values"
+        app:key="server"
+        app:title="@string/select_server"
+        app:useSimpleSummaryProvider="true" />
+
+    <SwitchPreferenceCompat
+        app:defaultValue="true"
+        app:key="ads"
+        app:title="@string/display_ads" />
+
+</PreferenceScreen>

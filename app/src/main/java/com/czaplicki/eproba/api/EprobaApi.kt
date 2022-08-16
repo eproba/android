@@ -1,5 +1,7 @@
 package com.czaplicki.eproba.api
 
+import android.content.Context
+import androidx.preference.PreferenceManager
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonDeserializer
 import okhttp3.Interceptor
@@ -13,7 +15,7 @@ import java.time.ZonedDateTime
 class EprobaApi {
     private var retrofit: Retrofit? = null
 
-    fun getRetrofitInstance(token: String): Retrofit? {
+    fun getRetrofitInstance(context: Context, token: String): Retrofit? {
         if (retrofit == null) {
             val client: OkHttpClient = OkHttpClient.Builder().addInterceptor(Interceptor { chain ->
                 val newRequest: okhttp3.Request = chain.request().newBuilder()
@@ -30,7 +32,12 @@ class EprobaApi {
                 }).create()
             retrofit = Retrofit.Builder()
                 .client(client)
-                .baseUrl("https://scouts-exams.herokuapp.com/api/")
+                .baseUrl(
+                    "${
+                        PreferenceManager.getDefaultSharedPreferences(context)
+                            .getString("server", "https://scouts-exams.herokuapp.com")
+                    }/api/"
+                )
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .build()
         }

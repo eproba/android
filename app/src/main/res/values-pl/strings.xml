@@ -17,4 +17,8 @@
     <string name="create_exam">Utwórz nową próbę</string>
     <string name="progress_percentage">Procent wykonanych zadań: %d%%</string>
     <string name="first_fragment_label">Epróba</string>
+    <string name="advertisement">Reklama</string>
+    <string name="settings">Ustawienia</string>
+    <string name="display_ads">Wyświetlaj reklamy</string>
+    <string name="select_server">Serwer aplikacji</string>
 </resources>

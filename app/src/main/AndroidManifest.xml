@@ -17,7 +17,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Epróba"
         tools:targetApi="33">
-
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false"
+            android:label="@string/settings" />
         <activity
             android:name=".ProfileActivity"
             android:exported="false"
@@ -47,6 +50,10 @@
                 <data android:scheme="com.czaplicki.eproba" />
             </intent-filter>
         </activity>
+
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-3940256099942544~3347511713" />
     </application>
 
 </manifest>

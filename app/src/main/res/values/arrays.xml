@@ -1,0 +1,12 @@
+<resources>
+    <!-- Reply Preference -->
+    <string-array name="server_entries">
+        <item>Testing server</item>
+        <item>Main server (use with caution, some function will be disabled)</item>
+    </string-array>
+
+    <string-array name="server_values">
+        <item>https://scouts-exams.herokuapp.com</item>
+        <item>https://eproba.pl</item>
+    </string-array>
+</resources>

@@ -14,6 +14,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import androidx.preference.PreferenceManager
 import com.czaplicki.eproba.databinding.FragmentCreateExamBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
@@ -41,6 +42,7 @@ class CreateExamFragment : Fragment() {
     // onDestroyView.
     private val binding get() = _binding!!
     private val client = OkHttpClient()
+    private lateinit var baseUrl: String
 
 
     private lateinit var authService: AuthorizationService
@@ -53,6 +55,8 @@ class CreateExamFragment : Fragment() {
 
         _binding = FragmentCreateExamBinding.inflate(inflater, container, false)
         authService = AuthorizationService(requireContext())
+        baseUrl = PreferenceManager.getDefaultSharedPreferences(requireContext())
+            .getString("server", "https://scouts-exams.herokuapp.com")!!
         binding.refreshButton.visibility = View.VISIBLE
         binding.refreshButton.setOnClickListener {
             binding.refreshButton.visibility = View.GONE
@@ -301,7 +305,14 @@ class CreateExamFragment : Fragment() {
     }
 
     private fun submitExam(exam: Exam) {
-
+        if (baseUrl == "https://eproba.pl") {
+            Snackbar.make(
+                binding.root,
+                "You can't submit exam on main server. Please use a testing server.",
+                Snackbar.LENGTH_LONG
+            ).show()
+            return
+        }
         val authStateManager = AuthStateManager.getInstance(requireContext())
 
 //        if (authStateManager.current.accessToken == null) {
@@ -356,7 +367,7 @@ class CreateExamFragment : Fragment() {
         ) { accessToken, _, _ ->
             authStateManager.updateSavedState()
             val request = Request.Builder()
-                .url("https://scouts-exams.herokuapp.com/api/exam/")
+                .url("$baseUrl/api/exam/")
                 .header(
                     "Authorization",
                     "Bearer $accessToken"

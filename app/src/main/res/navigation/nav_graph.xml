@@ -33,4 +33,12 @@
     <action
         android:id="@+id/action_global_profileActivity"
         app:destination="@id/profileActivity" />
+    <activity
+        android:id="@+id/settingsActivity"
+        android:name="com.czaplicki.eproba.SettingsActivity"
+        android:label="activity_settings"
+        tools:layout="@layout/activity_settings" />
+    <action
+        android:id="@+id/action_global_settingsActivity"
+        app:destination="@id/settingsActivity" />
 </navigation>
