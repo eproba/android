@@ -1,7 +1,7 @@
 <PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <ListPreference
-        app:defaultValue="https://scouts-exams.herokuapp.com"
+        app:defaultValue="https://dev.eproba.pl"
         app:entries="@array/server_entries"
         app:entryValues="@array/server_values"
         app:key="server"

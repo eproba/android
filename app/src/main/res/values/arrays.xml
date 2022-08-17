@@ -6,7 +6,7 @@
     </string-array>
 
     <string-array name="server_values">
-        <item>https://scouts-exams.herokuapp.com</item>
+        <item>https://dev.eproba.pl</item>
         <item>https://eproba.pl</item>
     </string-array>
 </resources>

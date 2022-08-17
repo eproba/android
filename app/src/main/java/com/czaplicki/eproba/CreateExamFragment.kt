@@ -56,7 +56,7 @@ class CreateExamFragment : Fragment() {
         _binding = FragmentCreateExamBinding.inflate(inflater, container, false)
         authService = AuthorizationService(requireContext())
         baseUrl = PreferenceManager.getDefaultSharedPreferences(requireContext())
-            .getString("server", "https://scouts-exams.herokuapp.com")!!
+            .getString("server", "https://dev.eproba.pl")!!
         binding.refreshButton.visibility = View.VISIBLE
         binding.refreshButton.setOnClickListener {
             binding.refreshButton.visibility = View.GONE

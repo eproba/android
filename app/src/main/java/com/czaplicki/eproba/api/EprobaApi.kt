@@ -35,7 +35,7 @@ class EprobaApi {
                 .baseUrl(
                     "${
                         PreferenceManager.getDefaultSharedPreferences(context)
-                            .getString("server", "https://scouts-exams.herokuapp.com")
+                            .getString("server", "https://dev.eproba.pl")
                     }/api/"
                 )
                 .addConverterFactory(GsonConverterFactory.create(gson))

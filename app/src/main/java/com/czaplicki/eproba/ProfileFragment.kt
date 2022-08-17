@@ -67,7 +67,7 @@ class ProfileFragment : Fragment() {
         val redirectUri = Uri.parse("com.czaplicki.eproba://oauth2redirect")
         val clientId = "57wXiwkX1865qziVedFEXXum01m9QHJ6MDMVD03i"
         val baseUrl = PreferenceManager.getDefaultSharedPreferences(requireContext())
-            .getString("server", "https://scouts-exams.herokuapp.com")
+            .getString("server", "https://dev.eproba.pl")
         val builder = AuthorizationRequest.Builder(
             AuthorizationServiceConfiguration(
                 Uri.parse("$baseUrl/oauth2/authorize/"), // authorization endpoint
