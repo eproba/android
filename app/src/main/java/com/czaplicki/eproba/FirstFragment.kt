@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.czaplicki.eproba.api.EprobaApi
@@ -26,23 +27,20 @@ class FirstFragment : Fragment() {
     private lateinit var authService: AuthorizationService
     private var recyclerView: RecyclerView? = null
     private val mSwipeRefreshLayout by lazy { _binding!!.swipeRefreshLayout }
-    private var apiService: EprobaService? = null
-    var examList: List<Exam> = listOf()
-    val api: EprobaApi = EprobaApi()
-
+    private val api: EprobaApi = EprobaApi()
+    var examList: MutableList<Exam> = mutableListOf()
     private val binding get() = _binding!!
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-
+        _binding = FragmentFirstBinding.inflate(inflater, container, false)
         mAuthStateManager = AuthStateManager.getInstance(requireContext())
         authService = AuthorizationService(requireContext())
-        _binding = FragmentFirstBinding.inflate(inflater, container, false)
         recyclerView = binding.recyclerView
         recyclerView?.layoutManager = LinearLayoutManager(view?.context)
-        recyclerView?.adapter = ExamAdapter(requireContext(), examList)
+        recyclerView?.adapter = ExamAdapter(examList)
         mSwipeRefreshLayout.setOnRefreshListener {
             updateExams()
         }
@@ -84,6 +82,7 @@ class FirstFragment : Fragment() {
                 binding.notLoggedIn.visibility = View.GONE
             }
             mAuthStateManager.updateSavedState()
+            mSwipeRefreshLayout.isRefreshing = true
             api.getRetrofitInstance(requireContext(), accessToken)!!
                 .create(EprobaService::class.java).getUserExams()
                 .enqueue(object : retrofit2.Callback<List<Exam>> {
@@ -102,7 +101,11 @@ class FirstFragment : Fragment() {
                         response: retrofit2.Response<List<Exam>>
                     ) {
                         if (response.body() != null) {
-                            examList = response.body()!!
+                            examList.clear()
+                            examList.addAll(response.body()!!)
+                            if (PreferenceManager.getDefaultSharedPreferences(requireContext())
+                                    .getBoolean("ads", true)
+                            ) examList.add(Exam(id = -1, name = "ad"))
                         } else {
                             Snackbar.make(
                                 binding.root,
@@ -110,11 +113,11 @@ class FirstFragment : Fragment() {
                                 Snackbar.LENGTH_LONG
                             ).show()
                         }
-                        recyclerView?.adapter = ExamAdapter(requireContext(), examList)
+                        recyclerView?.adapter?.notifyDataSetChanged()
+//                        recyclerView?.adapter = ExamAdapter(requireContext(), examList)
                         mSwipeRefreshLayout.isRefreshing = false
                     }
                 })
-            mSwipeRefreshLayout.isRefreshing = true
         }
     }
 }

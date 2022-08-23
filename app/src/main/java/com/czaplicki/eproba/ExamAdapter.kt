@@ -1,11 +1,9 @@
 package com.czaplicki.eproba
 
-import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.gms.ads.AdLoader
@@ -15,12 +13,9 @@ import com.google.android.gms.ads.nativead.NativeAdView
 import com.google.android.material.divider.MaterialDividerItemDecoration
 
 
-class ExamAdapter(context: Context, private val dataSet: List<Exam>) :
+class ExamAdapter(private val dataSet: List<Exam>) :
     RecyclerView.Adapter<ExamAdapter.ViewHolder>() {
 
-    private var taskList: RecyclerView? = null
-    var displayAds: Boolean =
-        PreferenceManager.getDefaultSharedPreferences(context).getBoolean("ads", true)
 
     /**
      * Provide a reference to the type of views that you are using
@@ -31,6 +26,7 @@ class ExamAdapter(context: Context, private val dataSet: List<Exam>) :
         val supervisor: TextView
         val progressPercentage: TextView
         val adFrame: FrameLayout
+        val taskList: RecyclerView
 
         init {
             // Define click listener for the ViewHolder's View.
@@ -38,6 +34,7 @@ class ExamAdapter(context: Context, private val dataSet: List<Exam>) :
             supervisor = view.findViewById(R.id.supervisor)
             progressPercentage = view.findViewById(R.id.progressPercentage)
             adFrame = view.findViewById(R.id.ad_frame)
+            taskList = view.findViewById(R.id.task_list) as RecyclerView
         }
     }
 
@@ -46,17 +43,15 @@ class ExamAdapter(context: Context, private val dataSet: List<Exam>) :
         // Create a new view, which defines the UI of the list item
         val view = LayoutInflater.from(viewGroup.context)
             .inflate(R.layout.exam_item, viewGroup, false)
+        val viewHolder = ViewHolder(view)
 
-
-        taskList = view.findViewById(R.id.task_list) as RecyclerView
-        taskList!!.layoutManager = LinearLayoutManager(viewGroup.context)
+        viewHolder.taskList.layoutManager = LinearLayoutManager(viewHolder.itemView.context)
         val mDividerItemDecoration = MaterialDividerItemDecoration(
-            taskList!!.context,
-            LinearLayoutManager(viewGroup.context).orientation
+            viewHolder.taskList.context,
+            LinearLayoutManager(viewHolder.itemView.context).orientation
         )
-        taskList!!.addItemDecoration(mDividerItemDecoration)
-
-        return ViewHolder(view)
+        viewHolder.taskList.addItemDecoration(mDividerItemDecoration)
+        return viewHolder
     }
 
     // Replace the contents of a view (invoked by the layout manager)
@@ -64,11 +59,11 @@ class ExamAdapter(context: Context, private val dataSet: List<Exam>) :
 
         // Get element from your dataset at this position and replace the
         // contents of the view with that element
-        if (displayAds && position == itemCount - 1) {
+        if (dataSet[position].id == -1 && dataSet[position].name == "ad" && position == itemCount - 1) {
             viewHolder.name.text = viewHolder.itemView.context.getString(R.string.advertisement)
             viewHolder.supervisor.visibility = View.GONE
             viewHolder.progressPercentage.visibility = View.GONE
-            taskList?.visibility = View.GONE
+            viewHolder.taskList.visibility = View.GONE
             viewHolder.adFrame.visibility = View.VISIBLE
             val builder = AdLoader.Builder(
                 viewHolder.itemView.context,
@@ -90,21 +85,27 @@ class ExamAdapter(context: Context, private val dataSet: List<Exam>) :
             builder.build().loadAd(AdRequest.Builder().build())
             return
         }
+
         viewHolder.name.text = dataSet[position].name
         if (dataSet[position].supervisor != null) {
             viewHolder.supervisor.visibility = View.VISIBLE
             viewHolder.supervisor.text = dataSet[position].supervisor.toString()
+        } else {
+            viewHolder.supervisor.visibility = View.GONE
         }
+        viewHolder.progressPercentage.visibility = View.VISIBLE
         viewHolder.progressPercentage.text =
             if (dataSet[position].tasks.size == 0) "" else viewHolder.itemView.context.getString(
                 R.string.progress_percentage,
                 dataSet[position].tasks.filter { it.status == Task.Status.APPROVED }.size * 100 / dataSet[position].tasks.size
             )
-        taskList?.adapter = TaskAdapter(dataSet[position].tasks)
+        viewHolder.taskList.visibility = View.VISIBLE
+        viewHolder.taskList.adapter = TaskAdapter(dataSet[position].tasks)
+        viewHolder.adFrame.visibility = View.GONE
     }
 
     // Return the size of your dataset (invoked by the layout manager)
-    override fun getItemCount() = if (displayAds) dataSet.size + 1 else dataSet.size
+    override fun getItemCount() = dataSet.size
 
     private fun populateNativeAdView(nativeAd: NativeAd, adView: NativeAdView) {
         // Set the media view.

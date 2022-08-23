@@ -4,16 +4,14 @@ import com.google.gson.annotations.SerializedName
 import java.time.LocalDateTime
 import java.util.*
 
-class Exam {
-    var id: Int? = null
-    var name: String? = null
-    var scout: Int? = null
-    var supervisor: Int? = null
-
-    @SerializedName("is_archived")
-    var isArchived: Boolean = false
-
+class Exam(
+    var id: Int? = null,
+    var name: String? = null,
+    var scout: Int? = null,
+    var supervisor: Int? = null,
+    @SerializedName("is_archived") var isArchived: Boolean = false,
     var tasks: MutableList<Task> = mutableListOf()
+) {
 
     var first_name: String? = null
     var last_name: String? = null
@@ -23,7 +21,7 @@ class Exam {
     var averageLineHeight: Float? = null
 
     override fun toString(): String {
-        return "Exam(name=$name, first_name=$first_name, last_name=$last_name, nickname=$nickname, team=$team, tasks=$tasks)"
+        return "Exam(id=$id. name=$name, first_name=$first_name, last_name=$last_name, nickname=$nickname, team=$team, tasks=$tasks)"
     }
 
     fun toFormattedString(): String {
