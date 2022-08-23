@@ -29,4 +29,8 @@
 
     <!-- Sync Preferences -->
     <string name="select_server">App server</string>
+    <string name="server_key">Server key</string>
+    <string name="server_key_summary">If you are using the primary server and want to access all functions, you will need to enter the server authorization key</string>
+    <string name="main_server">Main server (use with caution, some function may be disabled)</string>
+    <string name="dev_server">Developer server</string>
 </resources>

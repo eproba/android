@@ -21,4 +21,8 @@
     <string name="settings">Ustawienia</string>
     <string name="display_ads">Wyświetlaj reklamy</string>
     <string name="select_server">Serwer aplikacji</string>
+    <string name="server_key">Klucz serwera</string>
+    <string name="server_key_summary">Jeśli korzystasz z serwera głównego i chcesz uzyskać dostęp do wszystkich funkcji, musisz wprowadzić klucz autoryzacji serwera</string>
+    <string name="dev_server">Serwer deweloperski</string>
+    <string name="main_server">Serwer główny (używaj z ostrożnością, niektóre funkcje mogą być niedostępne)</string>
 </resources>

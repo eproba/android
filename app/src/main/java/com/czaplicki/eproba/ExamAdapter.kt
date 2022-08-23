@@ -72,7 +72,7 @@ class ExamAdapter(context: Context, private val dataSet: List<Exam>) :
             viewHolder.adFrame.visibility = View.VISIBLE
             val builder = AdLoader.Builder(
                 viewHolder.itemView.context,
-                "ca-app-pub-3940256099942544/2247696110"
+                "ca-app-pub-3940256099942544/2247696110" // Test ad unit id
             )
                 .forNativeAd { nativeAd ->
                     // Assumes that your ad layout is in a file call native_ad_layout.xml
@@ -95,10 +95,11 @@ class ExamAdapter(context: Context, private val dataSet: List<Exam>) :
             viewHolder.supervisor.visibility = View.VISIBLE
             viewHolder.supervisor.text = dataSet[position].supervisor.toString()
         }
-        viewHolder.progressPercentage.text = viewHolder.itemView.context.getString(
-            R.string.progress_percentage,
-            dataSet[position].tasks.filter { it.status == Task.Status.APPROVED }.size * 100 / dataSet[position].tasks.size
-        )
+        viewHolder.progressPercentage.text =
+            if (dataSet[position].tasks.size == 0) "" else viewHolder.itemView.context.getString(
+                R.string.progress_percentage,
+                dataSet[position].tasks.filter { it.status == Task.Status.APPROVED }.size * 100 / dataSet[position].tasks.size
+            )
         taskList?.adapter = TaskAdapter(dataSet[position].tasks)
     }
 

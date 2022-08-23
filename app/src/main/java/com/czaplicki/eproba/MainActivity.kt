@@ -1,18 +1,24 @@
 package com.czaplicki.eproba
 
+import android.app.Activity
+import android.net.Uri
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
+import androidx.preference.PreferenceManager
 import com.czaplicki.eproba.databinding.ActivityMainBinding
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.RequestConfiguration
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+import net.openid.appauth.*
 
 
 class MainActivity : AppCompatActivity() {
@@ -20,6 +26,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     lateinit var fab: ExtendedFloatingActionButton
 
+    private lateinit var authService: AuthorizationService
     private lateinit var mAuthStateManager: AuthStateManager
 
 
@@ -47,6 +54,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
         mAuthStateManager = AuthStateManager.getInstance(this)
+        authService = AuthorizationService(this)
         MobileAds.initialize(this)
         MobileAds.setRequestConfiguration(
             RequestConfiguration.Builder()
@@ -84,6 +92,62 @@ class MainActivity : AppCompatActivity() {
         val navController = findNavController(R.id.nav_host_fragment_content_main)
         return navController.navigateUp(appBarConfiguration)
                 || super.onSupportNavigateUp()
+    }
+
+
+    fun startAuth() {
+        val redirectUri = Uri.parse("com.czaplicki.eproba://oauth2redirect")
+        val clientId = "57wXiwkX1865qziVedFEXXum01m9QHJ6MDMVD03i"
+        val baseUrl = PreferenceManager.getDefaultSharedPreferences(this)
+            .getString("server", "https://dev.eproba.pl")
+        val builder = AuthorizationRequest.Builder(
+            AuthorizationServiceConfiguration(
+                Uri.parse("$baseUrl/oauth2/authorize/"), // authorization endpoint
+                Uri.parse("$baseUrl/oauth2/token/") // token endpoint
+            ),
+            clientId,
+            ResponseTypeValues.CODE,
+            redirectUri
+        )
+        builder.setScopes("read write")
+
+        val authRequest = builder.build()
+        authService = AuthorizationService(this)
+        val authIntent = authService.getAuthorizationRequestIntent(authRequest)
+        getAuthorizationCode.launch(authIntent)
+    }
+
+    private val getAuthorizationCode =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (it.resultCode == Activity.RESULT_OK) {
+                val resp = AuthorizationResponse.fromIntent(it.data!!)
+                val ex = AuthorizationException.fromIntent(it.data)
+                if (resp != null) {
+                    mAuthStateManager.updateAfterAuthorization(resp, ex)
+                    exchangeCodeForToken()
+                }
+            }
+        }
+
+    // exchange authorization code for access token
+    private fun exchangeCodeForToken() {
+        if (mAuthStateManager.current.lastAuthorizationResponse == null) {
+            Toast.makeText(this, "Authorization response is null", Toast.LENGTH_LONG)
+                .show()
+            return
+        }
+        authService.performTokenRequest(
+            mAuthStateManager.current.lastAuthorizationResponse!!.createTokenExchangeRequest()
+        ) { resp, ex ->
+            if (resp != null) {
+                mAuthStateManager.updateAfterTokenResponse(resp, ex)
+                this.recreate()
+            } else {
+                if (ex != null) {
+                    Toast.makeText(this, "Error: ${ex.error}", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
     }
 
 

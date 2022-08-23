@@ -305,7 +305,10 @@ class CreateExamFragment : Fragment() {
     }
 
     private fun submitExam(exam: Exam) {
-        if (baseUrl == "https://eproba.pl") {
+        if (baseUrl == "https://eproba.pl" && PreferenceManager.getDefaultSharedPreferences(
+                requireContext()
+            ).getString("server_key", "") != "47"
+        ) {
             Snackbar.make(
                 binding.root,
                 "You can't submit exam on main server. Please use a testing server.",
