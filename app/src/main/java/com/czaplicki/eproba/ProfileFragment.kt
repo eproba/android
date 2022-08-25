@@ -60,6 +60,9 @@ class ProfileFragment : Fragment() {
             else
                 ContextCompat.getDrawable(requireActivity(), R.drawable.ic_help)
         )
+        binding.deleteDB.setOnClickListener {
+            requireContext().deleteDatabase("eproba.db")
+        }
         if (mAuthStateManager.current.isAuthorized) getUserInfo()
     }
 

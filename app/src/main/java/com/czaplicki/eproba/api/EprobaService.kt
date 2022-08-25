@@ -10,6 +10,9 @@ interface EprobaService {
     @GET("user/")
     fun getUserInfo(): Call<User>
 
+    @GET("users/")
+    fun getUsersPublicInfo(): Call<List<User>>
+
     @GET("exam/?user")
     fun getUserExams(): Call<List<Exam>>
 
