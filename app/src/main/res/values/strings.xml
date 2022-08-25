@@ -33,4 +33,7 @@
     <string name="server_key_summary">If you are using the primary server and want to access all functions, you will need to enter the server authorization key</string>
     <string name="main_server">Main server (use with caution, some function may be disabled)</string>
     <string name="dev_server">Developer server</string>
+    <string name="awaiting_approval">On %s at %s, an approval request was sent to %s</string>
+    <string name="approved">On %s at %s, the task was approved by %s</string>
+    <string name="rejected">On %s at %s, the task was rejected by %s</string>
 </resources>

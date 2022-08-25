@@ -1,5 +1,6 @@
 package com.czaplicki.eproba
 
+import android.graphics.drawable.Icon
 import com.google.gson.annotations.SerializedName
 import java.time.LocalDateTime
 import java.util.*
@@ -95,4 +96,14 @@ data class Task(
             const val REJECTED = 3
         }
     }
+
+
+    val statusIcon: Icon
+        get() = when (status) {
+            0 -> Icon.createWithResource("com.czaplicki.eproba", R.drawable.radio_button_unchecked_24px)
+            1 -> Icon.createWithResource("com.czaplicki.eproba", R.drawable.schedule_24px)
+            2 -> Icon.createWithResource("com.czaplicki.eproba", R.drawable.check_circle_24px)
+            3 -> Icon.createWithResource("com.czaplicki.eproba", R.drawable.error_24px)
+            else -> Icon.createWithResource("com.czaplicki.eproba", R.drawable.ic_help)
+        }
 }

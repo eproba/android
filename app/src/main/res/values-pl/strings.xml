@@ -25,4 +25,7 @@
     <string name="server_key_summary">Jeśli korzystasz z serwera głównego i chcesz uzyskać dostęp do wszystkich funkcji, musisz wprowadzić klucz autoryzacji serwera</string>
     <string name="dev_server">Serwer deweloperski</string>
     <string name="main_server">Serwer główny (używaj z ostrożnością, niektóre funkcje mogą być niedostępne)</string>
+    <string name="awaiting_approval">%sr. o godzinie %s wysłano prośbę o zatwierdzenie do %s</string>
+    <string name="approved">%s o %s zadanie zostało zatwierdzone przez %s</string>
+    <string name="rejected">%s o %s zadanie zostało odrzucone przez %s</string>
 </resources>
