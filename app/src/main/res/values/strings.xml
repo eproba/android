@@ -37,4 +37,5 @@
     <string name="approved">On %s at %s, the task was approved by %s</string>
     <string name="rejected">On %s at %s, the task was rejected by %s</string>
     <string name="someone">someone</string>
+    <string name="welcome_message">Welcome to the eproba app, \nplease log in to get started</string>
 </resources>

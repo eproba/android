@@ -41,86 +41,19 @@ class ProfileFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.actionButton.text =
-            if (mAuthStateManager.current.isAuthorized) getString(R.string.button_logout) else getString(
-                R.string.button_login
-            )
+        binding.actionButton.text = getString(R.string.button_logout)
         binding.actionButton.setOnClickListener {
-            if (mAuthStateManager.current.isAuthorized) {
-                mAuthStateManager.replace(AuthState())
-                PreferenceManager.getDefaultSharedPreferences(requireContext()).edit().clear().apply()
-                requireContext().deleteDatabase("eproba.db")
-                Toast.makeText(requireContext(), "Logged out", Toast.LENGTH_SHORT).show()
-                requireActivity().finish()
-            } else {
-                startAuth()
-            }
+            mAuthStateManager.replace(AuthState())
+            PreferenceManager.getDefaultSharedPreferences(requireContext()).edit().clear().apply()
+            requireContext().deleteDatabase("eproba.db")
+            Toast.makeText(requireContext(), "Logged out", Toast.LENGTH_SHORT).show()
+            requireActivity().finish()
         }
-        binding.avatar.setImageDrawable(
-            if (mAuthStateManager.current.isAuthorized)
-                ContextCompat.getDrawable(requireActivity(), R.drawable.ic_account)
-            else
-                ContextCompat.getDrawable(requireActivity(), R.drawable.ic_help)
-        )
+        binding.avatar.setImageDrawable(ContextCompat.getDrawable(requireActivity(), R.drawable.ic_account))
         binding.deleteDB.setOnClickListener {
             requireContext().deleteDatabase("eproba.db")
         }
-        if (mAuthStateManager.current.isAuthorized) getUserInfo()
-    }
-
-    private fun startAuth() {
-        val redirectUri = Uri.parse("com.czaplicki.eproba://oauth2redirect")
-        val clientId = "57wXiwkX1865qziVedFEXXum01m9QHJ6MDMVD03i"
-        val baseUrl = PreferenceManager.getDefaultSharedPreferences(requireContext())
-            .getString("server", "https://dev.eproba.pl")
-        val builder = AuthorizationRequest.Builder(
-            AuthorizationServiceConfiguration(
-                Uri.parse("$baseUrl/oauth2/authorize/"), // authorization endpoint
-                Uri.parse("$baseUrl/oauth2/token/") // token endpoint
-            ),
-            clientId,
-            ResponseTypeValues.CODE,
-            redirectUri
-        )
-        builder.setScopes("read write")
-
-        val authRequest = builder.build()
-        authService = AuthorizationService(requireContext())
-        val authIntent = authService.getAuthorizationRequestIntent(authRequest)
-        getAuthorizationCode.launch(authIntent)
-    }
-
-    private val getAuthorizationCode =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            if (it.resultCode == Activity.RESULT_OK) {
-                val resp = AuthorizationResponse.fromIntent(it.data!!)
-                val ex = AuthorizationException.fromIntent(it.data)
-                if (resp != null) {
-                    mAuthStateManager.updateAfterAuthorization(resp, ex)
-                    exchangeCodeForToken()
-                }
-            }
-        }
-
-    // exchange authorization code for access token
-    private fun exchangeCodeForToken() {
-        if (mAuthStateManager.current.lastAuthorizationResponse == null) {
-            Toast.makeText(requireContext(), "Authorization response is null", Toast.LENGTH_LONG)
-                .show()
-            return
-        }
-        authService.performTokenRequest(
-            mAuthStateManager.current.lastAuthorizationResponse!!.createTokenExchangeRequest()
-        ) { resp, ex ->
-            if (resp != null) {
-                mAuthStateManager.updateAfterTokenResponse(resp, ex)
-                requireActivity().recreate()
-            } else {
-                if (ex != null) {
-                    Toast.makeText(requireContext(), "Error: ${ex.error}", Toast.LENGTH_LONG).show()
-                }
-            }
-        }
+        getUserInfo()
     }
 
     private fun getUserInfo(isAfterUnauthorized: Boolean = false) {
@@ -146,6 +79,10 @@ class ProfileFragment : Fragment() {
                                 return
                             }
                             val user: User = response.body()!!
+                            PreferenceManager.getDefaultSharedPreferences(requireContext())
+                                .edit()
+                                .putInt("userId", user.id)
+                                .apply()
                             activity?.runOnUiThread {
                                 binding.progressBar.visibility = View.GONE
                                 binding.name.text = user.fullName

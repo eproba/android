@@ -92,11 +92,7 @@ class FirstFragment : Fragment() {
             authService
         ) { accessToken, _, _ ->
             if (accessToken == null) {
-                recyclerView?.visibility = View.GONE
-                binding.notLoggedIn.visibility = View.VISIBLE
-                binding.loginButton.setOnClickListener {
-                    (activity as? MainActivity)?.startAuth()
-                }
+                requireActivity().recreate()
                 return@performActionWithFreshTokens
             } else if (recyclerView?.visibility == View.GONE) {
                 recyclerView?.visibility = View.VISIBLE
@@ -135,23 +131,18 @@ class FirstFragment : Fragment() {
                             ).show()
                         }
                         recyclerView?.adapter?.notifyDataSetChanged()
-//                        recyclerView?.adapter = ExamAdapter(requireContext(), examList)
                         mSwipeRefreshLayout.isRefreshing = false
                     }
                 })
         }
     }
 
-    fun getUsers() {
+    private fun getUsers() {
         mAuthStateManager.current.performActionWithFreshTokens(
             authService
         ) { accessToken, _, _ ->
             if (accessToken == null) {
-                recyclerView?.visibility = View.GONE
-                binding.notLoggedIn.visibility = View.VISIBLE
-                binding.loginButton.setOnClickListener {
-                    (activity as? MainActivity)?.startAuth()
-                }
+                requireActivity().recreate()
                 return@performActionWithFreshTokens
             } else if (recyclerView?.visibility == View.GONE) {
                 recyclerView?.visibility = View.VISIBLE

@@ -3,6 +3,7 @@ package com.czaplicki.eproba
 import android.app.Activity
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
@@ -25,7 +26,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
     lateinit var fab: ExtendedFloatingActionButton
-
+    val navController by lazy { findNavController(R.id.nav_host_fragment_content_main) }
     private lateinit var authService: AuthorizationService
     private lateinit var mAuthStateManager: AuthStateManager
 
@@ -39,7 +40,7 @@ class MainActivity : AppCompatActivity() {
 
         setSupportActionBar(binding.toolbar)
 
-        val navController = findNavController(R.id.nav_host_fragment_content_main)
+
         appBarConfiguration = AppBarConfiguration(navController.graph)
         setupActionBarWithNavController(navController, appBarConfiguration)
         fab = binding.fab
@@ -61,6 +62,16 @@ class MainActivity : AppCompatActivity() {
                 .setTestDeviceIds(listOf("59822EDA71A89C033EEBD914F011B2EA")).build()
         )
 
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (navController.currentDestination?.id == R.id.FirstFragment && !mAuthStateManager.current.isAuthorized) {
+            navController.navigate(R.id.action_FirstFragment_to_LoginFragment)
+        } else if (navController.currentDestination?.id == R.id.LoginFragment && mAuthStateManager.current.isAuthorized) {
+            navController.navigate(R.id.action_LoginFragment_to_FirstFragment)
+        }
+        Log.e("onResume", mAuthStateManager.current.isAuthorized.toString())
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

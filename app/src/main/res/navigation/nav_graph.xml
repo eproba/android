@@ -14,6 +14,9 @@
         <action
             android:id="@+id/action_FirstFragment_to_CreateExamFragment"
             app:destination="@id/CreateExamFragment" />
+        <action
+            android:id="@+id/action_FirstFragment_to_LoginFragment"
+            app:destination="@id/LoginFragment" />
     </fragment>
     <fragment
         android:id="@+id/CreateExamFragment"
@@ -41,4 +44,13 @@
     <action
         android:id="@+id/action_global_settingsActivity"
         app:destination="@id/settingsActivity" />
+    <fragment
+        android:id="@+id/LoginFragment"
+        android:name="com.czaplicki.eproba.LoginFragment"
+        android:label="fragment_login"
+        tools:layout="@layout/fragment_login" >
+        <action
+            android:id="@+id/action_LoginFragment_to_FirstFragment"
+            app:destination="@id/FirstFragment" />
+    </fragment>
 </navigation>

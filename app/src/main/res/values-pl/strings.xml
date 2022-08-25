@@ -29,4 +29,5 @@
     <string name="approved">%s o %s zadanie zostało zatwierdzone przez %s</string>
     <string name="rejected">%s o %s zadanie zostało odrzucone przez %s</string>
     <string name="someone">kogoś</string>
+    <string name="welcome_message">Witaj w aplikacji epróba,\nzaloguj się aby rozpocząć</string>
 </resources>
