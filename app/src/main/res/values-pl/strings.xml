@@ -28,4 +28,5 @@
     <string name="awaiting_approval">%sr. o godzinie %s wysłano prośbę o zatwierdzenie do %s</string>
     <string name="approved">%s o %s zadanie zostało zatwierdzone przez %s</string>
     <string name="rejected">%s o %s zadanie zostało odrzucone przez %s</string>
+    <string name="someone">kogoś</string>
 </resources>

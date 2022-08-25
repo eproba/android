@@ -13,7 +13,7 @@ import com.google.android.gms.ads.nativead.NativeAdView
 import com.google.android.material.divider.MaterialDividerItemDecoration
 
 
-class ExamAdapter(private val dataSet: List<Exam>) :
+class ExamAdapter(private val dataSet: List<Exam>, private val users: List<User>) :
     RecyclerView.Adapter<ExamAdapter.ViewHolder>() {
 
 
@@ -89,7 +89,7 @@ class ExamAdapter(private val dataSet: List<Exam>) :
         viewHolder.name.text = dataSet[position].name
         if (dataSet[position].supervisor != null) {
             viewHolder.supervisor.visibility = View.VISIBLE
-            viewHolder.supervisor.text = dataSet[position].supervisor.toString()
+            viewHolder.supervisor.text = users.find { it.id == dataSet[position].supervisor }?.fullNameWithNickname
         } else {
             viewHolder.supervisor.visibility = View.GONE
         }
@@ -100,7 +100,7 @@ class ExamAdapter(private val dataSet: List<Exam>) :
                 dataSet[position].tasks.filter { it.status == Task.Status.APPROVED }.size * 100 / dataSet[position].tasks.size
             )
         viewHolder.taskList.visibility = View.VISIBLE
-        viewHolder.taskList.adapter = TaskAdapter(dataSet[position].tasks)
+        viewHolder.taskList.adapter = TaskAdapter(dataSet[position].tasks, users)
         viewHolder.adFrame.visibility = View.GONE
     }
 

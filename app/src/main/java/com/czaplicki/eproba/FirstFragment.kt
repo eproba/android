@@ -1,11 +1,13 @@
 package com.czaplicki.eproba
 
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -14,6 +16,7 @@ import com.czaplicki.eproba.api.EprobaApi
 import com.czaplicki.eproba.api.EprobaService
 import com.czaplicki.eproba.databinding.FragmentFirstBinding
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.launch
 import net.openid.appauth.AuthorizationService
 
 
@@ -32,6 +35,8 @@ class FirstFragment : Fragment() {
     var examList: MutableList<Exam> = mutableListOf()
     private val binding get() = _binding!!
     private val userDao: UserDao by lazy { (activity?.application as EprobaApplication).database.userDao() }
+    var users: MutableList<User> = mutableListOf()
+    val sharedPreferences: SharedPreferences by lazy { PreferenceManager.getDefaultSharedPreferences(requireContext()) }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -42,12 +47,10 @@ class FirstFragment : Fragment() {
         authService = AuthorizationService(requireContext())
         recyclerView = binding.recyclerView
         recyclerView?.layoutManager = LinearLayoutManager(view?.context)
-        recyclerView?.adapter = ExamAdapter(examList)
+        recyclerView?.adapter = ExamAdapter(examList, users)
         mSwipeRefreshLayout.setOnRefreshListener {
             updateExams()
             getUsers()
-            val users: List<User> = userDao.getAll()
-            Log.d("users", users.toString())
 
         }
         recyclerView!!.setOnScrollChangeListener { _, _, _, _, oldY ->
@@ -55,6 +58,18 @@ class FirstFragment : Fragment() {
                 (activity as? MainActivity)?.fab?.extend()
             } else if (oldY < -40) {
                 (activity as? MainActivity)?.fab?.shrink()
+            }
+        }
+        sharedPreferences.getLong("lastUsersUpdate", 0).let {
+            if (it == 0L || System.currentTimeMillis() - it > 3600000) {
+                getUsers()
+                recyclerView?.adapter?.notifyDataSetChanged()
+            } else {
+                lifecycleScope.launch {
+                    users.clear()
+                    users.addAll(userDao.getAll())
+                    recyclerView?.adapter?.notifyDataSetChanged()
+                }
             }
         }
 
@@ -109,7 +124,7 @@ class FirstFragment : Fragment() {
                         if (response.body() != null) {
                             examList.clear()
                             examList.addAll(response.body()!!)
-                            if (PreferenceManager.getDefaultSharedPreferences(requireContext())
+                            if (sharedPreferences
                                     .getBoolean("ads", true)
                             ) examList.add(Exam(id = -1, name = "ad"))
                         } else {
@@ -152,6 +167,11 @@ class FirstFragment : Fragment() {
                             "Błąd połączenia z serwerem",
                             Snackbar.LENGTH_LONG
                         ).show()
+                        lifecycleScope.launch {
+                            users.clear()
+                            users.addAll(userDao.getAll())
+                            recyclerView?.adapter?.notifyDataSetChanged()
+                        }
                         t.message?.let { Log.e("FirstFragment", it) }
                     }
 
@@ -160,14 +180,24 @@ class FirstFragment : Fragment() {
                         response: retrofit2.Response<List<User>>
                     ) {
                         if (response.body() != null) {
-                            val users = response.body()!!
-                            userDao.insertUsers(*users.toTypedArray())
+                            users.clear()
+                            users.addAll(response.body()!!)
+                            lifecycleScope.launch {
+                                userDao.insertUsers(*users.toTypedArray())
+                            }
+                            sharedPreferences.edit().putLong("lastUsersUpdate", System.currentTimeMillis()).apply()
+                            recyclerView?.adapter?.notifyDataSetChanged()
                         } else {
                             Snackbar.make(
                                 binding.root,
                                 "Błąd połączenia z serwerem",
                                 Snackbar.LENGTH_LONG
                             ).show()
+                            lifecycleScope.launch {
+                                users.clear()
+                                users.addAll(userDao.getAll())
+                                recyclerView?.adapter?.notifyDataSetChanged()
+                            }
                         }
                     }
                 })

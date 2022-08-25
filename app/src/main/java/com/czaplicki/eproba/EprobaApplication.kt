@@ -8,7 +8,6 @@ class EprobaApplication: Application() {
     val database: AppDatabase by lazy {
         Room.databaseBuilder(this, AppDatabase::class.java, "eproba.db")
             .fallbackToDestructiveMigration()
-            .allowMainThreadQueries()
             .build()
     }
     override fun onCreate() {

@@ -36,4 +36,5 @@
     <string name="awaiting_approval">On %s at %s, an approval request was sent to %s</string>
     <string name="approved">On %s at %s, the task was approved by %s</string>
     <string name="rejected">On %s at %s, the task was rejected by %s</string>
+    <string name="someone">someone</string>
 </resources>

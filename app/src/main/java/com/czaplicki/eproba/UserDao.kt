@@ -5,10 +5,10 @@ import androidx.room.*
 @Dao
 interface UserDao {
     @Query("SELECT * FROM user")
-    fun getAll(): List<User>
+    suspend fun getAll(): List<User>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertUsers(vararg users: User)
+    suspend fun insertUsers(vararg users: User)
 
     @Update
     suspend fun updateUsers(vararg users: User)

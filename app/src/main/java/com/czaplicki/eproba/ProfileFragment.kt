@@ -48,6 +48,8 @@ class ProfileFragment : Fragment() {
         binding.actionButton.setOnClickListener {
             if (mAuthStateManager.current.isAuthorized) {
                 mAuthStateManager.replace(AuthState())
+                PreferenceManager.getDefaultSharedPreferences(requireContext()).edit().clear().apply()
+                requireContext().deleteDatabase("eproba.db")
                 Toast.makeText(requireContext(), "Logged out", Toast.LENGTH_SHORT).show()
                 requireActivity().finish()
             } else {
