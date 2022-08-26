@@ -17,12 +17,15 @@
         <action
             android:id="@+id/action_FirstFragment_to_LoginFragment"
             app:destination="@id/LoginFragment" />
+        <action
+            android:id="@+id/action_FirstFragment_to_createExamActivity"
+            app:destination="@id/createExamActivity" />
     </fragment>
     <fragment
         android:id="@+id/CreateExamFragment"
         android:name="com.czaplicki.eproba.CreateExamFragment"
         android:label="@string/camera_fragment_label"
-        tools:layout="@layout/fragment_create_exam">
+        tools:layout="@layout/fragment_scan_exam">
 
         <action
             android:id="@+id/action_CreateExamFragment_to_FirstFragment"
@@ -48,9 +51,13 @@
         android:id="@+id/LoginFragment"
         android:name="com.czaplicki.eproba.LoginFragment"
         android:label="fragment_login"
-        tools:layout="@layout/fragment_login" >
+        tools:layout="@layout/fragment_login">
         <action
             android:id="@+id/action_LoginFragment_to_FirstFragment"
             app:destination="@id/FirstFragment" />
     </fragment>
+    <activity
+        android:id="@+id/createExamActivity"
+        android:name="com.czaplicki.eproba.CreateExamActivity"
+        android:label="CreateExamActivity" />
 </navigation>

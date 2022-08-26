@@ -13,9 +13,8 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
 import androidx.preference.PreferenceManager
-import com.czaplicki.eproba.databinding.FragmentCreateExamBinding
+import com.czaplicki.eproba.databinding.FragmentScanExamBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.google.mlkit.vision.common.InputImage
@@ -32,9 +31,9 @@ import java.util.*
 /**
  * A simple [Fragment] subclass as the second destination in the navigation.
  */
-class CreateExamFragment : Fragment() {
+class ScanExamFragment : Fragment() {
 
-    private var _binding: FragmentCreateExamBinding? = null
+    private var _binding: FragmentScanExamBinding? = null
     private val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
 
 
@@ -53,7 +52,7 @@ class CreateExamFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
 
-        _binding = FragmentCreateExamBinding.inflate(inflater, container, false)
+        _binding = FragmentScanExamBinding.inflate(inflater, container, false)
         authService = AuthorizationService(requireContext())
         baseUrl = PreferenceManager.getDefaultSharedPreferences(requireContext())
             .getString("server", "https://dev.eproba.pl")!!
@@ -62,16 +61,8 @@ class CreateExamFragment : Fragment() {
             binding.refreshButton.visibility = View.GONE
             pickImage()
         }
+        (requireActivity() as CreateExamActivity).supportActionBar?.setDisplayHomeAsUpEnabled(true)
         return binding.root
-
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        binding.buttonSecond.setOnClickListener {
-            findNavController().navigate(R.id.action_CreateExamFragment_to_FirstFragment)
-        }
     }
 
     override fun onDestroyView() {

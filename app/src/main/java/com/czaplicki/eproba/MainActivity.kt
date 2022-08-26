@@ -3,9 +3,9 @@ package com.czaplicki.eproba
 import android.app.Activity
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -18,7 +18,9 @@ import androidx.preference.PreferenceManager
 import com.czaplicki.eproba.databinding.ActivityMainBinding
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.RequestConfiguration
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+import com.google.android.material.snackbar.Snackbar
 import net.openid.appauth.*
 
 
@@ -26,6 +28,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
     lateinit var fab: ExtendedFloatingActionButton
+    lateinit var bottomNavigation: BottomNavigationView
     val navController by lazy { findNavController(R.id.nav_host_fragment_content_main) }
     private lateinit var authService: AuthorizationService
     private lateinit var mAuthStateManager: AuthStateManager
@@ -44,14 +47,17 @@ class MainActivity : AppCompatActivity() {
         appBarConfiguration = AppBarConfiguration(navController.graph)
         setupActionBarWithNavController(navController, appBarConfiguration)
         fab = binding.fab
-        binding.fab.setOnClickListener {
-            navController.navigate(R.id.action_FirstFragment_to_CreateExamFragment)
+        bottomNavigation = binding.bottomNavigation
+        fab.setOnClickListener {
+            navController.navigate(R.id.action_FirstFragment_to_createExamActivity)
         }
         navController.addOnDestinationChangedListener { _, destination, _ ->
             if (destination.id == R.id.FirstFragment) {
                 fab.show()
+                bottomNavigation.visibility = View.VISIBLE
             } else {
                 fab.hide()
+                bottomNavigation.visibility = View.GONE
             }
         }
         mAuthStateManager = AuthStateManager.getInstance(this)
@@ -62,6 +68,27 @@ class MainActivity : AppCompatActivity() {
                 .setTestDeviceIds(listOf("59822EDA71A89C033EEBD914F011B2EA")).build()
         )
 
+        bottomNavigation.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.navigation_your_exams -> {
+                    Snackbar.make(binding.root, "Not implemented yet", Snackbar.LENGTH_SHORT)
+                        .setAnchorView(fab).show()
+                    true
+                }
+                R.id.navigation_manage_exams -> {
+                    Snackbar.make(binding.root, "Not implemented yet", Snackbar.LENGTH_SHORT)
+                        .setAnchorView(fab).show()
+                    true
+                }
+                R.id.navigation_accept_tasks -> {
+                    Snackbar.make(binding.root, "Not implemented yet", Snackbar.LENGTH_SHORT)
+                        .setAnchorView(fab).show()
+                    true
+                }
+                else -> false
+            }
+        }
+
     }
 
     override fun onResume() {
@@ -71,7 +98,6 @@ class MainActivity : AppCompatActivity() {
         } else if (navController.currentDestination?.id == R.id.LoginFragment && mAuthStateManager.current.isAuthorized) {
             navController.navigate(R.id.action_LoginFragment_to_FirstFragment)
         }
-        Log.e("onResume", mAuthStateManager.current.isAuthorized.toString())
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

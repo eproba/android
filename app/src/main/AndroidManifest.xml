@@ -18,6 +18,11 @@
         android:theme="@style/Theme.Epróba"
         tools:targetApi="33">
         <activity
+            android:name=".CreateExamActivity"
+            android:exported="false"
+            android:label="@string/title_activity_create_exam"
+            android:theme="@style/Theme.Epróba" />
+        <activity
             android:name=".SettingsActivity"
             android:exported="false"
             android:label="@string/settings" />
@@ -53,7 +58,7 @@
 
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713" />
+            android:value="ca-app-pub-7127294792989521~2753110405" />
     </application>
 
 </manifest>

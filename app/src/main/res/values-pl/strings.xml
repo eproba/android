@@ -30,4 +30,10 @@
     <string name="rejected">%s o %s zadanie zostało odrzucone przez %s</string>
     <string name="someone">kogoś</string>
     <string name="welcome_message">Witaj w aplikacji epróba,\nzaloguj się aby rozpocząć</string>
+    <string name="title_scan_exam">Skanuj</string>
+    <string name="title_templates">Szablony</string>
+    <string name="title_compose_exam">Stwórz</string>
+    <string name="title_your_exams">Twoje próby</string>
+    <string name="title_manage_exams">Zarządzaj próbami</string>
+    <string name="title_accept_tasks">Zatwierdź zadania</string>
 </resources>

@@ -1,0 +1,17 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/navigation_your_exams"
+        android:enabled="true"
+        android:icon="@drawable/ic_your_exams"
+        android:title="@string/title_your_exams" />
+    <item
+        android:id="@+id/navigation_manage_exams"
+        android:enabled="true"
+        android:icon="@drawable/ic_manage_exams"
+        android:title="@string/title_manage_exams" />
+    <item
+        android:id="@+id/navigation_accept_tasks"
+        android:enabled="true"
+        android:icon="@drawable/ic_accept_tasks"
+        android:title="@string/title_accept_tasks" />
+</menu>
