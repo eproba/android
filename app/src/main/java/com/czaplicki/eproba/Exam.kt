@@ -8,7 +8,7 @@ import java.util.*
 class Exam(
     var id: Int? = null,
     var name: String? = null,
-    var scout: Int? = null,
+    @SerializedName("user") var userId: Int? = null,
     var supervisor: Int? = null,
     @SerializedName("is_archived") var isArchived: Boolean = false,
     var tasks: MutableList<Task> = mutableListOf()
@@ -100,7 +100,10 @@ data class Task(
 
     val statusIcon: Icon
         get() = when (status) {
-            0 -> Icon.createWithResource("com.czaplicki.eproba", R.drawable.radio_button_unchecked_24px)
+            0 -> Icon.createWithResource(
+                "com.czaplicki.eproba",
+                R.drawable.radio_button_unchecked_24px
+            )
             1 -> Icon.createWithResource("com.czaplicki.eproba", R.drawable.schedule_24px)
             2 -> Icon.createWithResource("com.czaplicki.eproba", R.drawable.check_circle_24px)
             3 -> Icon.createWithResource("com.czaplicki.eproba", R.drawable.error_24px)

@@ -11,7 +11,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.room.RoomDatabase
 import com.czaplicki.eproba.api.EprobaApi
 import com.czaplicki.eproba.api.EprobaService
 import com.czaplicki.eproba.databinding.FragmentFirstBinding
@@ -36,7 +35,11 @@ class FirstFragment : Fragment() {
     private val binding get() = _binding!!
     private val userDao: UserDao by lazy { (activity?.application as EprobaApplication).database.userDao() }
     var users: MutableList<User> = mutableListOf()
-    val sharedPreferences: SharedPreferences by lazy { PreferenceManager.getDefaultSharedPreferences(requireContext()) }
+    val sharedPreferences: SharedPreferences by lazy {
+        PreferenceManager.getDefaultSharedPreferences(
+            requireContext()
+        )
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -85,6 +88,9 @@ class FirstFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         updateExams()
+        (activity as? MainActivity)?.bottomNavigation?.setOnItemReselectedListener {
+            recyclerView?.smoothScrollToPosition(0)
+        }
     }
 
     private fun updateExams() {
@@ -176,7 +182,8 @@ class FirstFragment : Fragment() {
                             lifecycleScope.launch {
                                 userDao.insertUsers(*users.toTypedArray())
                             }
-                            sharedPreferences.edit().putLong("lastUsersUpdate", System.currentTimeMillis()).apply()
+                            sharedPreferences.edit()
+                                .putLong("lastUsersUpdate", System.currentTimeMillis()).apply()
                             recyclerView?.adapter?.notifyDataSetChanged()
                         } else {
                             Snackbar.make(
