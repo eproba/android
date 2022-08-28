@@ -48,16 +48,32 @@ class TaskAdapter(private val dataSet: List<Task>, private val users: List<User>
             viewHolder.description.text = dataSet[position].description
         }
         viewHolder.status.setImageIcon(dataSet[position].statusIcon)
-        val approver = if (dataSet[position].approver != null) users.find { it.id == dataSet[position].approver } else null
+        val approver =
+            if (dataSet[position].approver != null) users.find { it.id == dataSet[position].approver } else null
         when (dataSet[position].status) {
             Task.Status.AWAITING_APPROVAL -> {
-                viewHolder.status.tooltipText = viewHolder.itemView.context.getString(R.string.awaiting_approval, dataSet[position].approvalDate.format(DateTimeFormatter.ofPattern("dd LLLL, yyyy")), dataSet[position].approvalDate.format(DateTimeFormatter.ofPattern("HH:MM")), approver?.nickname?: viewHolder.itemView.context.getString(R.string.someone))
+                viewHolder.status.tooltipText = viewHolder.itemView.context.getString(
+                    R.string.awaiting_approval,
+                    dataSet[position].approvalDate?.format(DateTimeFormatter.ofPattern("dd LLLL, yyyy")),
+                    dataSet[position].approvalDate?.format(DateTimeFormatter.ofPattern("HH:MM")),
+                    approver?.nickname ?: viewHolder.itemView.context.getString(R.string.someone)
+                )
             }
             Task.Status.APPROVED -> {
-                viewHolder.status.tooltipText = viewHolder.itemView.context.getString(R.string.approved, dataSet[position].approvalDate.format(DateTimeFormatter.ofPattern("dd LLLL, yyyy")), dataSet[position].approvalDate.format(DateTimeFormatter.ofPattern("HH:MM")), approver?.nickname?: viewHolder.itemView.context.getString(R.string.someone))
+                viewHolder.status.tooltipText = viewHolder.itemView.context.getString(
+                    R.string.approved,
+                    dataSet[position].approvalDate?.format(DateTimeFormatter.ofPattern("dd LLLL, yyyy")),
+                    dataSet[position].approvalDate?.format(DateTimeFormatter.ofPattern("HH:MM")),
+                    approver?.nickname ?: viewHolder.itemView.context.getString(R.string.someone)
+                )
             }
             Task.Status.REJECTED -> {
-                viewHolder.status.tooltipText = viewHolder.itemView.context.getString(R.string.rejected, dataSet[position].approvalDate.format(DateTimeFormatter.ofPattern("dd LLLL, yyyy")), dataSet[position].approvalDate.format(DateTimeFormatter.ofPattern("HH:MM")), approver?.nickname?: viewHolder.itemView.context.getString(R.string.someone))
+                viewHolder.status.tooltipText = viewHolder.itemView.context.getString(
+                    R.string.rejected,
+                    dataSet[position].approvalDate?.format(DateTimeFormatter.ofPattern("dd LLLL, yyyy")),
+                    dataSet[position].approvalDate?.format(DateTimeFormatter.ofPattern("HH:MM")),
+                    approver?.nickname ?: viewHolder.itemView.context.getString(R.string.someone)
+                )
             }
         }
     }

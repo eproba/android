@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.czaplicki.eproba.api.EprobaApi
 import com.czaplicki.eproba.api.EprobaService
-import com.czaplicki.eproba.databinding.FragmentFirstBinding
+import com.czaplicki.eproba.databinding.FragmentManageExamsBinding
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import net.openid.appauth.AuthorizationService
@@ -22,9 +22,9 @@ import net.openid.appauth.AuthorizationService
 /**
  * A simple [Fragment] subclass as the default destination in the navigation.
  */
-class FirstFragment : Fragment() {
+class ManageExamsFragment : Fragment() {
 
-    private var _binding: FragmentFirstBinding? = null
+    private var _binding: FragmentManageExamsBinding? = null
 
     private lateinit var mAuthStateManager: AuthStateManager
     private lateinit var authService: AuthorizationService
@@ -45,7 +45,7 @@ class FirstFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentFirstBinding.inflate(inflater, container, false)
+        _binding = FragmentManageExamsBinding.inflate(inflater, container, false)
         mAuthStateManager = AuthStateManager.getInstance(requireContext())
         authService = AuthorizationService(requireContext())
         recyclerView = binding.recyclerView
@@ -104,7 +104,7 @@ class FirstFragment : Fragment() {
             mAuthStateManager.updateSavedState()
             mSwipeRefreshLayout.isRefreshing = true
             api.getRetrofitInstance(requireContext(), accessToken)!!
-                .create(EprobaService::class.java).getUserExams()
+                .create(EprobaService::class.java).getExams()
                 .enqueue(object : retrofit2.Callback<List<Exam>> {
                     override fun onFailure(call: retrofit2.Call<List<Exam>>, t: Throwable) {
                         Snackbar.make(

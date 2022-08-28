@@ -3,33 +3,20 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/FirstFragment">
+    app:startDestination="@+id/navigation_your_exams">
 
     <fragment
-        android:id="@+id/FirstFragment"
+        android:id="@+id/navigation_your_exams"
         android:name="com.czaplicki.eproba.FirstFragment"
         android:label="@string/first_fragment_label"
         tools:layout="@layout/fragment_first">
 
-        <action
-            android:id="@+id/action_FirstFragment_to_CreateExamFragment"
-            app:destination="@id/CreateExamFragment" />
         <action
             android:id="@+id/action_FirstFragment_to_LoginFragment"
             app:destination="@id/LoginFragment" />
         <action
             android:id="@+id/action_FirstFragment_to_createExamActivity"
             app:destination="@id/createExamActivity" />
-    </fragment>
-    <fragment
-        android:id="@+id/CreateExamFragment"
-        android:name="com.czaplicki.eproba.CreateExamFragment"
-        android:label="@string/camera_fragment_label"
-        tools:layout="@layout/fragment_scan_exam">
-
-        <action
-            android:id="@+id/action_CreateExamFragment_to_FirstFragment"
-            app:destination="@id/FirstFragment" />
     </fragment>
     <activity
         android:id="@+id/profileActivity"
@@ -54,10 +41,14 @@
         tools:layout="@layout/fragment_login">
         <action
             android:id="@+id/action_LoginFragment_to_FirstFragment"
-            app:destination="@id/FirstFragment" />
+            app:destination="@id/navigation_your_exams" />
     </fragment>
     <activity
         android:id="@+id/createExamActivity"
         android:name="com.czaplicki.eproba.CreateExamActivity"
         android:label="CreateExamActivity" />
+    <fragment
+        android:id="@+id/navigation_manage_exams"
+        android:name="com.czaplicki.eproba.ManageExamsFragment"
+        android:label="@string/title_manage_exams" />
 </navigation>

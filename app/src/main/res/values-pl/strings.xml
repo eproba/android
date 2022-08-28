@@ -36,4 +36,7 @@
     <string name="title_your_exams">Twoje próby</string>
     <string name="title_manage_exams">Zarządzaj próbami</string>
     <string name="title_accept_tasks">Zatwierdź zadania</string>
+    <string name="error_screen_title">Wystąpił nieoczekiwany błąd i aplikacja nie może kontynuować działania</string>
+    <string name="restart_app">Zrestaruj aplikację</string>
+    <string name="title_activity_create_exam">Utwórz próbę</string>
 </resources>

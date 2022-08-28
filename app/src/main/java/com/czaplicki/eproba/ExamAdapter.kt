@@ -1,6 +1,5 @@
 package com.czaplicki.eproba
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -89,7 +88,6 @@ class ExamAdapter(private val dataSet: List<Exam>, private val users: List<User>
 
         viewHolder.name.text = dataSet[position].name
         if (dataSet[position].supervisor != null) {
-            Log.d("ExamAdapter", "supervisor: " + dataSet[position].supervisor)
             viewHolder.supervisor.visibility = View.VISIBLE
             viewHolder.supervisor.text =
                 users.find { it.id == dataSet[position].supervisor }?.fullNameWithNickname

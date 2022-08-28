@@ -86,7 +86,7 @@ data class Task(
     val status: Int = 0,
     val approver: Int? = null,
     @SerializedName("approval_date")
-    val approvalDate: LocalDateTime = LocalDateTime.now(),
+    val approvalDate: LocalDateTime? = LocalDateTime.now(),
 ) {
     class Status {
         companion object {

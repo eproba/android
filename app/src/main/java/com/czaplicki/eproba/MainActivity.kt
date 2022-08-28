@@ -14,14 +14,20 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
+import androidx.navigation.ui.setupWithNavController
 import androidx.preference.PreferenceManager
+import com.czaplicki.eproba.api.EprobaApi
+import com.czaplicki.eproba.api.EprobaService
 import com.czaplicki.eproba.databinding.ActivityMainBinding
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.RequestConfiguration
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-import com.google.android.material.snackbar.Snackbar
+import com.google.gson.Gson
 import net.openid.appauth.*
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 
 class MainActivity : AppCompatActivity() {
@@ -32,6 +38,12 @@ class MainActivity : AppCompatActivity() {
     val navController by lazy { findNavController(R.id.nav_host_fragment_content_main) }
     private lateinit var authService: AuthorizationService
     private lateinit var mAuthStateManager: AuthStateManager
+    val user: User? by lazy {
+        Gson().fromJson(
+            PreferenceManager.getDefaultSharedPreferences(this).getString("user", null),
+            User::class.java
+        )
+    }
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,16 +60,37 @@ class MainActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfiguration)
         fab = binding.fab
         bottomNavigation = binding.bottomNavigation
+        bottomNavigation.setupWithNavController(navController)
+
         fab.setOnClickListener {
             navController.navigate(R.id.action_FirstFragment_to_createExamActivity)
         }
         navController.addOnDestinationChangedListener { _, destination, _ ->
-            if (destination.id == R.id.FirstFragment) {
-                fab.show()
-                bottomNavigation.visibility = View.VISIBLE
-            } else {
-                fab.hide()
-                bottomNavigation.visibility = View.GONE
+            when (destination.id) {
+                R.id.navigation_your_exams, R.id.navigation_manage_exams -> {
+                    fab.show()
+                    if (user == null) {
+                        bottomNavigation.visibility = View.GONE
+                    } else if (user!!.scout.function < 2) {
+                        bottomNavigation.visibility = View.GONE
+                    } else {
+                        bottomNavigation.visibility = View.VISIBLE
+                    }
+                }
+                R.id.navigation_accept_tasks -> {
+                    fab.hide()
+                    if (user == null) {
+                        bottomNavigation.visibility = View.GONE
+                    } else if (user!!.scout.function < 2) {
+                        bottomNavigation.visibility = View.GONE
+                    } else {
+                        bottomNavigation.visibility = View.VISIBLE
+                    }
+                }
+                else -> {
+                    fab.hide()
+                    bottomNavigation.visibility = View.GONE
+                }
             }
         }
         mAuthStateManager = AuthStateManager.getInstance(this)
@@ -67,33 +100,11 @@ class MainActivity : AppCompatActivity() {
             RequestConfiguration.Builder()
                 .setTestDeviceIds(listOf("59822EDA71A89C033EEBD914F011B2EA")).build()
         )
-
-        bottomNavigation.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.navigation_your_exams -> {
-                    Snackbar.make(binding.root, "Not implemented yet", Snackbar.LENGTH_SHORT)
-                        .setAnchorView(fab).show()
-                    true
-                }
-                R.id.navigation_manage_exams -> {
-                    Snackbar.make(binding.root, "Not implemented yet", Snackbar.LENGTH_SHORT)
-                        .setAnchorView(fab).show()
-                    true
-                }
-                R.id.navigation_accept_tasks -> {
-                    Snackbar.make(binding.root, "Not implemented yet", Snackbar.LENGTH_SHORT)
-                        .setAnchorView(fab).show()
-                    true
-                }
-                else -> false
-            }
-        }
-
     }
 
     override fun onResume() {
         super.onResume()
-        if (navController.currentDestination?.id == R.id.FirstFragment && !mAuthStateManager.current.isAuthorized) {
+        if (navController.currentDestination?.id == R.id.navigation_your_exams && !mAuthStateManager.current.isAuthorized) {
             navController.navigate(R.id.action_FirstFragment_to_LoginFragment)
         } else if (navController.currentDestination?.id == R.id.LoginFragment && mAuthStateManager.current.isAuthorized) {
             navController.navigate(R.id.action_LoginFragment_to_FirstFragment)
@@ -178,7 +189,40 @@ class MainActivity : AppCompatActivity() {
         ) { resp, ex ->
             if (resp != null) {
                 mAuthStateManager.updateAfterTokenResponse(resp, ex)
-                this.recreate()
+                val apiService: EprobaService =
+                    EprobaApi().getRetrofitInstance(this, mAuthStateManager.current.accessToken!!)!!
+                        .create(EprobaService::class.java)
+                apiService.getUserInfo().enqueue(object : Callback<User> {
+                    override fun onFailure(call: Call<User>, t: Throwable) {
+                        Toast.makeText(this@MainActivity, "Error: ${t.message}", Toast.LENGTH_LONG)
+                            .show()
+                        val errorScreen = ErrorScreen()
+                        errorScreen.isCancelable = false
+                        errorScreen.show(supportFragmentManager, "error")
+                    }
+
+                    override fun onResponse(
+                        call: Call<User>,
+                        response: Response<User>
+                    ) {
+                        if (response.body() != null) {
+                            PreferenceManager.getDefaultSharedPreferences(this@MainActivity)
+                                .edit()
+                                .putString("user", Gson().toJson(response.body()))
+                                .apply()
+                            this@MainActivity.recreate()
+                        } else {
+                            Toast.makeText(
+                                this@MainActivity,
+                                "Error: ${response.message()}",
+                                Toast.LENGTH_LONG
+                            ).show()
+                            val errorScreen = ErrorScreen()
+                            errorScreen.isCancelable = false
+                            errorScreen.show(supportFragmentManager, "error")
+                        }
+                    }
+                })
             } else {
                 if (ex != null) {
                     Toast.makeText(this, "Error: ${ex.error}", Toast.LENGTH_LONG).show()
