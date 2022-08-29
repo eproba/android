@@ -50,7 +50,7 @@ class ManageExamsFragment : Fragment() {
         authService = AuthorizationService(requireContext())
         recyclerView = binding.recyclerView
         recyclerView?.layoutManager = LinearLayoutManager(view?.context)
-        recyclerView?.adapter = ExamAdapter(examList, users)
+        recyclerView?.adapter = ManagedExamAdapter(examList, users)
         mSwipeRefreshLayout.setOnRefreshListener {
             updateExams()
             getUsers()

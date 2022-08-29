@@ -24,6 +24,9 @@ data class User(
 
     val fullNameWithNickname: String
         get() = "$fullName \"$nickname\""
+
+    val nicknameWithRank: String
+        get() = if (scout.rank != " ") "${scout.rank} $nickname" else "$nickname"
 }
 
 data class Scout(

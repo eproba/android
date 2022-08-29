@@ -37,6 +37,16 @@ class DashboardFragment : Fragment() {
         return root
     }
 
+    override fun onResume() {
+        super.onResume()
+        (requireActivity() as CreateExamActivity).bottomNavigationView.setOnItemReselectedListener {
+//            binding.scrollView.fullScroll(View.FOCUS_UP)
+            (requireActivity() as CreateExamActivity).supportActionBar?.setDisplayHomeAsUpEnabled(
+                true
+            )
+        }
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null

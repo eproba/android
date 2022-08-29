@@ -12,6 +12,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 class CreateExamActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityCreateExamBinding
+    lateinit var bottomNavigationView: BottomNavigationView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -20,7 +21,7 @@ class CreateExamActivity : AppCompatActivity() {
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
 
-        val navView: BottomNavigationView = binding.navView
+        bottomNavigationView = binding.navView
 
         val navController = findNavController(R.id.nav_host_fragment_activity_create_exam)
         // Passing each menu ID as a set of Ids because each
@@ -31,13 +32,9 @@ class CreateExamActivity : AppCompatActivity() {
             )
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
-        navView.setupWithNavController(navController)
+        bottomNavigationView.setupWithNavController(navController)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-        finish()
-        return super.onSupportNavigateUp()
-    }
 
 }

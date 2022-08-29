@@ -35,7 +35,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     lateinit var fab: ExtendedFloatingActionButton
     lateinit var bottomNavigation: BottomNavigationView
-    val navController by lazy { findNavController(R.id.nav_host_fragment_content_main) }
+    private val navController by lazy { findNavController(R.id.nav_host_fragment_content_main) }
     private lateinit var authService: AuthorizationService
     private lateinit var mAuthStateManager: AuthStateManager
     val user: User? by lazy {
@@ -63,7 +63,7 @@ class MainActivity : AppCompatActivity() {
         bottomNavigation.setupWithNavController(navController)
 
         fab.setOnClickListener {
-            navController.navigate(R.id.action_FirstFragment_to_createExamActivity)
+            navController.navigate(R.id.action_global_createExamActivity)
         }
         navController.addOnDestinationChangedListener { _, destination, _ ->
             when (destination.id) {
