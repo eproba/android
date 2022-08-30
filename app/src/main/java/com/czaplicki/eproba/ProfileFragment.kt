@@ -44,7 +44,9 @@ class ProfileFragment : Fragment() {
         binding.actionButton.text = getString(R.string.button_logout)
         binding.actionButton.setOnClickListener {
             mAuthStateManager.replace(AuthState())
+            val server = PreferenceManager.getDefaultSharedPreferences(requireContext()).getString("server", "https://dev.eproba.pl")
             PreferenceManager.getDefaultSharedPreferences(requireContext()).edit().clear().apply()
+            PreferenceManager.getDefaultSharedPreferences(requireContext()).edit().putString("server", server).apply()
             requireContext().deleteDatabase("eproba.db")
             Toast.makeText(requireContext(), "Logged out", Toast.LENGTH_SHORT).show()
             requireActivity().finish()

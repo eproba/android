@@ -22,8 +22,8 @@
             android:name=".CreateExamActivity"
             android:exported="false"
             android:label="@string/title_activity_create_exam"
-            android:theme="@style/Theme.Epróba"
-            android:parentActivityName=".MainActivity"/>
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/Theme.Epróba" />
         <activity
             android:name=".SettingsActivity"
             android:exported="false"

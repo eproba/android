@@ -102,7 +102,8 @@ class ManagedExamAdapter(private val dataSet: List<Exam>, private val users: Lis
                 dataSet[position].tasks.filter { it.status == Task.Status.APPROVED }.size * 100 / dataSet[position].tasks.size
             )
         viewHolder.taskList.visibility = View.VISIBLE
-        viewHolder.taskList.adapter = TaskAdapter(dataSet[position].tasks, users)
+        viewHolder.taskList.adapter =
+            ManageTaskAdapter(dataSet[position], users, viewHolder.progressPercentage)
         viewHolder.adFrame.visibility = View.GONE
     }
 

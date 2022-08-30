@@ -39,4 +39,9 @@
     <string name="error_screen_title">Wystąpił nieoczekiwany błąd i aplikacja nie może kontynuować działania</string>
     <string name="restart_app">Zrestaruj aplikację</string>
     <string name="title_activity_create_exam">Utwórz próbę</string>
+    <string name="accept">Zaakceptuj</string>
+    <string name="reject">Odrzuć</string>
+    <string name="error_dialog_title">Wystąpił błąd</string>
+    <string name="task_approval_error_message">Wystąpił błąd i zadanie nie zostało zatwierdzone, spróbuj ponownie później</string>
+    <string name="task_rejection_error_message">Wystąpił błąd i zadanie nie zostało odrzucone, spróbuj ponownie później</string>
 </resources>

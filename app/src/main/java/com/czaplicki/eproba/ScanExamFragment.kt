@@ -106,7 +106,7 @@ class ScanExamFragment : Fragment() {
                                 task = task.substringBeforeLast(".")
                             }
                             if (task.isNotEmpty()) {
-                                tasks.add(Task(task))
+                                tasks.add(Task(-1, task))
                             }
                         }
                         continue
@@ -121,7 +121,7 @@ class ScanExamFragment : Fragment() {
                     task = task.substringBeforeLast(".")
                 }
                 if (task.isNotEmpty()) {
-                    tasks.add(Task(task))
+                    tasks.add(Task(-1, task))
                 }
             }
         }

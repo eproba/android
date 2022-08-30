@@ -112,7 +112,6 @@ class FirstFragment : Fragment() {
                             "Błąd połączenia z serwerem",
                             Snackbar.LENGTH_LONG
                         ).show()
-                        t.message?.let { Log.e("FirstFragment", it) }
                         mSwipeRefreshLayout.isRefreshing = false
                     }
 
@@ -135,6 +134,48 @@ class FirstFragment : Fragment() {
                         }
                         recyclerView?.adapter?.notifyDataSetChanged()
                         mSwipeRefreshLayout.isRefreshing = false
+                        val userIds: MutableSet<Int> = mutableSetOf()
+                        examList.forEach {
+                            if (it.userId != null) userIds.add(it.userId!!)
+                            if (it.supervisor != null) userIds.add(it.supervisor!!)
+                            if (it.tasks.isNotEmpty()) it.tasks.forEach { task ->
+                                if (task.approver != null) userIds.add(task.approver!!)
+                            }
+                        }
+                        userIds.filter { id -> users.find { it.id == id } == null }.forEach { id ->
+                            api.getRetrofitInstance(requireContext(), accessToken)!!
+                                .create(EprobaService::class.java).getUserInfo(id)
+                                .enqueue(object : retrofit2.Callback<User> {
+                                    override fun onFailure(
+                                        call: retrofit2.Call<User>,
+                                        t: Throwable
+                                    ) {
+                                        Snackbar.make(
+                                            binding.root,
+                                            "Błąd połączenia z serwerem",
+                                            Snackbar.LENGTH_SHORT
+                                        ).show()
+                                    }
+
+                                    override fun onResponse(
+                                        call: retrofit2.Call<User>,
+                                        response: retrofit2.Response<User>
+                                    ) {
+                                        if (response.body() != null) {
+                                            users.add(response.body()!!)
+                                            lifecycleScope.launch {
+                                                userDao.insertUsers(response.body()!!)
+                                            }
+                                            sharedPreferences.edit().putLong(
+                                                "lastUsersUpdate",
+                                                System.currentTimeMillis()
+                                            ).apply()
+                                            recyclerView?.adapter?.notifyDataSetChanged()
+                                        }
+                                    }
+                                })
+
+                        }
                     }
                 })
         }

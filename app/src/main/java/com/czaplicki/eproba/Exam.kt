@@ -81,12 +81,13 @@ class Exam(
 }
 
 data class Task(
+    val id: Int,
     val task: String,
     val description: String = "",
-    val status: Int = 0,
-    val approver: Int? = null,
+    var status: Int = 0,
+    var approver: Int? = null,
     @SerializedName("approval_date")
-    val approvalDate: LocalDateTime? = LocalDateTime.now(),
+    var approvalDate: LocalDateTime? = LocalDateTime.now(),
 ) {
     class Status {
         companion object {
@@ -106,7 +107,7 @@ data class Task(
             )
             1 -> Icon.createWithResource("com.czaplicki.eproba", R.drawable.schedule_24px)
             2 -> Icon.createWithResource("com.czaplicki.eproba", R.drawable.check_circle_24px)
-            3 -> Icon.createWithResource("com.czaplicki.eproba", R.drawable.error_24px)
+            3 -> Icon.createWithResource("com.czaplicki.eproba", R.drawable.cancel_24px)
             else -> Icon.createWithResource("com.czaplicki.eproba", R.drawable.ic_help)
         }
 }
