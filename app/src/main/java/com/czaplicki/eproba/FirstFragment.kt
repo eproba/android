@@ -143,7 +143,10 @@ class FirstFragment : Fragment() {
                             }
                         }
                         userIds.filter { id -> users.find { it.id == id } == null }.forEach { id ->
-                            api.getRetrofitInstance(requireContext(), accessToken)!!
+                            api.getRetrofitInstance(
+                                requireActivity().applicationContext,
+                                accessToken
+                            )!!
                                 .create(EprobaService::class.java).getUserInfo(id)
                                 .enqueue(object : retrofit2.Callback<User> {
                                     override fun onFailure(

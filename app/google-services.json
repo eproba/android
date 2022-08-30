@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "897419344971",
+    "firebase_url": "https://scouts-exams-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "scouts-exams",
+    "storage_bucket": "scouts-exams.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:897419344971:android:8d641df07983d2df6d61ce",
+        "android_client_info": {
+          "package_name": "com.czaplicki.eproba"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "897419344971-f2uj5udmpk698ur529di5ens7ufogclg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCFPdk74WHfWv5zNf3CcJ4suhVnPPnivvs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "897419344971-f2uj5udmpk698ur529di5ens7ufogclg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

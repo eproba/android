@@ -1,13 +1,10 @@
 package com.czaplicki.eproba
 
-import android.app.Activity
-import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
@@ -15,7 +12,8 @@ import com.czaplicki.eproba.api.EprobaApi
 import com.czaplicki.eproba.api.EprobaService
 import com.czaplicki.eproba.databinding.FragmentProfileBinding
 import com.google.android.material.snackbar.Snackbar
-import net.openid.appauth.*
+import net.openid.appauth.AuthState
+import net.openid.appauth.AuthorizationService
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -44,14 +42,21 @@ class ProfileFragment : Fragment() {
         binding.actionButton.text = getString(R.string.button_logout)
         binding.actionButton.setOnClickListener {
             mAuthStateManager.replace(AuthState())
-            val server = PreferenceManager.getDefaultSharedPreferences(requireContext()).getString("server", "https://dev.eproba.pl")
+            val server = PreferenceManager.getDefaultSharedPreferences(requireContext())
+                .getString("server", "https://dev.eproba.pl")
             PreferenceManager.getDefaultSharedPreferences(requireContext()).edit().clear().apply()
-            PreferenceManager.getDefaultSharedPreferences(requireContext()).edit().putString("server", server).apply()
+            PreferenceManager.getDefaultSharedPreferences(requireContext()).edit()
+                .putString("server", server).apply()
             requireContext().deleteDatabase("eproba.db")
             Toast.makeText(requireContext(), "Logged out", Toast.LENGTH_SHORT).show()
             requireActivity().finish()
         }
-        binding.avatar.setImageDrawable(ContextCompat.getDrawable(requireActivity(), R.drawable.ic_account))
+        binding.avatar.setImageDrawable(
+            ContextCompat.getDrawable(
+                requireActivity(),
+                R.drawable.ic_account
+            )
+        )
         binding.deleteDB.setOnClickListener {
             requireContext().deleteDatabase("eproba.db")
         }
@@ -65,7 +70,10 @@ class ProfileFragment : Fragment() {
         ) { accessToken, _, _ ->
             mAuthStateManager.updateSavedState()
             val apiService: EprobaService =
-                EprobaApi().getRetrofitInstance(requireContext(), accessToken!!)!!
+                EprobaApi().getRetrofitInstance(
+                    requireActivity().applicationContext,
+                    accessToken!!
+                )!!
                     .create(EprobaService::class.java)
             apiService.getUserInfo().enqueue(object : Callback<User> {
                 override fun onResponse(call: Call<User>, response: Response<User>) {
