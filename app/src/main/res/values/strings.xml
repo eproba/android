@@ -52,4 +52,6 @@
     <string name="error_dialog_title">Error</string>
     <string name="task_approval_error_message">An error occurred and the task was not approved, please try again later</string>
     <string name="task_rejection_error_message">An error occurred and the task was not rejected, please try again later</string>
+    <string name="search">Search</string>
+    <string name="no_exams">No exams</string>
 </resources>

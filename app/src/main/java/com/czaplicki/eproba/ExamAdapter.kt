@@ -1,6 +1,5 @@
 package com.czaplicki.eproba
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,7 +13,7 @@ import com.google.android.gms.ads.nativead.NativeAdView
 import com.google.android.material.divider.MaterialDividerItemDecoration
 
 
-class ExamAdapter(private val dataSet: List<Exam>, private val users: List<User>) :
+class ExamAdapter(private var dataSet: MutableList<Exam>, private val users: List<User>) :
     RecyclerView.Adapter<ExamAdapter.ViewHolder>() {
 
 
@@ -60,7 +59,13 @@ class ExamAdapter(private val dataSet: List<Exam>, private val users: List<User>
 
         // Get element from your dataset at this position and replace the
         // contents of the view with that element
-        if (dataSet[position].id == -1 && dataSet[position].name == "ad" && position == itemCount - 1) {
+        if (dataSet[position].id == -1 && dataSet[position].name == "no_exams") {
+            viewHolder.name.text = viewHolder.itemView.context.getString(R.string.no_exams)
+            viewHolder.supervisor.visibility = View.GONE
+            viewHolder.progressPercentage.visibility = View.GONE
+            viewHolder.taskList.visibility = View.GONE
+            return
+        } else if (dataSet[position].id == -1 && dataSet[position].name == "ad" && position == itemCount - 1) {
             viewHolder.name.text = viewHolder.itemView.context.getString(R.string.advertisement)
             viewHolder.supervisor.visibility = View.GONE
             viewHolder.progressPercentage.visibility = View.GONE
@@ -183,5 +188,12 @@ class ExamAdapter(private val dataSet: List<Exam>, private val users: List<User>
         // native ad view with this native ad.
         adView.setNativeAd(nativeAd)
 
+    }
+
+
+    fun filterList(filterList: List<Exam>) {
+        dataSet.clear()
+        dataSet.addAll(filterList)
+        notifyDataSetChanged()
     }
 }

@@ -13,7 +13,7 @@ import com.google.android.gms.ads.nativead.NativeAdView
 import com.google.android.material.divider.MaterialDividerItemDecoration
 
 
-class ManagedExamAdapter(private val dataSet: List<Exam>, private val users: List<User>) :
+class ManagedExamAdapter(private val dataSet: MutableList<Exam>, private val users: List<User>) :
     RecyclerView.Adapter<ManagedExamAdapter.ViewHolder>() {
 
 
@@ -59,7 +59,13 @@ class ManagedExamAdapter(private val dataSet: List<Exam>, private val users: Lis
 
         // Get element from your dataset at this position and replace the
         // contents of the view with that element
-        if (dataSet[position].id == -1 && dataSet[position].name == "ad" && position == itemCount - 1) {
+        if (dataSet[position].id == -1 && dataSet[position].name == "no_exams") {
+            viewHolder.name.text = viewHolder.itemView.context.getString(R.string.no_exams)
+            viewHolder.supervisor.visibility = View.GONE
+            viewHolder.progressPercentage.visibility = View.GONE
+            viewHolder.taskList.visibility = View.GONE
+            return
+        } else if (dataSet[position].id == -1 && dataSet[position].name == "ad" && position == itemCount - 1) {
             viewHolder.name.text = viewHolder.itemView.context.getString(R.string.advertisement)
             viewHolder.supervisor.visibility = View.GONE
             viewHolder.progressPercentage.visibility = View.GONE
@@ -184,5 +190,12 @@ class ManagedExamAdapter(private val dataSet: List<Exam>, private val users: Lis
         // native ad view with this native ad.
         adView.setNativeAd(nativeAd)
 
+    }
+
+
+    fun filterList(filterList: List<Exam>) {
+        dataSet.clear()
+        dataSet.addAll(filterList)
+        notifyDataSetChanged()
     }
 }

@@ -3,10 +3,12 @@ package com.czaplicki.eproba
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
+import androidx.appcompat.widget.SearchView
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -17,6 +19,7 @@ import com.czaplicki.eproba.databinding.FragmentFirstBinding
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import net.openid.appauth.AuthorizationService
+import java.util.*
 
 
 /**
@@ -31,6 +34,8 @@ class FirstFragment : Fragment() {
     private var recyclerView: RecyclerView? = null
     private val mSwipeRefreshLayout by lazy { _binding!!.swipeRefreshLayout }
     private val api: EprobaApi = EprobaApi()
+    private lateinit var searchView: SearchView
+    var originalExamList: MutableList<Exam> = mutableListOf()
     var examList: MutableList<Exam> = mutableListOf()
     private val binding get() = _binding!!
     private val userDao: UserDao by lazy { (activity?.application as EprobaApplication).database.userDao() }
@@ -76,6 +81,28 @@ class FirstFragment : Fragment() {
             }
         }
 
+        val menuHost: MenuHost = requireActivity()
+        menuHost.addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                searchView = menu.findItem(R.id.app_bar_search).actionView as SearchView
+                searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                    override fun onQueryTextSubmit(query: String?): Boolean {
+                        return false
+                    }
+
+                    override fun onQueryTextChange(newText: String?): Boolean {
+                        Log.d("search", newText.toString())
+                        filter(newText.toString())
+                        return false
+                    }
+                })
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                // Handle the menu selection
+                return false
+            }
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
         return binding.root
 
     }
@@ -120,11 +147,18 @@ class FirstFragment : Fragment() {
                         response: retrofit2.Response<List<Exam>>
                     ) {
                         if (response.body() != null) {
+                            originalExamList = response.body()!!.toMutableList()
                             examList.clear()
                             examList.addAll(response.body()!!)
+                            if (examList.isEmpty()) {
+                                examList.add(Exam(id = -1, name = "no_exams"))
+                            }
                             if (sharedPreferences
                                     .getBoolean("ads", true)
                             ) examList.add(Exam(id = -1, name = "ad"))
+                            if (searchView.query.toString().isNotEmpty()) {
+                                filter(searchView.query.toString())
+                            }
                         } else {
                             Snackbar.make(
                                 binding.root,
@@ -238,6 +272,24 @@ class FirstFragment : Fragment() {
                     }
                 })
         }
+    }
+
+
+    private fun filter(text: String) {
+        val filteredList: ArrayList<Exam> = ArrayList<Exam>()
+
+        for (item in originalExamList.filter { it.id != -1 }) {
+            if (item.name!!.lowercase(Locale.ROOT).contains(text.lowercase(Locale.getDefault()))) {
+                filteredList.add(item)
+            }
+        }
+        if (filteredList.isEmpty()) {
+            filteredList.add(Exam(id = -1, name = "no_exams"))
+        }
+        if (sharedPreferences
+                .getBoolean("ads", true)
+        ) filteredList.add(Exam(id = -1, name = "ad"))
+        (recyclerView?.adapter as ExamAdapter).filterList(filteredList)
     }
 
 }
