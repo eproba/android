@@ -46,4 +46,5 @@
     <string name="task_rejection_error_message">Wystąpił błąd i zadanie nie zostało odrzucone, spróbuj ponownie później</string>
     <string name="search">Szukaj</string>
     <string name="no_exams">Brak prób</string>
+    <string name="no_tasks">Nie masz żadnych zadań do sprawdzenia</string>
 </resources>

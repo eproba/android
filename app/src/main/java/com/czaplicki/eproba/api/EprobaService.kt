@@ -30,6 +30,9 @@ interface EprobaService {
     @GET("exam/")
     fun getExams(): Call<List<Exam>>
 
+    @GET("exam/tasks/tbc/")
+    fun getTasksTBC(): Call<List<Exam>>
+
     @GET("exam/")
     fun getExam(id: Int): Call<Exam>
 

@@ -13,14 +13,10 @@ import com.google.android.gms.ads.nativead.NativeAdView
 import com.google.android.material.divider.MaterialDividerItemDecoration
 
 
-class ExamAdapter(private var dataSet: MutableList<Exam>, private val users: List<User>) :
-    RecyclerView.Adapter<ExamAdapter.ViewHolder>() {
+class AcceptTasksAdapter(private val dataSet: MutableList<Exam>, private val users: List<User>) :
+    RecyclerView.Adapter<AcceptTasksAdapter.ViewHolder>() {
 
 
-    /**
-     * Provide a reference to the type of views that you are using
-     * (custom ViewHolder).
-     */
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val name: TextView
         val supervisor: TextView
@@ -59,16 +55,15 @@ class ExamAdapter(private var dataSet: MutableList<Exam>, private val users: Lis
 
         // Get element from your dataset at this position and replace the
         // contents of the view with that element
+        viewHolder.progressPercentage.visibility = View.GONE
         if (dataSet[position].id == -1 && dataSet[position].name == "no_exams") {
-            viewHolder.name.text = viewHolder.itemView.context.getString(R.string.no_exams)
+            viewHolder.name.text = viewHolder.itemView.context.getString(R.string.no_tasks)
             viewHolder.supervisor.visibility = View.GONE
-            viewHolder.progressPercentage.visibility = View.GONE
             viewHolder.taskList.visibility = View.GONE
             return
         } else if (dataSet[position].id == -1 && dataSet[position].name == "ad" && position == itemCount - 1) {
             viewHolder.name.text = viewHolder.itemView.context.getString(R.string.advertisement)
             viewHolder.supervisor.visibility = View.GONE
-            viewHolder.progressPercentage.visibility = View.GONE
             viewHolder.taskList.visibility = View.GONE
             viewHolder.adFrame.visibility = View.VISIBLE
             val builder = AdLoader.Builder(
@@ -92,7 +87,8 @@ class ExamAdapter(private var dataSet: MutableList<Exam>, private val users: Lis
             return
         }
 
-        viewHolder.name.text = dataSet[position].name
+        viewHolder.name.text =
+            dataSet[position].name + " - " + users.find { it.id == dataSet[position].userId }?.nicknameWithRank
         if (dataSet[position].supervisor != null) {
             viewHolder.supervisor.visibility = View.VISIBLE
             viewHolder.supervisor.text =
@@ -100,14 +96,9 @@ class ExamAdapter(private var dataSet: MutableList<Exam>, private val users: Lis
         } else {
             viewHolder.supervisor.visibility = View.GONE
         }
-        viewHolder.progressPercentage.visibility = View.VISIBLE
-        viewHolder.progressPercentage.text =
-            if (dataSet[position].tasks.size == 0) "" else viewHolder.itemView.context.getString(
-                R.string.progress_percentage,
-                dataSet[position].tasks.filter { it.status == Task.Status.APPROVED }.size * 100 / dataSet[position].tasks.size
-            )
         viewHolder.taskList.visibility = View.VISIBLE
-        viewHolder.taskList.adapter = TaskAdapter(dataSet[position].tasks, users)
+        viewHolder.taskList.adapter =
+            ManageTaskAdapter(dataSet[position], users, viewHolder.progressPercentage)
         viewHolder.adFrame.visibility = View.GONE
     }
 

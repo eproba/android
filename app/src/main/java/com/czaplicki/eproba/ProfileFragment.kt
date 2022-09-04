@@ -71,7 +71,7 @@ class ProfileFragment : Fragment() {
             mAuthStateManager.updateSavedState()
             val apiService: EprobaService =
                 EprobaApi().getRetrofitInstance(
-                    requireActivity().applicationContext,
+                    requireContext(),
                     accessToken!!
                 )!!
                     .create(EprobaService::class.java)

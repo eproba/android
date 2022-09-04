@@ -22,9 +22,6 @@ import net.openid.appauth.AuthorizationService
 import java.util.*
 
 
-/**
- * A simple [Fragment] subclass as the default destination in the navigation.
- */
 class ManageExamsFragment : Fragment() {
 
     private var _binding: FragmentManageExamsBinding? = null

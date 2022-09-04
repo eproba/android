@@ -4,7 +4,6 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.view.*
-import androidx.appcompat.widget.SearchView
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
@@ -15,24 +14,22 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.czaplicki.eproba.api.EprobaApi
 import com.czaplicki.eproba.api.EprobaService
-import com.czaplicki.eproba.databinding.FragmentFirstBinding
+import com.czaplicki.eproba.databinding.FragmentManageExamsBinding
 import com.google.android.material.snackbar.Snackbar
+import com.google.gson.Gson
 import kotlinx.coroutines.launch
 import net.openid.appauth.AuthorizationService
-import java.util.*
 
 
-class FirstFragment : Fragment() {
+class AcceptTasksFragment : Fragment() {
 
-    private var _binding: FragmentFirstBinding? = null
+    private var _binding: FragmentManageExamsBinding? = null
 
     private lateinit var mAuthStateManager: AuthStateManager
     private lateinit var authService: AuthorizationService
     private var recyclerView: RecyclerView? = null
     private val mSwipeRefreshLayout by lazy { _binding!!.swipeRefreshLayout }
     private val api: EprobaApi = EprobaApi()
-    private lateinit var searchView: SearchView
-    var originalExamList: MutableList<Exam> = mutableListOf()
     var examList: MutableList<Exam> = mutableListOf()
     private val binding get() = _binding!!
     private val userDao: UserDao by lazy { (activity?.application as EprobaApplication).database.userDao() }
@@ -42,17 +39,32 @@ class FirstFragment : Fragment() {
             requireContext()
         )
     }
+    val user: User by lazy {
+        Gson().fromJson(sharedPreferences.getString("user", ""), User::class.java)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentFirstBinding.inflate(inflater, container, false)
+        _binding = FragmentManageExamsBinding.inflate(inflater, container, false)
         mAuthStateManager = AuthStateManager.getInstance(requireContext())
         authService = AuthorizationService(requireContext())
         recyclerView = binding.recyclerView
         recyclerView?.layoutManager = LinearLayoutManager(view?.context)
-        recyclerView?.adapter = ExamAdapter(examList, users)
+        recyclerView?.adapter = AcceptTasksAdapter(examList, users)
+        val menuHost: MenuHost = requireActivity()
+        menuHost.addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menu.findItem(R.id.app_bar_search).isVisible = false
+
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                // Handle the menu selection
+                return false
+            }
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
         mSwipeRefreshLayout.setOnRefreshListener {
             updateExams()
             getUsers()
@@ -78,28 +90,6 @@ class FirstFragment : Fragment() {
             }
         }
 
-        val menuHost: MenuHost = requireActivity()
-        menuHost.addMenuProvider(object : MenuProvider {
-            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                searchView = menu.findItem(R.id.app_bar_search).actionView as SearchView
-                searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-                    override fun onQueryTextSubmit(query: String?): Boolean {
-                        return false
-                    }
-
-                    override fun onQueryTextChange(newText: String?): Boolean {
-                        Log.d("search", newText.toString())
-                        filter(newText.toString())
-                        return false
-                    }
-                })
-            }
-
-            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                // Handle the menu selection
-                return false
-            }
-        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
         return binding.root
 
     }
@@ -128,7 +118,7 @@ class FirstFragment : Fragment() {
             mAuthStateManager.updateSavedState()
             mSwipeRefreshLayout.isRefreshing = true
             api.getRetrofitInstance(requireContext(), accessToken)!!
-                .create(EprobaService::class.java).getUserExams()
+                .create(EprobaService::class.java).getTasksTBC()
                 .enqueue(object : retrofit2.Callback<List<Exam>> {
                     override fun onFailure(call: retrofit2.Call<List<Exam>>, t: Throwable) {
                         Snackbar.make(
@@ -136,6 +126,7 @@ class FirstFragment : Fragment() {
                             "Błąd połączenia z serwerem",
                             Snackbar.LENGTH_LONG
                         ).show()
+                        t.message?.let { Log.e("FirstFragment", it) }
                         mSwipeRefreshLayout.isRefreshing = false
                     }
 
@@ -144,18 +135,17 @@ class FirstFragment : Fragment() {
                         response: retrofit2.Response<List<Exam>>
                     ) {
                         if (response.body() != null) {
-                            originalExamList = response.body()!!.toMutableList()
                             examList.clear()
                             examList.addAll(response.body()!!)
+                            for (exam in examList) {
+                                exam.tasks.removeIf { it.status != Task.Status.AWAITING_APPROVAL || it.approver != user.id }
+                            }
                             if (examList.isEmpty()) {
                                 examList.add(Exam(id = -1, name = "no_exams"))
                             }
                             if (sharedPreferences
                                     .getBoolean("ads", true)
                             ) examList.add(Exam(id = -1, name = "ad"))
-                            if (searchView.query.toString().isNotEmpty()) {
-                                filter(searchView.query.toString())
-                            }
                         } else {
                             Snackbar.make(
                                 binding.root,
@@ -174,10 +164,7 @@ class FirstFragment : Fragment() {
                             }
                         }
                         userIds.filter { id -> users.find { it.id == id } == null }.forEach { id ->
-                            api.getRetrofitInstance(
-                                requireContext(),
-                                accessToken
-                            )!!
+                            api.getRetrofitInstance(requireContext(), accessToken)!!
                                 .create(EprobaService::class.java).getUserInfo(id)
                                 .enqueue(object : retrofit2.Callback<User> {
                                     override fun onFailure(
@@ -270,23 +257,4 @@ class FirstFragment : Fragment() {
                 })
         }
     }
-
-
-    private fun filter(text: String) {
-        val filteredList: ArrayList<Exam> = ArrayList<Exam>()
-
-        for (item in originalExamList.filter { it.id != -1 }) {
-            if (item.name!!.lowercase(Locale.ROOT).contains(text.lowercase(Locale.getDefault()))) {
-                filteredList.add(item)
-            }
-        }
-        if (filteredList.isEmpty()) {
-            filteredList.add(Exam(id = -1, name = "no_exams"))
-        }
-        if (sharedPreferences
-                .getBoolean("ads", true)
-        ) filteredList.add(Exam(id = -1, name = "ad"))
-        (recyclerView?.adapter as ExamAdapter).filterList(filteredList)
-    }
-
 }

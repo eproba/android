@@ -54,4 +54,5 @@
     <string name="task_rejection_error_message">An error occurred and the task was not rejected, please try again later</string>
     <string name="search">Search</string>
     <string name="no_exams">No exams</string>
+    <string name="no_tasks">You don\'t have any tasks to approve</string>
 </resources>

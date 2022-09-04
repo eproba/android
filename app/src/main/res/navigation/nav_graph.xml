@@ -53,4 +53,8 @@
     <action
         android:id="@+id/action_global_createExamActivity"
         app:destination="@id/createExamActivity" />
+    <fragment
+        android:id="@+id/navigation_accept_tasks"
+        android:name="com.czaplicki.eproba.AcceptTasksFragment"
+        android:label="@string/title_accept_tasks" />
 </navigation>

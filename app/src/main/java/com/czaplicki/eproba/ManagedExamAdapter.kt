@@ -73,7 +73,7 @@ class ManagedExamAdapter(private val dataSet: MutableList<Exam>, private val use
             viewHolder.adFrame.visibility = View.VISIBLE
             val builder = AdLoader.Builder(
                 viewHolder.itemView.context,
-                "ca-app-pub-3940256099942544/2247696110" // Test ad unit id
+                "ca-app-pub-7127294792989521/8405155665"
             )
                 .forNativeAd { nativeAd ->
                     // Assumes that your ad layout is in a file call native_ad_layout.xml
