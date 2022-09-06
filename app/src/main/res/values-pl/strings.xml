@@ -47,4 +47,6 @@
     <string name="search">Szukaj</string>
     <string name="no_exams">Brak prób</string>
     <string name="no_tasks">Nie masz żadnych zadań do sprawdzenia</string>
+    <string name="scout">Druh/Druhna</string>
+    <string name="exam_name">Nazwa próby</string>
 </resources>

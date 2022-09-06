@@ -55,4 +55,6 @@
     <string name="search">Search</string>
     <string name="no_exams">No exams</string>
     <string name="no_tasks">You don\'t have any tasks to approve</string>
+    <string name="scout">Scout</string>
+    <string name="exam_name">Exam name</string>
 </resources>

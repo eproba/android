@@ -73,6 +73,7 @@ class Exam(
     fun toJson(): String {
         return """{
 "name": "${name?.replace("\"", "\\\"")}",
+"user": $userId,
 "tasks": 
     [${tasks.joinToString { "\n{\"task\":\"${it.task.replace("\"", "\\\"")}\"}" }}
     ]
