@@ -31,7 +31,7 @@ class ManageExamsFragment : Fragment() {
     private var recyclerView: RecyclerView? = null
     private val mSwipeRefreshLayout by lazy { _binding!!.swipeRefreshLayout }
     private val api: EprobaApi = EprobaApi()
-    private lateinit var searchView: SearchView
+    private var searchView: SearchView? = null
     var originalExamList: MutableList<Exam> = mutableListOf()
     var examList: MutableList<Exam> = mutableListOf()
     private val binding get() = _binding!!
@@ -82,7 +82,7 @@ class ManageExamsFragment : Fragment() {
         menuHost.addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 searchView = menu.findItem(R.id.app_bar_search).actionView as SearchView
-                searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                     override fun onQueryTextSubmit(query: String?): Boolean {
                         return false
                     }
@@ -154,8 +154,8 @@ class ManageExamsFragment : Fragment() {
                             if (sharedPreferences
                                     .getBoolean("ads", true)
                             ) examList.add(Exam(id = -1, name = "ad"))
-                            if (searchView.query.toString().isNotEmpty()) {
-                                filter(searchView.query.toString())
+                            if (searchView?.query.toString().isNotEmpty()) {
+                                filter(searchView?.query.toString())
                             }
                         } else {
                             Snackbar.make(

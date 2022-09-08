@@ -3,6 +3,7 @@ package com.czaplicki.eproba
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
+import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -42,6 +43,7 @@ class ScanExamFragment : Fragment() {
 
     private var _binding: FragmentScanExamBinding? = null
     private val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+    private lateinit var sharedPreferences: SharedPreferences
 
 
     // This property is only valid between onCreateView and
@@ -49,18 +51,8 @@ class ScanExamFragment : Fragment() {
     private val binding get() = _binding!!
     private val client = OkHttpClient()
     private val api: EprobaApi = EprobaApi()
-    private val baseUrl: String by lazy {
-        PreferenceManager.getDefaultSharedPreferences(
-            requireContext()
-        ).getString("server", "https://dev.eproba.pl")!!
-    }
-    private val user: User by lazy {
-        Gson().fromJson(
-            PreferenceManager.getDefaultSharedPreferences(
-                requireContext()
-            ).getString("user", null), User::class.java
-        )
-    }
+    private lateinit var baseUrl: String
+    private lateinit var user: User
     private val userDao: UserDao by lazy { (activity?.application as EprobaApplication).database.userDao() }
     private val users = mutableListOf<User>()
 
@@ -74,6 +66,9 @@ class ScanExamFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentScanExamBinding.inflate(inflater, container, false)
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
+        baseUrl = sharedPreferences.getString("server", "https://dev.eproba.pl")!!
+        user = Gson().fromJson(sharedPreferences.getString("user", null), User::class.java)
         authService = AuthorizationService(requireContext())
         mAuthStateManager = AuthStateManager.getInstance(requireContext())
         binding.refreshButton.visibility = View.VISIBLE
@@ -363,9 +358,7 @@ class ScanExamFragment : Fragment() {
         } else {
             exam.userId = user.id
         }
-        if (baseUrl == "https://eproba.pl" && PreferenceManager.getDefaultSharedPreferences(
-                requireContext()
-            ).getString("server_key", "") != "47"
+        if (baseUrl == "https://eproba.pl" && sharedPreferences.getString("server_key", "") != "47"
         ) {
             Snackbar.make(
                 binding.root,
@@ -543,7 +536,7 @@ class ScanExamFragment : Fragment() {
                                 users.clear()
                                 users.addAll(userDao.getAll())
                             }
-                            PreferenceManager.getDefaultSharedPreferences(requireContext()).edit()
+                            sharedPreferences.edit()
                                 .putLong("lastUsersUpdate", System.currentTimeMillis()).apply()
                         } else {
                             Snackbar.make(
