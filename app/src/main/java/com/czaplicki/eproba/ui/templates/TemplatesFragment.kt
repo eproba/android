@@ -1,4 +1,4 @@
-package com.czaplicki.eproba.ui.dashboard
+package com.czaplicki.eproba.ui.templates
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -8,11 +8,11 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.czaplicki.eproba.CreateExamActivity
-import com.czaplicki.eproba.databinding.FragmentDashboardBinding
+import com.czaplicki.eproba.databinding.FragmentTemplatesBinding
 
-class DashboardFragment : Fragment() {
+class TemplatesFragment : Fragment() {
 
-    private var _binding: FragmentDashboardBinding? = null
+    private var _binding: FragmentTemplatesBinding? = null
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -23,14 +23,14 @@ class DashboardFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val dashboardViewModel =
-            ViewModelProvider(this).get(DashboardViewModel::class.java)
+        val templatesViewModel =
+            ViewModelProvider(this)[TemplatesViewModel::class.java]
 
-        _binding = FragmentDashboardBinding.inflate(inflater, container, false)
+        _binding = FragmentTemplatesBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        val textView: TextView = binding.textDashboard
-        dashboardViewModel.text.observe(viewLifecycleOwner) {
+        val textView: TextView = binding.textNotifications
+        templatesViewModel.text.observe(viewLifecycleOwner) {
             textView.text = it
         }
         (requireActivity() as CreateExamActivity).supportActionBar?.setDisplayHomeAsUpEnabled(true)

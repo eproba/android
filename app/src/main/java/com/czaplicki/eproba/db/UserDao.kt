@@ -1,10 +1,10 @@
-package com.czaplicki.eproba
+package com.czaplicki.eproba.db
 
 import androidx.room.*
 
 @Dao
 interface UserDao {
-    @Query("SELECT * FROM user")
+    @Query("SELECT * FROM users")
     suspend fun getAll(): List<User>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -16,7 +16,7 @@ interface UserDao {
     @Delete
     suspend fun deleteUsers(vararg users: User)
 
-    @Query("SELECT * FROM user WHERE id = :id")
+    @Query("SELECT * FROM users WHERE id = :id")
     suspend fun loadUserById(id: Int): User
 
 }

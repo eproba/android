@@ -13,13 +13,13 @@
 
     <fragment
         android:id="@+id/navigation_compose"
-        android:name="com.czaplicki.eproba.ui.dashboard.DashboardFragment"
+        android:name="com.czaplicki.eproba.ui.compose.ComposeFragment"
         android:label="@string/title_compose_exam"
-        tools:layout="@layout/fragment_dashboard" />
+        tools:layout="@layout/fragment_compose" />
 
     <fragment
         android:id="@+id/navigation_templates"
-        android:name="com.czaplicki.eproba.ui.notifications.NotificationsFragment"
+        android:name="com.czaplicki.eproba.ui.templates.TemplatesFragment"
         android:label="@string/title_templates"
-        tools:layout="@layout/fragment_notifications" />
+        tools:layout="@layout/fragment_templates" />
 </navigation>

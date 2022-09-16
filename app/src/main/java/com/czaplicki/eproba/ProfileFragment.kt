@@ -11,6 +11,7 @@ import androidx.preference.PreferenceManager
 import com.czaplicki.eproba.api.EprobaApi
 import com.czaplicki.eproba.api.EprobaService
 import com.czaplicki.eproba.databinding.FragmentProfileBinding
+import com.czaplicki.eproba.db.User
 import com.google.android.material.snackbar.Snackbar
 import net.openid.appauth.AuthState
 import net.openid.appauth.AuthorizationService
@@ -57,9 +58,6 @@ class ProfileFragment : Fragment() {
                 R.drawable.ic_account
             )
         )
-        binding.deleteDB.setOnClickListener {
-            requireContext().deleteDatabase("eproba.db")
-        }
         getUserInfo()
     }
 
@@ -70,7 +68,7 @@ class ProfileFragment : Fragment() {
         ) { accessToken, _, _ ->
             mAuthStateManager.updateSavedState()
             val apiService: EprobaService =
-                EprobaApi().getRetrofitInstance(
+                EprobaApi().create(
                     requireContext(),
                     accessToken!!
                 )!!

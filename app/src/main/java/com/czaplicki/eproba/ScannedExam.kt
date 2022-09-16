@@ -1,5 +1,6 @@
 package com.czaplicki.eproba
 
+import com.czaplicki.eproba.db.Exam
 import java.util.*
 
 class ScannedExam(

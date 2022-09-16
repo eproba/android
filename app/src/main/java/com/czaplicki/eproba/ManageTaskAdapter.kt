@@ -11,6 +11,9 @@ import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import com.czaplicki.eproba.api.EprobaApi
 import com.czaplicki.eproba.api.EprobaService
+import com.czaplicki.eproba.db.Exam
+import com.czaplicki.eproba.db.Task
+import com.czaplicki.eproba.db.User
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.gson.Gson
 import net.openid.appauth.AuthorizationService
@@ -129,7 +132,7 @@ class ManageTaskAdapter(
                     ) { accessToken, _, _ ->
                         if (accessToken == null) return@performActionWithFreshTokens
                         mAuthStateManager.updateSavedState()
-                        EprobaApi().getRetrofitInstance(viewHolder.itemView.context, accessToken)!!
+                        EprobaApi().create(viewHolder.itemView.context, accessToken)!!
                             .create(
                                 EprobaService::class.java
                             ).updateTaskStatus(
@@ -228,7 +231,7 @@ class ManageTaskAdapter(
                     ) { accessToken, _, _ ->
                         if (accessToken == null) return@performActionWithFreshTokens
                         mAuthStateManager.updateSavedState()
-                        EprobaApi().getRetrofitInstance(viewHolder.itemView.context, accessToken)!!
+                        EprobaApi().create(viewHolder.itemView.context, accessToken)!!
                             .create(
                                 EprobaService::class.java
                             ).updateTaskStatus(

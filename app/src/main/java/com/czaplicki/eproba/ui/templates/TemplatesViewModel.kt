@@ -1,13 +1,13 @@
-package com.czaplicki.eproba.ui.notifications
+package com.czaplicki.eproba.ui.templates
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
-class NotificationsViewModel : ViewModel() {
+class TemplatesViewModel : ViewModel() {
 
     private val _text = MutableLiveData<String>().apply {
-        value = "This is templates Fragment"
+        value = "Szablony nie są jeszcze dostępne w aplikacji mobilnej"
     }
     val text: LiveData<String> = _text
 }

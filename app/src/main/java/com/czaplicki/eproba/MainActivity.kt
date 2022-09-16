@@ -1,6 +1,10 @@
 package com.czaplicki.eproba
 
 import android.app.Activity
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Bundle
 import android.view.Menu
@@ -21,6 +25,7 @@ import androidx.preference.PreferenceManager
 import com.czaplicki.eproba.api.EprobaApi
 import com.czaplicki.eproba.api.EprobaService
 import com.czaplicki.eproba.databinding.ActivityMainBinding
+import com.czaplicki.eproba.db.User
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.RequestConfiguration
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -132,6 +137,29 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
+        val networkCallback = object : ConnectivityManager.NetworkCallback() {
+            // network is available for use
+            override fun onAvailable(network: Network) {
+                runOnUiThread {
+                    binding.networkStatus.visibility = View.GONE
+                }
+                super.onAvailable(network)
+            }
+
+            // lost network connection
+            override fun onLost(network: Network) {
+                runOnUiThread {
+                    binding.networkStatus.visibility = View.VISIBLE
+                }
+                super.onLost(network)
+            }
+        }
+        val connectivityManager =
+            getSystemService(ConnectivityManager::class.java) as ConnectivityManager
+        connectivityManager.registerDefaultNetworkCallback(networkCallback)
+        if (!isOnline(this)) {
+            binding.networkStatus.visibility = View.VISIBLE
+        }
     }
 
     override fun onResume() {
@@ -150,6 +178,23 @@ class MainActivity : AppCompatActivity() {
                 || super.onSupportNavigateUp()
     }
 
+
+    fun isOnline(context: Context): Boolean {
+        val connectivityManager =
+            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val capabilities =
+            connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+        if (capabilities != null) {
+            if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
+                return true
+            } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+                return true
+            } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)) {
+                return true
+            }
+        }
+        return false
+    }
 
     fun startAuth() {
         val redirectUri = Uri.parse("com.czaplicki.eproba://oauth2redirect")
@@ -198,7 +243,7 @@ class MainActivity : AppCompatActivity() {
             if (resp != null) {
                 mAuthStateManager.updateAfterTokenResponse(resp, ex)
                 val apiService: EprobaService =
-                    EprobaApi().getRetrofitInstance(this, mAuthStateManager.current.accessToken!!)!!
+                    EprobaApi().create(this, mAuthStateManager.current.accessToken!!)!!
                         .create(EprobaService::class.java)
                 apiService.getUserInfo().enqueue(object : Callback<User> {
                     override fun onFailure(call: Call<User>, t: Throwable) {

@@ -1,6 +1,5 @@
-package com.czaplicki.eproba
+package com.czaplicki.eproba.db
 
-import androidx.room.ProvidedTypeConverter
 import androidx.room.TypeConverter
 import com.google.gson.Gson
 

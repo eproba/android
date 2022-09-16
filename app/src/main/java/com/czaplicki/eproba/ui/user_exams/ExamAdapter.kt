@@ -1,4 +1,4 @@
-package com.czaplicki.eproba
+package com.czaplicki.eproba.ui.user_exams
 
 import android.view.LayoutInflater
 import android.view.View
@@ -6,6 +6,10 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.czaplicki.eproba.R
+import com.czaplicki.eproba.db.Exam
+import com.czaplicki.eproba.db.Task
+import com.czaplicki.eproba.db.User
 import com.google.android.gms.ads.AdLoader
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.nativead.NativeAd

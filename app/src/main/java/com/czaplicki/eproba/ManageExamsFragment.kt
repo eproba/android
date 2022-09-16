@@ -13,9 +13,13 @@ import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.czaplicki.eproba.api.EprobaApi
 import com.czaplicki.eproba.api.EprobaService
 import com.czaplicki.eproba.databinding.FragmentManageExamsBinding
+import com.czaplicki.eproba.db.Exam
+import com.czaplicki.eproba.db.User
+import com.czaplicki.eproba.db.UserDao
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import net.openid.appauth.AuthorizationService
@@ -29,7 +33,7 @@ class ManageExamsFragment : Fragment() {
     private lateinit var mAuthStateManager: AuthStateManager
     private lateinit var authService: AuthorizationService
     private var recyclerView: RecyclerView? = null
-    private val mSwipeRefreshLayout by lazy { _binding!!.swipeRefreshLayout }
+    private lateinit var mSwipeRefreshLayout: SwipeRefreshLayout
     private val api: EprobaApi = EprobaApi()
     private var searchView: SearchView? = null
     var originalExamList: MutableList<Exam> = mutableListOf()
@@ -53,11 +57,6 @@ class ManageExamsFragment : Fragment() {
         recyclerView = binding.recyclerView
         recyclerView?.layoutManager = LinearLayoutManager(view?.context)
         recyclerView?.adapter = ManagedExamAdapter(examList, users)
-        mSwipeRefreshLayout.setOnRefreshListener {
-            updateExams()
-            getUsers()
-
-        }
         recyclerView!!.setOnScrollChangeListener { _, _, _, _, oldY ->
             if (oldY >= 40 || oldY == 0 || !recyclerView!!.canScrollVertically(-1)) {
                 (activity as? MainActivity)?.fab?.extend()
@@ -111,6 +110,11 @@ class ManageExamsFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        mSwipeRefreshLayout = binding.swipeRefreshLayout
+        mSwipeRefreshLayout.setOnRefreshListener {
+            updateExams()
+            getUsers()
+        }
         updateExams()
         (activity as? MainActivity)?.bottomNavigation?.setOnItemReselectedListener {
             recyclerView?.smoothScrollToPosition(0)
@@ -127,8 +131,8 @@ class ManageExamsFragment : Fragment() {
             }
             mAuthStateManager.updateSavedState()
             mSwipeRefreshLayout.isRefreshing = true
-            api.getRetrofitInstance(requireContext(), accessToken)!!
-                .create(EprobaService::class.java).getExams()
+            api.create(requireContext(), accessToken)!!
+                .create(EprobaService::class.java).getExamsOld()
                 .enqueue(object : retrofit2.Callback<List<Exam>> {
                     override fun onFailure(call: retrofit2.Call<List<Exam>>, t: Throwable) {
                         Snackbar.make(
@@ -153,7 +157,11 @@ class ManageExamsFragment : Fragment() {
                             }
                             if (sharedPreferences
                                     .getBoolean("ads", true)
-                            ) examList.add(Exam(id = -1, name = "ad"))
+                            ) {
+                                for (i in 5..examList.size step 5) {
+                                    examList.add(i, Exam(id = -1, name = "ad"))
+                                }
+                            }
                             if (searchView?.query.toString().isNotEmpty()) {
                                 filter(searchView?.query.toString())
                             }
@@ -175,7 +183,7 @@ class ManageExamsFragment : Fragment() {
                             }
                         }
                         userIds.filter { id -> users.find { it.id == id } == null }.forEach { id ->
-                            api.getRetrofitInstance(requireContext(), accessToken)!!
+                            api.create(requireContext(), accessToken)!!
                                 .create(EprobaService::class.java).getUserInfo(id)
                                 .enqueue(object : retrofit2.Callback<User> {
                                     override fun onFailure(
@@ -222,7 +230,7 @@ class ManageExamsFragment : Fragment() {
                 return@performActionWithFreshTokens
             }
             mAuthStateManager.updateSavedState()
-            api.getRetrofitInstance(requireContext(), accessToken)!!
+            api.create(requireContext(), accessToken)!!
                 .create(EprobaService::class.java).getUsersPublicInfo()
                 .enqueue(object : retrofit2.Callback<List<User>> {
                     override fun onFailure(call: retrofit2.Call<List<User>>, t: Throwable) {

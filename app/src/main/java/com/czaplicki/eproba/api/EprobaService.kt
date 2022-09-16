@@ -1,8 +1,8 @@
 package com.czaplicki.eproba.api
 
-import com.czaplicki.eproba.Exam
-import com.czaplicki.eproba.Task
-import com.czaplicki.eproba.User
+import com.czaplicki.eproba.db.Exam
+import com.czaplicki.eproba.db.Task
+import com.czaplicki.eproba.db.User
 import okhttp3.RequestBody
 import retrofit2.Call
 import retrofit2.http.Body
@@ -28,7 +28,10 @@ interface EprobaService {
     fun getTemplates(): Call<List<Exam>>
 
     @GET("exam/")
-    fun getExams(): Call<List<Exam>>
+    suspend fun getExams(): List<Exam>
+
+    @GET("exam/")
+    fun getExamsOld(): Call<List<Exam>>
 
     @GET("exam/tasks/tbc/")
     fun getTasksTBC(): Call<List<Exam>>

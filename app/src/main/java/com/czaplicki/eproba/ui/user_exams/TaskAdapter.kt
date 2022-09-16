@@ -1,4 +1,4 @@
-package com.czaplicki.eproba
+package com.czaplicki.eproba.ui.user_exams
 
 import android.view.LayoutInflater
 import android.view.View
@@ -6,6 +6,9 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.czaplicki.eproba.R
+import com.czaplicki.eproba.db.Task
+import com.czaplicki.eproba.db.User
 import java.time.format.DateTimeFormatter
 
 class TaskAdapter(private val dataSet: List<Task>, private val users: List<User>) :

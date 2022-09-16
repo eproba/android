@@ -6,6 +6,9 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.czaplicki.eproba.db.Exam
+import com.czaplicki.eproba.db.Task
+import com.czaplicki.eproba.db.User
 import com.google.android.gms.ads.AdLoader
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.nativead.NativeAd
@@ -65,7 +68,7 @@ class ManagedExamAdapter(private val dataSet: MutableList<Exam>, private val use
             viewHolder.progressPercentage.visibility = View.GONE
             viewHolder.taskList.visibility = View.GONE
             return
-        } else if (dataSet[position].id == -1 && dataSet[position].name == "ad" && position == itemCount - 1) {
+        } else if (dataSet[position].id == -1 && dataSet[position].name == "ad") {
             viewHolder.name.text = viewHolder.itemView.context.getString(R.string.advertisement)
             viewHolder.supervisor.visibility = View.GONE
             viewHolder.progressPercentage.visibility = View.GONE

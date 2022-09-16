@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/navigation_your_exams"
-        android:name="com.czaplicki.eproba.FirstFragment"
+        android:name="com.czaplicki.eproba.ui.user_exams.FirstFragment"
         android:label="@string/first_fragment_label"
         tools:layout="@layout/fragment_first">
 

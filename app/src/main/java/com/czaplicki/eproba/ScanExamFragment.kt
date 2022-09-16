@@ -20,6 +20,10 @@ import androidx.preference.PreferenceManager
 import com.czaplicki.eproba.api.EprobaApi
 import com.czaplicki.eproba.api.EprobaService
 import com.czaplicki.eproba.databinding.FragmentScanExamBinding
+import com.czaplicki.eproba.db.Exam
+import com.czaplicki.eproba.db.Task
+import com.czaplicki.eproba.db.User
+import com.czaplicki.eproba.db.UserDao
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
@@ -510,7 +514,7 @@ class ScanExamFragment : Fragment() {
                 return@performActionWithFreshTokens
             }
             mAuthStateManager.updateSavedState()
-            api.getRetrofitInstance(requireContext(), accessToken)!!
+            api.create(requireContext(), accessToken)!!
                 .create(EprobaService::class.java).getUsersPublicInfo()
                 .enqueue(object : retrofit2.Callback<List<User>> {
                     override fun onFailure(call: retrofit2.Call<List<User>>, t: Throwable) {

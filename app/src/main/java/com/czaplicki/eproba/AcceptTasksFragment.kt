@@ -12,9 +12,14 @@ import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.czaplicki.eproba.api.EprobaApi
 import com.czaplicki.eproba.api.EprobaService
 import com.czaplicki.eproba.databinding.FragmentManageExamsBinding
+import com.czaplicki.eproba.db.Exam
+import com.czaplicki.eproba.db.Task
+import com.czaplicki.eproba.db.User
+import com.czaplicki.eproba.db.UserDao
 import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
 import kotlinx.coroutines.launch
@@ -28,7 +33,7 @@ class AcceptTasksFragment : Fragment() {
     private lateinit var mAuthStateManager: AuthStateManager
     private lateinit var authService: AuthorizationService
     private var recyclerView: RecyclerView? = null
-    private val mSwipeRefreshLayout by lazy { _binding!!.swipeRefreshLayout }
+    private lateinit var mSwipeRefreshLayout: SwipeRefreshLayout
     private val api: EprobaApi = EprobaApi()
     var examList: MutableList<Exam> = mutableListOf()
     private val binding get() = _binding!!
@@ -53,6 +58,7 @@ class AcceptTasksFragment : Fragment() {
         recyclerView = binding.recyclerView
         recyclerView?.layoutManager = LinearLayoutManager(view?.context)
         recyclerView?.adapter = AcceptTasksAdapter(examList, users)
+        mSwipeRefreshLayout = binding.swipeRefreshLayout
         val menuHost: MenuHost = requireActivity()
         menuHost.addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
@@ -101,6 +107,11 @@ class AcceptTasksFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        mSwipeRefreshLayout = binding.swipeRefreshLayout
+        mSwipeRefreshLayout.setOnRefreshListener {
+            updateExams()
+            getUsers()
+        }
         updateExams()
         (activity as? MainActivity)?.bottomNavigation?.setOnItemReselectedListener {
             recyclerView?.smoothScrollToPosition(0)
@@ -117,7 +128,7 @@ class AcceptTasksFragment : Fragment() {
             }
             mAuthStateManager.updateSavedState()
             mSwipeRefreshLayout.isRefreshing = true
-            api.getRetrofitInstance(requireContext(), accessToken)!!
+            api.create(requireContext(), accessToken)!!
                 .create(EprobaService::class.java).getTasksTBC()
                 .enqueue(object : retrofit2.Callback<List<Exam>> {
                     override fun onFailure(call: retrofit2.Call<List<Exam>>, t: Throwable) {
@@ -164,7 +175,7 @@ class AcceptTasksFragment : Fragment() {
                             }
                         }
                         userIds.filter { id -> users.find { it.id == id } == null }.forEach { id ->
-                            api.getRetrofitInstance(requireContext(), accessToken)!!
+                            api.create(requireContext(), accessToken)!!
                                 .create(EprobaService::class.java).getUserInfo(id)
                                 .enqueue(object : retrofit2.Callback<User> {
                                     override fun onFailure(
@@ -211,7 +222,7 @@ class AcceptTasksFragment : Fragment() {
                 return@performActionWithFreshTokens
             }
             mAuthStateManager.updateSavedState()
-            api.getRetrofitInstance(requireContext(), accessToken)!!
+            api.create(requireContext(), accessToken)!!
                 .create(EprobaService::class.java).getUsersPublicInfo()
                 .enqueue(object : retrofit2.Callback<List<User>> {
                     override fun onFailure(call: retrofit2.Call<List<User>>, t: Throwable) {

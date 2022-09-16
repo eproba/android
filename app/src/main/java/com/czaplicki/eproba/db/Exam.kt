@@ -1,11 +1,17 @@
-package com.czaplicki.eproba
+package com.czaplicki.eproba.db
 
 import android.graphics.drawable.Icon
+import androidx.room.Entity
+import androidx.room.Ignore
+import androidx.room.PrimaryKey
+import com.czaplicki.eproba.R
 import com.google.gson.annotations.SerializedName
 import java.time.LocalDateTime
 import java.util.*
 
+@Entity(tableName = "exams")
 class Exam(
+    @PrimaryKey
     var id: Int? = null,
     var name: String? = null,
     @SerializedName("user") var userId: Int? = null,
@@ -14,11 +20,22 @@ class Exam(
     var tasks: MutableList<Task> = mutableListOf()
 ) {
 
+    @Ignore
     var first_name: String? = null
+
+    @Ignore
     var last_name: String? = null
+
+    @Ignore
     var nickname: String? = null
+
+    @Ignore
     var team: String? = null
+
+    @Ignore
     var tasksTableTopCoordinate: Int? = null
+
+    @Ignore
     var averageLineHeight: Float? = null
 
     override fun toString(): String {

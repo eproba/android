@@ -14,14 +14,19 @@ import java.time.ZonedDateTime
 
 class EprobaApi {
     private var retrofit: Retrofit? = null
+    private var accessToken: String? = null
 
-    fun getRetrofitInstance(context: Context, token: String): Retrofit? {
-        if (retrofit == null) {
+    fun create(context: Context, token: String?): Retrofit? {
+        if (retrofit == null || accessToken != token) {
+            accessToken = token
             val client: OkHttpClient = OkHttpClient.Builder().addInterceptor(Interceptor { chain ->
-                val newRequest: okhttp3.Request = chain.request().newBuilder()
-                    .addHeader("Authorization", "Bearer $token")
-                    .build()
-                chain.proceed(newRequest)
+                val requestBuilder: okhttp3.Request.Builder = chain.request().newBuilder()
+
+                if (accessToken != null) {
+                    requestBuilder.addHeader("Authorization", "Bearer $accessToken")
+                }
+
+                chain.proceed(requestBuilder.build())
             }).build()
             val gson = GsonBuilder().registerTypeAdapter(
                 LocalDateTime::class.java,
