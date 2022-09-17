@@ -47,7 +47,7 @@
         tools:layout="@layout/activity_create_exam" />
     <fragment
         android:id="@+id/navigation_manage_exams"
-        android:name="com.czaplicki.eproba.ManageExamsFragment"
+        android:name="com.czaplicki.eproba.ui.manage_exams.ManageExamsFragment"
         android:label="@string/title_manage_exams"
         tools:layout="@layout/fragment_manage_exams" />
     <action

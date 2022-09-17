@@ -28,10 +28,10 @@ interface EprobaService {
     fun getTemplates(): Call<List<Exam>>
 
     @GET("exam/")
-    suspend fun getExams(): List<Exam>
+    suspend fun getExamsList(): List<Exam>
 
     @GET("exam/")
-    fun getExamsOld(): Call<List<Exam>>
+    fun getExams(): Call<List<Exam>>
 
     @GET("exam/tasks/tbc/")
     fun getTasksTBC(): Call<List<Exam>>

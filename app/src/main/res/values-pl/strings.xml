@@ -49,4 +49,5 @@
     <string name="no_tasks">Nie masz żadnych zadań do sprawdzenia</string>
     <string name="scout">Druh/Druhna</string>
     <string name="exam_name">Nazwa próby</string>
+    <string name="no_internet_connection">Brak połączenia z internetem</string>
 </resources>

@@ -1,4 +1,4 @@
-package com.czaplicki.eproba
+package com.czaplicki.eproba.ui.manage_exams
 
 import android.graphics.drawable.Icon
 import android.view.LayoutInflater
@@ -9,6 +9,8 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
+import com.czaplicki.eproba.AuthStateManager
+import com.czaplicki.eproba.R
 import com.czaplicki.eproba.api.EprobaApi
 import com.czaplicki.eproba.api.EprobaService
 import com.czaplicki.eproba.db.Exam
@@ -25,12 +27,12 @@ import retrofit2.Response
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-class ManageTaskAdapter(
+class ManagedTaskAdapter(
     private val exam: Exam,
     private val users: List<User>,
     val progressPercentage: TextView
 ) :
-    RecyclerView.Adapter<ManageTaskAdapter.ViewHolder>() {
+    RecyclerView.Adapter<ManagedTaskAdapter.ViewHolder>() {
 
     /**
      * Provide a reference to the type of views that you are using

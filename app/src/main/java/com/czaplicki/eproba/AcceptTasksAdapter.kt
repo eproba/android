@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.czaplicki.eproba.db.Exam
 import com.czaplicki.eproba.db.User
+import com.czaplicki.eproba.ui.manage_exams.ManagedTaskAdapter
 import com.google.android.gms.ads.AdLoader
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.nativead.NativeAd
@@ -100,7 +101,7 @@ class AcceptTasksAdapter(private val dataSet: MutableList<Exam>, private val use
         }
         viewHolder.taskList.visibility = View.VISIBLE
         viewHolder.taskList.adapter =
-            ManageTaskAdapter(dataSet[position], users, viewHolder.progressPercentage)
+            ManagedTaskAdapter(dataSet[position], users, viewHolder.progressPercentage)
         viewHolder.adFrame.visibility = View.GONE
     }
 
