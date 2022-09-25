@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.czaplicki.eproba.databinding.FragmentLoginBinding
 import net.openid.appauth.AuthorizationService
 
@@ -17,12 +18,21 @@ class LoginFragment : Fragment() {
     private lateinit var authService: AuthorizationService
     private val binding get() = _binding!!
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         _binding = FragmentLoginBinding.inflate(inflater, container, false)
         mAuthStateManager = AuthStateManager.getInstance(requireContext())
         authService = AuthorizationService(requireContext())
         binding.loginButton.setOnClickListener {
+            binding.progressBar.visibility = View.VISIBLE
             (activity as? MainActivity)?.startAuth()
+        }
+        binding.settingsButton.setOnClickListener {
+            val navController = findNavController()
+            navController.navigate(R.id.action_global_settingsActivity)
         }
         requireActivity().onBackPressedDispatcher.addCallback(this) {
             activity?.finish()
@@ -45,7 +55,6 @@ class LoginFragment : Fragment() {
         super.onStop()
         (activity as AppCompatActivity?)!!.supportActionBar!!.show()
     }
-
 
 
 }

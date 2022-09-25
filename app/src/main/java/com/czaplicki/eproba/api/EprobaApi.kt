@@ -8,7 +8,6 @@ import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.time.LocalDateTime
 import java.time.ZonedDateTime
 
 
@@ -29,11 +28,11 @@ class EprobaApi {
                 chain.proceed(requestBuilder.build())
             }).build()
             val gson = GsonBuilder().registerTypeAdapter(
-                LocalDateTime::class.java,
+                ZonedDateTime::class.java,
                 JsonDeserializer { json, _, _ ->
                     ZonedDateTime.parse(
                         json.asJsonPrimitive.asString
-                    ).toLocalDateTime()
+                    )
                 }).create()
             retrofit = Retrofit.Builder()
                 .client(client)

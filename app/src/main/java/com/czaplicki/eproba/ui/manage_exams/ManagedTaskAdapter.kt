@@ -24,7 +24,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 class ManagedTaskAdapter(
@@ -77,24 +77,36 @@ class ManagedTaskAdapter(
             Task.Status.AWAITING_APPROVAL -> {
                 viewHolder.status.tooltipText = viewHolder.itemView.context.getString(
                     R.string.awaiting_approval,
-                    exam.tasks[position].approvalDate?.format(DateTimeFormatter.ofPattern("dd LLLL, yyyy")),
-                    exam.tasks[position].approvalDate?.format(DateTimeFormatter.ofPattern("HH:MM")),
+                    exam.tasks[position].approvalDate?.let {
+                        DateTimeFormatter.ofPattern("dd LLLL, yyyy").format(it)
+                    } ?: viewHolder.itemView.context.getString(R.string.some_time),
+                    exam.tasks[position].approvalDate?.let {
+                        DateTimeFormatter.ofPattern("HH:mm").format(it)
+                    } ?: viewHolder.itemView.context.getString(R.string.some_time),
                     approver?.nickname ?: viewHolder.itemView.context.getString(R.string.someone)
                 )
             }
             Task.Status.APPROVED -> {
                 viewHolder.status.tooltipText = viewHolder.itemView.context.getString(
                     R.string.approved,
-                    exam.tasks[position].approvalDate?.format(DateTimeFormatter.ofPattern("dd LLLL, yyyy")),
-                    exam.tasks[position].approvalDate?.format(DateTimeFormatter.ofPattern("HH:MM")),
+                    exam.tasks[position].approvalDate?.let {
+                        DateTimeFormatter.ofPattern("dd LLLL, yyyy").format(it)
+                    } ?: viewHolder.itemView.context.getString(R.string.some_time),
+                    exam.tasks[position].approvalDate?.let {
+                        DateTimeFormatter.ofPattern("HH:mm").format(it)
+                    } ?: viewHolder.itemView.context.getString(R.string.some_time),
                     approver?.nickname ?: viewHolder.itemView.context.getString(R.string.someone)
                 )
             }
             Task.Status.REJECTED -> {
                 viewHolder.status.tooltipText = viewHolder.itemView.context.getString(
                     R.string.rejected,
-                    exam.tasks[position].approvalDate?.format(DateTimeFormatter.ofPattern("dd LLLL, yyyy")),
-                    exam.tasks[position].approvalDate?.format(DateTimeFormatter.ofPattern("HH:MM")),
+                    exam.tasks[position].approvalDate?.let {
+                        DateTimeFormatter.ofPattern("dd LLLL, yyyy").format(it)
+                    } ?: viewHolder.itemView.context.getString(R.string.some_time),
+                    exam.tasks[position].approvalDate?.let {
+                        DateTimeFormatter.ofPattern("HH:mm").format(it)
+                    } ?: viewHolder.itemView.context.getString(R.string.some_time),
                     approver?.nickname ?: viewHolder.itemView.context.getString(R.string.someone)
                 )
             }
@@ -146,7 +158,7 @@ class ManagedTaskAdapter(
                                         User::class.java
                                     ).id
                                 }, \"approval_date\": \"${
-                                    LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME)
+                                    DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now())
                                 }\"}"
                                     .toRequestBody("application/json".toMediaTypeOrNull())
                             ).enqueue(object : Callback<Task> {
@@ -165,7 +177,7 @@ class ManagedTaskAdapter(
                                                     .getString("user", null), User::class.java
                                             ).id
                                         exam.tasks[viewHolder.adapterPosition].approvalDate =
-                                            LocalDateTime.now()
+                                            ZonedDateTime.now()
                                         progressPercentage.text =
                                             viewHolder.itemView.context.getString(
                                                 R.string.progress_percentage,
@@ -179,10 +191,10 @@ class ManagedTaskAdapter(
                                         viewHolder.status.tooltipText =
                                             viewHolder.itemView.context.getString(
                                                 R.string.rejected,
-                                                LocalDateTime.now()
-                                                    .format(DateTimeFormatter.ofPattern("dd LLLL, yyyy")),
-                                                LocalDateTime.now()
-                                                    .format(DateTimeFormatter.ofPattern("HH:MM")),
+                                                DateTimeFormatter.ofPattern("dd LLLL, yyyy")
+                                                    .format(ZonedDateTime.now()),
+                                                DateTimeFormatter.ofPattern("HH:mm")
+                                                    .format(ZonedDateTime.now()),
                                                 Gson().fromJson(
                                                     PreferenceManager.getDefaultSharedPreferences(
                                                         viewHolder.itemView.context
@@ -245,7 +257,7 @@ class ManagedTaskAdapter(
                                         User::class.java
                                     ).id
                                 }, \"approval_date\": \"${
-                                    LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME)
+                                    DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now())
                                 }\"}"
                                     .toRequestBody("application/json".toMediaTypeOrNull())
                             ).enqueue(object : Callback<Task> {
@@ -264,7 +276,7 @@ class ManagedTaskAdapter(
                                                     .getString("user", null), User::class.java
                                             ).id
                                         exam.tasks[viewHolder.adapterPosition].approvalDate =
-                                            LocalDateTime.now()
+                                            ZonedDateTime.now()
                                         progressPercentage.text =
                                             viewHolder.itemView.context.getString(
                                                 R.string.progress_percentage,
@@ -278,10 +290,10 @@ class ManagedTaskAdapter(
                                         viewHolder.status.tooltipText =
                                             viewHolder.itemView.context.getString(
                                                 R.string.approved,
-                                                LocalDateTime.now()
-                                                    .format(DateTimeFormatter.ofPattern("dd LLLL, yyyy")),
-                                                LocalDateTime.now()
-                                                    .format(DateTimeFormatter.ofPattern("HH:MM")),
+                                                DateTimeFormatter.ofPattern("dd LLLL, yyyy")
+                                                    .format(ZonedDateTime.now()),
+                                                DateTimeFormatter.ofPattern("HH:mm")
+                                                    .format(ZonedDateTime.now()),
                                                 Gson().fromJson(
                                                     PreferenceManager.getDefaultSharedPreferences(
                                                         viewHolder.itemView.context

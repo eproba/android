@@ -20,6 +20,7 @@ import com.czaplicki.eproba.db.Exam
 import com.czaplicki.eproba.db.Task
 import com.czaplicki.eproba.db.User
 import com.czaplicki.eproba.db.UserDao
+import com.google.android.material.color.MaterialColors
 import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
 import kotlinx.coroutines.launch
@@ -59,6 +60,18 @@ class AcceptTasksFragment : Fragment() {
         recyclerView?.layoutManager = LinearLayoutManager(view?.context)
         recyclerView?.adapter = AcceptTasksAdapter(examList, users)
         mSwipeRefreshLayout = binding.swipeRefreshLayout
+        mSwipeRefreshLayout.setColorSchemeColors(
+            MaterialColors.getColor(
+                binding.root,
+                com.google.android.material.R.attr.colorPrimary
+            )
+        )
+        mSwipeRefreshLayout.setProgressBackgroundColorSchemeColor(
+            MaterialColors.getColor(
+                binding.root,
+                com.google.android.material.R.attr.colorSurfaceVariant
+            )
+        )
         val menuHost: MenuHost = requireActivity()
         menuHost.addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
@@ -132,11 +145,13 @@ class AcceptTasksFragment : Fragment() {
                 .create(EprobaService::class.java).getTasksTBC()
                 .enqueue(object : retrofit2.Callback<List<Exam>> {
                     override fun onFailure(call: retrofit2.Call<List<Exam>>, t: Throwable) {
-                        Snackbar.make(
-                            binding.root,
-                            "Błąd połączenia z serwerem",
-                            Snackbar.LENGTH_LONG
-                        ).show()
+                        view?.let {
+                            Snackbar.make(
+                                it,
+                                "Błąd połączenia z serwerem",
+                                Snackbar.LENGTH_LONG
+                            ).show()
+                        }
                         t.message?.let { Log.e("FirstFragment", it) }
                         mSwipeRefreshLayout.isRefreshing = false
                     }
@@ -158,11 +173,13 @@ class AcceptTasksFragment : Fragment() {
                                     .getBoolean("ads", true)
                             ) examList.add(Exam(id = -1, name = "ad"))
                         } else {
-                            Snackbar.make(
-                                binding.root,
-                                "Błąd połączenia z serwerem",
-                                Snackbar.LENGTH_LONG
-                            ).show()
+                            view?.let {
+                                Snackbar.make(
+                                    it,
+                                    "Błąd połączenia z serwerem",
+                                    Snackbar.LENGTH_SHORT
+                                ).show()
+                            }
                         }
                         recyclerView?.adapter?.notifyDataSetChanged()
                         mSwipeRefreshLayout.isRefreshing = false
@@ -182,11 +199,13 @@ class AcceptTasksFragment : Fragment() {
                                         call: retrofit2.Call<User>,
                                         t: Throwable
                                     ) {
-                                        Snackbar.make(
-                                            binding.root,
-                                            "Błąd połączenia z serwerem",
-                                            Snackbar.LENGTH_SHORT
-                                        ).show()
+                                        view?.let {
+                                            Snackbar.make(
+                                                it,
+                                                "Błąd połączenia z serwerem",
+                                                Snackbar.LENGTH_SHORT
+                                            ).show()
+                                        }
                                     }
 
                                     override fun onResponse(
@@ -226,11 +245,13 @@ class AcceptTasksFragment : Fragment() {
                 .create(EprobaService::class.java).getUsersPublicInfo()
                 .enqueue(object : retrofit2.Callback<List<User>> {
                     override fun onFailure(call: retrofit2.Call<List<User>>, t: Throwable) {
-                        Snackbar.make(
-                            binding.root,
-                            "Błąd połączenia z serwerem",
-                            Snackbar.LENGTH_LONG
-                        ).show()
+                        view?.let {
+                            Snackbar.make(
+                                it,
+                                "Błąd połączenia z serwerem",
+                                Snackbar.LENGTH_LONG
+                            ).show()
+                        }
                         lifecycleScope.launch {
                             users.clear()
                             users.addAll(userDao.getAll())
@@ -253,11 +274,13 @@ class AcceptTasksFragment : Fragment() {
                                 .putLong("lastUsersUpdate", System.currentTimeMillis()).apply()
                             recyclerView?.adapter?.notifyDataSetChanged()
                         } else {
-                            Snackbar.make(
-                                binding.root,
-                                "Błąd połączenia z serwerem",
-                                Snackbar.LENGTH_LONG
-                            ).show()
+                            view?.let {
+                                Snackbar.make(
+                                    it,
+                                    "Błąd połączenia z serwerem",
+                                    Snackbar.LENGTH_LONG
+                                ).show()
+                            }
                             lifecycleScope.launch {
                                 users.clear()
                                 users.addAll(userDao.getAll())

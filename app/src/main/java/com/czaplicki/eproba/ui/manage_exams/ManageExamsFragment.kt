@@ -4,6 +4,7 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.view.*
+import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
@@ -26,6 +27,7 @@ import com.czaplicki.eproba.db.Exam
 import com.czaplicki.eproba.db.ExamDao
 import com.czaplicki.eproba.db.User
 import com.czaplicki.eproba.db.UserDao
+import com.google.android.material.color.MaterialColors
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import net.openid.appauth.AuthorizationService
@@ -44,8 +46,8 @@ class ManageExamsFragment : Fragment() {
     private var originalExamList: MutableList<Exam> = mutableListOf()
     var examList: MutableList<Exam> = mutableListOf()
     private val binding get() = _binding!!
-    private val userDao: UserDao by lazy { (activity?.application as EprobaApplication).database.userDao() }
-    private val examDao: ExamDao by lazy { (activity?.application as EprobaApplication).database.examDao() }
+    private lateinit var userDao: UserDao
+    private lateinit var examDao: ExamDao
     private lateinit var service: EprobaService
     var users: MutableList<User> = mutableListOf()
     val sharedPreferences: SharedPreferences by lazy {
@@ -62,9 +64,24 @@ class ManageExamsFragment : Fragment() {
         service = (activity?.application as EprobaApplication).service()
         mAuthStateManager = AuthStateManager.getInstance(requireContext())
         authService = AuthorizationService(requireContext())
+        userDao = (activity?.application as EprobaApplication).database.userDao()
+        examDao = (activity?.application as EprobaApplication).database.examDao()
         recyclerView = binding.recyclerView
         recyclerView?.layoutManager = LinearLayoutManager(view?.context)
         recyclerView?.adapter = ManagedExamAdapter(examList, users)
+        mSwipeRefreshLayout = binding.swipeRefreshLayout
+        mSwipeRefreshLayout.setColorSchemeColors(
+            MaterialColors.getColor(
+                binding.root,
+                com.google.android.material.R.attr.colorPrimary
+            )
+        )
+        mSwipeRefreshLayout.setProgressBackgroundColorSchemeColor(
+            MaterialColors.getColor(
+                binding.root,
+                com.google.android.material.R.attr.colorSurfaceVariant
+            )
+        )
         recyclerView!!.setOnScrollChangeListener { _, _, _, _, oldY ->
             if (oldY >= 40 || oldY == 0 || !recyclerView!!.canScrollVertically(-1)) {
                 (activity as? MainActivity)?.fab?.extend()
@@ -73,15 +90,14 @@ class ManageExamsFragment : Fragment() {
             }
         }
         sharedPreferences.getLong("lastUsersUpdate", 0).let {
+            lifecycleScope.launch {
+                users.clear()
+                users.addAll(userDao.getAll())
+                recyclerView?.adapter?.notifyDataSetChanged()
+            }
             if (it == 0L || System.currentTimeMillis() - it > 3600000) {
                 getUsers()
                 recyclerView?.adapter?.notifyDataSetChanged()
-            } else {
-                lifecycleScope.launch {
-                    users.clear()
-                    users.addAll(userDao.getAll())
-                    recyclerView?.adapter?.notifyDataSetChanged()
-                }
             }
         }
 
@@ -96,7 +112,14 @@ class ManageExamsFragment : Fragment() {
                 }
                 if (sharedPreferences
                         .getBoolean("ads", true)
-                ) examList.add(Exam(id = -1, name = "ad"))
+                ) {
+                    for (i in 5..examList.size step 5) {
+                        examList.add(i, Exam(id = -1, name = "ad"))
+                    }
+                    if (!(examList.last().name == "ad" && examList.last().id == -1)) {
+                        examList.add(Exam(id = -1, name = "ad"))
+                    }
+                }
                 originalExamList = examList.toMutableList()
                 if (searchView != null && searchView?.query.toString().isNotEmpty()) {
                     filter(searchView?.query.toString())
@@ -139,7 +162,6 @@ class ManageExamsFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        mSwipeRefreshLayout = binding.swipeRefreshLayout
         mSwipeRefreshLayout.setOnRefreshListener {
             updateExams()
             getUsers()
@@ -155,11 +177,13 @@ class ManageExamsFragment : Fragment() {
         service.getExams()
             .enqueue(object : retrofit2.Callback<List<Exam>> {
                 override fun onFailure(call: retrofit2.Call<List<Exam>>, t: Throwable) {
-                    Snackbar.make(
-                        binding.root,
-                        "Błąd połączenia z serwerem",
-                        Snackbar.LENGTH_LONG
-                    ).show()
+                    view?.let {
+                        Snackbar.make(
+                            it,
+                            "Błąd połączenia z serwerem",
+                            Snackbar.LENGTH_SHORT
+                        ).show()
+                    }
                     t.message?.let { Log.e("FirstFragment", it) }
                     mSwipeRefreshLayout.isRefreshing = false
                 }
@@ -174,11 +198,13 @@ class ManageExamsFragment : Fragment() {
                             examDao.insertExams(*response.body()!!.toTypedArray())
                         }
                     } else {
-                        Snackbar.make(
-                            binding.root,
-                            "Błąd połączenia z serwerem",
-                            Snackbar.LENGTH_LONG
-                        ).show()
+                        view?.let {
+                            Snackbar.make(
+                                it,
+                                "Błąd połączenia z serwerem",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
                     }
                     mSwipeRefreshLayout.isRefreshing = false
                     val userIds: MutableSet<Int> = mutableSetOf()
@@ -196,11 +222,13 @@ class ManageExamsFragment : Fragment() {
                                     call: retrofit2.Call<User>,
                                     t: Throwable
                                 ) {
-                                    Snackbar.make(
-                                        binding.root,
-                                        "Błąd połączenia z serwerem",
-                                        Snackbar.LENGTH_SHORT
-                                    ).show()
+                                    view?.let {
+                                        Snackbar.make(
+                                            it,
+                                            "Błąd połączenia z serwerem",
+                                            Snackbar.LENGTH_SHORT
+                                        ).show()
+                                    }
                                 }
 
                                 override fun onResponse(
@@ -231,11 +259,13 @@ class ManageExamsFragment : Fragment() {
         service.getUsersPublicInfo()
             .enqueue(object : retrofit2.Callback<List<User>> {
                 override fun onFailure(call: retrofit2.Call<List<User>>, t: Throwable) {
-                    Snackbar.make(
-                        binding.root,
-                        "Błąd połączenia z serwerem",
-                        Snackbar.LENGTH_LONG
-                    ).show()
+                    view?.let {
+                        Snackbar.make(
+                            it,
+                            "Błąd połączenia z serwerem",
+                            Snackbar.LENGTH_SHORT
+                        ).show()
+                    }
                     lifecycleScope.launch {
                         users.clear()
                         users.addAll(userDao.getAll())
@@ -258,11 +288,13 @@ class ManageExamsFragment : Fragment() {
                             .putLong("lastUsersUpdate", System.currentTimeMillis()).apply()
                         recyclerView?.adapter?.notifyDataSetChanged()
                     } else {
-                        Snackbar.make(
-                            binding.root,
-                            "Błąd połączenia z serwerem",
-                            Snackbar.LENGTH_LONG
-                        ).show()
+                        view?.let {
+                            Snackbar.make(
+                                it,
+                                "Błąd połączenia z serwerem",
+                                Snackbar.LENGTH_SHORT
+                            ).show()
+                        }
                         lifecycleScope.launch {
                             users.clear()
                             users.addAll(userDao.getAll())

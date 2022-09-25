@@ -28,6 +28,7 @@ import com.czaplicki.eproba.db.Exam
 import com.czaplicki.eproba.db.ExamDao
 import com.czaplicki.eproba.db.User
 import com.czaplicki.eproba.db.UserDao
+import com.google.android.material.color.MaterialColors
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import net.openid.appauth.AuthorizationService
@@ -69,6 +70,18 @@ class FirstFragment : Fragment() {
         recyclerView?.layoutManager = LinearLayoutManager(view?.context)
         recyclerView?.adapter = ExamAdapter(examList, users)
         mSwipeRefreshLayout = binding.swipeRefreshLayout
+        mSwipeRefreshLayout.setColorSchemeColors(
+            MaterialColors.getColor(
+                binding.root,
+                com.google.android.material.R.attr.colorPrimary
+            )
+        )
+        mSwipeRefreshLayout.setProgressBackgroundColorSchemeColor(
+            MaterialColors.getColor(
+                binding.root,
+                com.google.android.material.R.attr.colorSurfaceVariant
+            )
+        )
 
         val viewModel: ExamsViewModel by viewModels { ExamsViewModel.Factory }
 
@@ -133,7 +146,9 @@ class FirstFragment : Fragment() {
         }
         sharedPreferences.getLong("lastUsersUpdate", 0).let {
             if (it == 0L || System.currentTimeMillis() - it > 3600000) {
-                getUsers()
+                if (mAuthStateManager.current.isAuthorized) {
+                    getUsers()
+                }
                 recyclerView?.adapter?.notifyDataSetChanged()
             } else {
                 lifecycleScope.launch {
@@ -152,7 +167,9 @@ class FirstFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        updateExams()
+        if (mAuthStateManager.current.isAuthorized) {
+            updateExams()
+        }
         (activity as? MainActivity)?.bottomNavigation?.setOnItemReselectedListener {
             recyclerView?.smoothScrollToPosition(0)
         }
@@ -163,11 +180,13 @@ class FirstFragment : Fragment() {
         service.getUserExams()
             .enqueue(object : retrofit2.Callback<List<Exam>> {
                 override fun onFailure(call: retrofit2.Call<List<Exam>>, t: Throwable) {
-                    Snackbar.make(
-                        binding.root,
-                        "Błąd połączenia z serwerem",
-                        Snackbar.LENGTH_LONG
-                    ).show()
+                    view?.let {
+                        Snackbar.make(
+                            it,
+                            "Błąd połączenia z serwerem",
+                            Snackbar.LENGTH_LONG
+                        ).show()
+                    }
                     mSwipeRefreshLayout.isRefreshing = false
                 }
 
@@ -181,11 +200,13 @@ class FirstFragment : Fragment() {
                             examDao.insertExams(*response.body()!!.toTypedArray())
                         }
                     } else {
-                        Snackbar.make(
-                            binding.root,
-                            "Błąd połączenia z serwerem",
-                            Snackbar.LENGTH_LONG
-                        ).show()
+                        view?.let {
+                            Snackbar.make(
+                                it,
+                                "Błąd połączenia z serwerem",
+                                Snackbar.LENGTH_LONG
+                            ).show()
+                        }
                     }
                     mSwipeRefreshLayout.isRefreshing = false
                     val userIds: MutableSet<Int> = mutableSetOf()
@@ -203,11 +224,13 @@ class FirstFragment : Fragment() {
                                     call: retrofit2.Call<User>,
                                     t: Throwable
                                 ) {
-                                    Snackbar.make(
-                                        binding.root,
-                                        "Błąd połączenia z serwerem",
-                                        Snackbar.LENGTH_SHORT
-                                    ).show()
+                                    view?.let {
+                                        Snackbar.make(
+                                            it,
+                                            "Błąd połączenia z serwerem",
+                                            Snackbar.LENGTH_SHORT
+                                        ).show()
+                                    }
                                 }
 
                                 override fun onResponse(
@@ -238,11 +261,13 @@ class FirstFragment : Fragment() {
         service.getUsersPublicInfo()
             .enqueue(object : retrofit2.Callback<List<User>> {
                 override fun onFailure(call: retrofit2.Call<List<User>>, t: Throwable) {
-                    Toast.makeText(
-                        requireContext(),
-                        "Błąd połączenia z serwerem",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    view?.let {
+                        Snackbar.make(
+                            it,
+                            "Błąd połączenia z serwerem",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                     lifecycleScope.launch {
                         users.clear()
                         users.addAll(userDao.getAll())
@@ -257,11 +282,13 @@ class FirstFragment : Fragment() {
                 ) {
                     if (response.code() == 403) {
                         if (previousResponseCode == 403) {
-                            Toast.makeText(
-                                requireContext(),
-                                "Nie jesteś zalogowany",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            view?.let {
+                                Snackbar.make(
+                                    it,
+                                    "Nie jesteś zalogowany",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
                         } else {
                             service = api.create(requireContext(), null)!!
                                 .create(EprobaService::class.java)
@@ -277,11 +304,13 @@ class FirstFragment : Fragment() {
                             .putLong("lastUsersUpdate", System.currentTimeMillis()).apply()
                         recyclerView?.adapter?.notifyDataSetChanged()
                     } else {
-                        Toast.makeText(
-                            requireContext(),
-                            "Błąd połączenia z serwerem",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        view?.let {
+                            Snackbar.make(
+                                it,
+                                "Błąd połączenia z serwerem",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
                         lifecycleScope.launch {
                             users.clear()
                             users.addAll(userDao.getAll())

@@ -58,4 +58,6 @@
     <string name="scout">Scout</string>
     <string name="exam_name">Exam name</string>
     <string name="no_internet_connection">No internet connection</string>
+    <string name="dev_server_message">You are using a development server, exams may be outdated and changes made here won\'t appear on a primary server (eproba.pl). Visit settings to change it</string>
+    <string name="some_time">Sometime\'</string>
 </resources>

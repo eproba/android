@@ -76,7 +76,7 @@ class MainActivity : AppCompatActivity() {
             when (destination.id) {
                 R.id.navigation_your_exams, R.id.navigation_manage_exams -> {
                     fab.show()
-                    if (user == null) {
+                    if (user == null || user?.scout == null) {
                         bottomNavigation.visibility = View.GONE
                     } else if (user!!.scout.function < 2) {
                         bottomNavigation.visibility = View.GONE
@@ -86,7 +86,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 R.id.navigation_accept_tasks -> {
                     fab.hide()
-                    if (user == null) {
+                    if (user == null || user?.scout == null) {
                         bottomNavigation.visibility = View.GONE
                     } else if (user!!.scout.function < 2) {
                         bottomNavigation.visibility = View.GONE
@@ -168,6 +168,13 @@ class MainActivity : AppCompatActivity() {
             navController.navigate(R.id.action_FirstFragment_to_LoginFragment)
         } else if (navController.currentDestination?.id == R.id.LoginFragment && mAuthStateManager.current.isAuthorized) {
             navController.navigate(R.id.action_LoginFragment_to_FirstFragment)
+        }
+        if (PreferenceManager.getDefaultSharedPreferences(this)
+                .getString("server", "https://dev.eproba.pl") != "https://eproba.pl"
+        ) {
+            binding.devServerStatus.visibility = View.VISIBLE
+        } else {
+            binding.devServerStatus.visibility = View.GONE
         }
     }
 

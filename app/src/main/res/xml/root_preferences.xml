@@ -10,7 +10,7 @@
         app:useSimpleSummaryProvider="true" />
 
     <SwitchPreferenceCompat
-        app:defaultValue="false"
+        app:defaultValue="true"
         app:key="ads"
         app:title="@string/display_ads" />
 

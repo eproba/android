@@ -50,4 +50,6 @@
     <string name="scout">Druh/Druhna</string>
     <string name="exam_name">Nazwa próby</string>
     <string name="no_internet_connection">Brak połączenia z internetem</string>
+    <string name="dev_server_message">Korzystasz z serwera deweloperskiego, egzaminy mogą być nieaktualne, a wprowadzone tutaj zmiany nie pojawią się na serwerze podstawowym (eproba.pl). Przejdź do ustawień, aby to zmienić</string>
+    <string name="some_time">Kiedyś</string>
 </resources>

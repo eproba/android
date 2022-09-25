@@ -6,7 +6,7 @@ import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import com.czaplicki.eproba.R
 import com.google.gson.annotations.SerializedName
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import java.util.*
 
 @Entity(tableName = "exams")
@@ -105,7 +105,7 @@ data class Task(
     var status: Int = 0,
     var approver: Int? = null,
     @SerializedName("approval_date")
-    var approvalDate: LocalDateTime? = LocalDateTime.now(),
+    var approvalDate: ZonedDateTime? = ZonedDateTime.now(),
 ) {
     class Status {
         companion object {

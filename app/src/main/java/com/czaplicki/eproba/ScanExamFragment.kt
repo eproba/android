@@ -87,9 +87,9 @@ class ScanExamFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        (requireActivity() as CreateExamActivity).bottomNavigationView.setOnItemReselectedListener {
+        (activity as? CreateExamActivity)?.bottomNavigationView?.setOnItemReselectedListener {
             binding.scrollView.fullScroll(View.FOCUS_UP)
-            (requireActivity() as CreateExamActivity).supportActionBar?.setDisplayHomeAsUpEnabled(
+            (activity as? CreateExamActivity)?.supportActionBar?.setDisplayHomeAsUpEnabled(
                 true
             )
         }

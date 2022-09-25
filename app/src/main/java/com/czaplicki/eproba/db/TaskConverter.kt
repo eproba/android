@@ -3,22 +3,22 @@ package com.czaplicki.eproba.db
 import androidx.room.TypeConverter
 import com.google.gson.*
 import com.google.gson.reflect.TypeToken
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 class TaskConverter {
     private val gson: Gson = GsonBuilder()
         .registerTypeAdapter(
-            LocalDateTime::class.java,
+            ZonedDateTime::class.java,
             JsonDeserializer { json, _, _ ->
-                LocalDateTime.parse(
+                ZonedDateTime.parse(
                     json.asJsonPrimitive.asString
                 )
             })
         .registerTypeAdapter(
-            LocalDateTime::class.java,
-            JsonSerializer { src: LocalDateTime?, _, _ ->
-                JsonPrimitive(src?.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
+            ZonedDateTime::class.java,
+            JsonSerializer { src: ZonedDateTime?, _, _ ->
+                JsonPrimitive(src?.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))
 
             })
         .create()
