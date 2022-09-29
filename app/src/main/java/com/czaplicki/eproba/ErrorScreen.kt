@@ -9,12 +9,13 @@ import androidx.fragment.app.DialogFragment
 import com.czaplicki.eproba.databinding.FragmentErrorBinding
 
 
-class ErrorScreen : DialogFragment() {
+class ErrorScreen(val message: String? = null) : DialogFragment() {
 
     private lateinit var binding: FragmentErrorBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        isCancelable = false
 
         setStyle(STYLE_NORMAL, R.style.FullScreenDialogStyle)
     }
@@ -30,6 +31,12 @@ class ErrorScreen : DialogFragment() {
             val refresh = Intent(activity, MainActivity::class.java)
             refresh.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
             startActivity(refresh)
+        }
+
+        if (message != null) {
+            binding.errorMessage.text = message
+        } else {
+            binding.errorMessage.visibility = View.GONE
         }
 
         return binding.root

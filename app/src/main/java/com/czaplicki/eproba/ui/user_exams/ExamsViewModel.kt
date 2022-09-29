@@ -13,7 +13,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 
-class ExamsViewModel(private val examDao: ExamDao, private val savedStateHandle: SavedStateHandle) :
+class ExamsViewModel(private val examDao: ExamDao, val savedStateHandle: SavedStateHandle) :
     ViewModel() {
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -24,6 +24,8 @@ class ExamsViewModel(private val examDao: ExamDao, private val savedStateHandle:
     fun setUserId(id: Int) {
         savedStateHandle["user_id"] = id
     }
+
+    val uid: Flow<Int> = savedStateHandle.getStateFlow("user_id", -1)
 
     companion object {
 

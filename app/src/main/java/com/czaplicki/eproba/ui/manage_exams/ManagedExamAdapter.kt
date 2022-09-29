@@ -31,6 +31,7 @@ class ManagedExamAdapter(private val dataSet: MutableList<Exam>, private val use
         val progressPercentage: TextView
         val adFrame: FrameLayout
         val taskList: RecyclerView
+        val menuButton: ImageButton
 
         init {
             // Define click listener for the ViewHolder's View.
@@ -39,6 +40,7 @@ class ManagedExamAdapter(private val dataSet: MutableList<Exam>, private val use
             progressPercentage = view.findViewById(R.id.progressPercentage)
             adFrame = view.findViewById(R.id.ad_frame)
             taskList = view.findViewById(R.id.task_list) as RecyclerView
+            menuButton = view.findViewById(R.id.menu_button)
         }
     }
 
@@ -115,6 +117,47 @@ class ManagedExamAdapter(private val dataSet: MutableList<Exam>, private val use
         viewHolder.taskList.adapter =
             ManagedTaskAdapter(dataSet[position], users, viewHolder.progressPercentage)
         viewHolder.adFrame.visibility = View.GONE
+        viewHolder.menuButton.visibility = View.VISIBLE
+        viewHolder.menuButton.setOnClickListener {
+            val popup = PopupMenu(viewHolder.itemView.context, viewHolder.menuButton)
+            popup.menuInflater.inflate(R.menu.exam_menu, popup.menu)
+            popup.setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    R.id.edit_exam -> {
+                        Toast.makeText(
+                            viewHolder.itemView.context,
+                            viewHolder.itemView.context.getString(
+                                R.string.not_implemented_yet,
+                            ),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        true
+                    }
+                    R.id.delete_exam -> {
+                        Toast.makeText(
+                            viewHolder.itemView.context,
+                            viewHolder.itemView.context.getString(
+                                R.string.not_implemented_yet,
+                            ),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        true
+                    }
+                    R.id.archive_exam -> {
+                        Toast.makeText(
+                            viewHolder.itemView.context,
+                            viewHolder.itemView.context.getString(
+                                R.string.not_implemented_yet,
+                            ),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        true
+                    }
+                    else -> false
+                }
+            }
+            popup.show()
+        }
     }
 
     // Return the size of your dataset (invoked by the layout manager)

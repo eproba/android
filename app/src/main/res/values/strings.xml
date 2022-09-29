@@ -60,4 +60,8 @@
     <string name="no_internet_connection">No internet connection</string>
     <string name="dev_server_message">You are using a development server, exams may be outdated and changes made here won\'t appear on a primary server (eproba.pl). Visit settings to change it</string>
     <string name="some_time">Sometime\'</string>
+    <string name="edit_exam">Edit</string>
+    <string name="delete_exam">Delete</string>
+    <string name="archive_exam">Archive</string>
+    <string name="not_implemented_yet">Not implemented yet</string>
 </resources>

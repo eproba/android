@@ -11,9 +11,6 @@
         android:label="@string/first_fragment_label"
         tools:layout="@layout/fragment_first">
 
-        <action
-            android:id="@+id/action_FirstFragment_to_LoginFragment"
-            app:destination="@id/LoginFragment" />
     </fragment>
     <activity
         android:id="@+id/profileActivity"
@@ -35,11 +32,7 @@
         android:id="@+id/LoginFragment"
         android:name="com.czaplicki.eproba.LoginFragment"
         android:label="fragment_login"
-        tools:layout="@layout/fragment_login">
-        <action
-            android:id="@+id/action_LoginFragment_to_FirstFragment"
-            app:destination="@id/navigation_your_exams" />
-    </fragment>
+        tools:layout="@layout/fragment_login" />
     <activity
         android:id="@+id/createExamActivity"
         android:name="com.czaplicki.eproba.CreateExamActivity"
@@ -57,4 +50,9 @@
         android:id="@+id/navigation_accept_tasks"
         android:name="com.czaplicki.eproba.AcceptTasksFragment"
         android:label="@string/title_accept_tasks" />
+    <action
+        android:id="@+id/action_global_loginFragment"
+        app:destination="@id/LoginFragment"
+        app:enterAnim="@anim/nav_default_enter_anim"
+        app:exitAnim="@anim/nav_default_exit_anim" />
 </navigation>
