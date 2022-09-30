@@ -17,10 +17,8 @@ import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.czaplicki.eproba.AuthStateManager
-import com.czaplicki.eproba.EprobaApplication
-import com.czaplicki.eproba.MainActivity
-import com.czaplicki.eproba.R
+import com.czaplicki.eproba.*
+import com.czaplicki.eproba.api.EprobaApi
 import com.czaplicki.eproba.api.EprobaService
 import com.czaplicki.eproba.databinding.FragmentManageExamsBinding
 import com.czaplicki.eproba.db.Exam
@@ -30,6 +28,7 @@ import com.czaplicki.eproba.db.UserDao
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
+import net.openid.appauth.AuthState
 import net.openid.appauth.AuthorizationService
 import java.util.*
 
@@ -45,6 +44,7 @@ class ManageExamsFragment : Fragment() {
     private var searchView: SearchView? = null
     private var originalExamList: MutableList<Exam> = mutableListOf()
     var examList: MutableList<Exam> = mutableListOf()
+    private val api: EprobaApi = EprobaApi()
     private val binding get() = _binding!!
     private lateinit var userDao: UserDao
     private lateinit var examDao: ExamDao
@@ -68,7 +68,7 @@ class ManageExamsFragment : Fragment() {
         examDao = (activity?.application as EprobaApplication).database.examDao()
         recyclerView = binding.recyclerView
         recyclerView?.layoutManager = LinearLayoutManager(view?.context)
-        recyclerView?.adapter = ManagedExamAdapter(examList, users)
+        recyclerView?.adapter = ManagedExamAdapter(examList, users, service, examDao)
         mSwipeRefreshLayout = binding.swipeRefreshLayout
         mSwipeRefreshLayout.setColorSchemeColors(
             MaterialColors.getColor(
@@ -172,7 +172,7 @@ class ManageExamsFragment : Fragment() {
         }
     }
 
-    private fun updateExams() {
+    private fun updateExams(previousResponseCode: Int = 0) {
         mSwipeRefreshLayout.isRefreshing = true
         service.getExams()
             .enqueue(object : retrofit2.Callback<List<Exam>> {
@@ -192,7 +192,27 @@ class ManageExamsFragment : Fragment() {
                     call: retrofit2.Call<List<Exam>>,
                     response: retrofit2.Response<List<Exam>>
                 ) {
-                    if (response.body() != null) {
+                    if (response.code() == 403) {
+                        if (previousResponseCode == 403) {
+                            view?.let {
+                                Snackbar.make(
+                                    it,
+                                    "Nie jesteś zalogowany",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                activity?.let { act ->
+                                    mAuthStateManager.replace(AuthState()); LoggedOutScreen().show(
+                                    act.supportFragmentManager,
+                                    "error"
+                                )
+                                }
+                            }
+                        } else {
+                            service = api.create(requireContext(), null)!!
+                                .create(EprobaService::class.java)
+                            return updateExams(403)
+                        }
+                    } else if (response.body() != null) {
                         lifecycleScope.launch {
                             examDao.deleteExams()
                             examDao.insertExams(*response.body()!!.toTypedArray())

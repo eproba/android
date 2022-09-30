@@ -12,7 +12,7 @@ import java.util.*
 @Entity(tableName = "exams")
 class Exam(
     @PrimaryKey
-    var id: Int? = null,
+    var id: Int = 0,
     var name: String? = null,
     @SerializedName("user") var userId: Int? = null,
     var supervisor: Int? = null,

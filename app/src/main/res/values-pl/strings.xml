@@ -56,4 +56,10 @@
     <string name="delete_exam">Usuń</string>
     <string name="archive_exam">Archiwizuj</string>
     <string name="not_implemented_yet">Jeszcze nie jest zaimplementowane</string>
+    <string name="delete_exam_confirmation">Czy na pewno chcesz usunąć tę próbę (%s)? Nie będziesz w stanie jej później przywrócić</string>
+    <string name="delete_exam_title">Usunąć próbę?</string>
+    <string name="exam_deleted">Próba została usunięta</string>
+    <string name="exam_deletion_error">Wystąpił błąd i próba nie został usunięta</string>
+    <string name="logged_out_message">Zostałeś wylogowany</string>
+    <string name="relogin">Zaloguj się ponownie</string>
 </resources>

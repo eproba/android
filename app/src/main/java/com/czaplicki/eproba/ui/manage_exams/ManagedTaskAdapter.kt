@@ -30,7 +30,8 @@ import java.time.format.DateTimeFormatter
 class ManagedTaskAdapter(
     private val exam: Exam,
     private val users: List<User>,
-    val progressPercentage: TextView
+    val progressPercentage: TextView,
+    var service: EprobaService
 ) :
     RecyclerView.Adapter<ManagedTaskAdapter.ViewHolder>() {
 
@@ -150,7 +151,7 @@ class ManagedTaskAdapter(
                             .create(
                                 EprobaService::class.java
                             ).updateTaskStatus(
-                                exam.id!!, exam.tasks[position].id,
+                                exam.id, exam.tasks[position].id,
                                 "{\"status\": ${Task.Status.REJECTED}, \"approver\": ${
                                     Gson().fromJson(
                                         PreferenceManager.getDefaultSharedPreferences(viewHolder.itemView.context)
@@ -249,7 +250,7 @@ class ManagedTaskAdapter(
                             .create(
                                 EprobaService::class.java
                             ).updateTaskStatus(
-                                exam.id!!, exam.tasks[position].id,
+                                exam.id, exam.tasks[position].id,
                                 "{\"status\": ${Task.Status.APPROVED}, \"approver\": ${
                                     Gson().fromJson(
                                         PreferenceManager.getDefaultSharedPreferences(viewHolder.itemView.context)

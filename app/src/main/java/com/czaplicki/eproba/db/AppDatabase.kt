@@ -4,7 +4,7 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
-@Database(entities = [User::class, Exam::class], version = 4)
+@Database(entities = [User::class, Exam::class], version = 5)
 @TypeConverters(ScoutConverter::class, TaskConverter::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
