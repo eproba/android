@@ -1,0 +1,11 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/edit_exam"
+        android:title="@string/edit_exam" />
+    <item
+        android:id="@+id/delete_exam"
+        android:title="@string/delete_exam" />
+    <item
+        android:id="@+id/archive_exam"
+        android:title="@string/archive_exam" />
+</menu>

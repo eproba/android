@@ -6,18 +6,36 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.czaplicki.eproba.AuthStateManager
 import com.czaplicki.eproba.R
+import com.czaplicki.eproba.api.EprobaApi
+import com.czaplicki.eproba.api.EprobaService
 import com.czaplicki.eproba.db.Exam
+import com.czaplicki.eproba.db.ExamDao
 import com.czaplicki.eproba.db.Task
 import com.czaplicki.eproba.db.User
 import com.google.android.gms.ads.AdLoader
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.gms.ads.nativead.NativeAdView
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.divider.MaterialDividerItemDecoration
+import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import net.openid.appauth.AuthorizationService
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 
-class ManagedExamAdapter(private val dataSet: MutableList<Exam>, private val users: List<User>) :
+class ManagedExamAdapter(
+    private val dataSet: MutableList<Exam>,
+    private val users: List<User>,
+    var service: EprobaService,
+    val examDao: ExamDao
+) :
     RecyclerView.Adapter<ManagedExamAdapter.ViewHolder>() {
 
 
@@ -31,6 +49,7 @@ class ManagedExamAdapter(private val dataSet: MutableList<Exam>, private val use
         val progressPercentage: TextView
         val adFrame: FrameLayout
         val taskList: RecyclerView
+        val menuButton: ImageButton
 
         init {
             // Define click listener for the ViewHolder's View.
@@ -39,6 +58,7 @@ class ManagedExamAdapter(private val dataSet: MutableList<Exam>, private val use
             progressPercentage = view.findViewById(R.id.progressPercentage)
             adFrame = view.findViewById(R.id.ad_frame)
             taskList = view.findViewById(R.id.task_list) as RecyclerView
+            menuButton = view.findViewById(R.id.menu_button)
         }
     }
 
@@ -59,17 +79,19 @@ class ManagedExamAdapter(private val dataSet: MutableList<Exam>, private val use
     }
 
     // Replace the contents of a view (invoked by the layout manager)
+    @OptIn(DelicateCoroutinesApi::class)
     override fun onBindViewHolder(viewHolder: ViewHolder, position: Int) {
+        val exam = dataSet[position]
 
         // Get element from your dataset at this position and replace the
         // contents of the view with that element
-        if (dataSet[position].id == -1 && dataSet[position].name == "no_exams") {
+        if (exam.id == -1 && exam.name == "no_exams") {
             viewHolder.name.text = viewHolder.itemView.context.getString(R.string.no_exams)
             viewHolder.supervisor.visibility = View.GONE
             viewHolder.progressPercentage.visibility = View.GONE
             viewHolder.taskList.visibility = View.GONE
             return
-        } else if (dataSet[position].id == -1 && dataSet[position].name == "ad") {
+        } else if (exam.id == -1 && exam.name == "ad") {
             viewHolder.name.text = viewHolder.itemView.context.getString(R.string.advertisement)
             viewHolder.supervisor.visibility = View.GONE
             viewHolder.progressPercentage.visibility = View.GONE
@@ -97,24 +119,139 @@ class ManagedExamAdapter(private val dataSet: MutableList<Exam>, private val use
         }
 
         viewHolder.name.text =
-            dataSet[position].name + " - " + users.find { it.id == dataSet[position].userId }?.nicknameWithRank
-        if (dataSet[position].supervisor != null) {
+            exam.name + " - " + users.find { it.id == exam.userId }?.nicknameWithRank
+        if (exam.supervisor != null) {
             viewHolder.supervisor.visibility = View.VISIBLE
             viewHolder.supervisor.text =
-                users.find { it.id == dataSet[position].supervisor }?.fullNameWithNickname
+                users.find { it.id == exam.supervisor }?.fullNameWithNickname
         } else {
             viewHolder.supervisor.visibility = View.GONE
         }
         viewHolder.progressPercentage.visibility = View.VISIBLE
         viewHolder.progressPercentage.text =
-            if (dataSet[position].tasks.size == 0) "" else viewHolder.itemView.context.getString(
+            if (exam.tasks.size == 0) "" else viewHolder.itemView.context.getString(
                 R.string.progress_percentage,
-                dataSet[position].tasks.filter { it.status == Task.Status.APPROVED }.size * 100 / dataSet[position].tasks.size
+                exam.tasks.filter { it.status == Task.Status.APPROVED }.size * 100 / exam.tasks.size
             )
         viewHolder.taskList.visibility = View.VISIBLE
         viewHolder.taskList.adapter =
-            ManagedTaskAdapter(dataSet[position], users, viewHolder.progressPercentage)
+            ManagedTaskAdapter(exam, users, viewHolder.progressPercentage, service)
         viewHolder.adFrame.visibility = View.GONE
+        viewHolder.menuButton.visibility = View.VISIBLE
+        viewHolder.menuButton.setOnClickListener {
+            val popup = PopupMenu(viewHolder.itemView.context, viewHolder.menuButton)
+            popup.menuInflater.inflate(R.menu.exam_menu, popup.menu)
+            popup.setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    R.id.edit_exam -> {
+                        Toast.makeText(
+                            viewHolder.itemView.context,
+                            viewHolder.itemView.context.getString(
+                                R.string.not_implemented_yet,
+                            ),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        true
+                    }
+                    R.id.delete_exam -> {
+                        MaterialAlertDialogBuilder(
+                            viewHolder.itemView.context,
+                            com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
+                        )
+                            .setTitle(R.string.delete_exam_title)
+                            .setMessage(
+                                viewHolder.itemView.context.getString(
+                                    R.string.delete_exam_confirmation,
+                                    exam.name + " - " + users.find { it.id == exam.userId }?.nicknameWithRank
+                                )
+                            )
+                            .setIcon(R.drawable.delete_forever_48px)
+                            .setNeutralButton(R.string.cancel) { dialog, _ ->
+                                dialog.dismiss()
+                            }
+                            .setPositiveButton(R.string.delete_exam) { dialog, _ ->
+                                val mAuthStateManager =
+                                    AuthStateManager.getInstance(viewHolder.itemView.context)
+                                val authService = AuthorizationService(viewHolder.itemView.context)
+                                mAuthStateManager.current.performActionWithFreshTokens(
+                                    authService
+                                ) { accessToken, _, _ ->
+                                    if (accessToken == null) return@performActionWithFreshTokens
+                                    mAuthStateManager.updateSavedState()
+                                    EprobaApi().create(viewHolder.itemView.context, accessToken)!!
+                                        .create(
+                                            EprobaService::class.java
+                                        ).deleteExam(exam.id).enqueue(object : Callback<Void> {
+                                            override fun onResponse(
+                                                call: Call<Void>,
+                                                response: Response<Void>
+                                            ) {
+                                                if (response.isSuccessful) {
+                                                    GlobalScope.launch {
+                                                        examDao.deleteExams(exam)
+                                                    }
+                                                    dataSet.removeAt(viewHolder.adapterPosition)
+                                                    notifyItemRemoved(viewHolder.adapterPosition)
+                                                    Snackbar.make(
+                                                        viewHolder.itemView.rootView,
+                                                        viewHolder.itemView.context.getString(
+                                                            R.string.exam_deleted
+                                                        ),
+                                                        Snackbar.LENGTH_LONG
+                                                    ).show()
+                                                    dialog.dismiss()
+                                                } else {
+                                                    MaterialAlertDialogBuilder(
+                                                        viewHolder.itemView.context,
+                                                        com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
+                                                    )
+                                                        .setTitle(R.string.error_dialog_title)
+                                                        .setIcon(R.drawable.ic_error)
+                                                        .setMessage(R.string.exam_deletion_error)
+                                                        .setPositiveButton(android.R.string.ok) { dialog, _ ->
+                                                            dialog.dismiss()
+                                                        }
+                                                        .show()
+                                                    dialog.dismiss()
+                                                }
+                                            }
+
+                                            override fun onFailure(call: Call<Void>, t: Throwable) {
+                                                MaterialAlertDialogBuilder(
+                                                    viewHolder.itemView.context,
+                                                    com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
+                                                )
+                                                    .setTitle(R.string.error_dialog_title)
+                                                    .setIcon(R.drawable.ic_error)
+                                                    .setMessage(R.string.exam_deletion_error)
+                                                    .setPositiveButton(android.R.string.ok) { dialog, _ ->
+                                                        dialog.dismiss()
+                                                    }
+                                                    .show()
+                                                dialog.dismiss()
+                                            }
+                                        })
+
+                                }
+                            }
+                            .show()
+                        true
+                    }
+                    R.id.archive_exam -> {
+                        Toast.makeText(
+                            viewHolder.itemView.context,
+                            viewHolder.itemView.context.getString(
+                                R.string.not_implemented_yet,
+                            ),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        true
+                    }
+                    else -> false
+                }
+            }
+            popup.show()
+        }
     }
 
     // Return the size of your dataset (invoked by the layout manager)

@@ -39,6 +39,7 @@ class AcceptTasksFragment : Fragment() {
     var examList: MutableList<Exam> = mutableListOf()
     private val binding get() = _binding!!
     private val userDao: UserDao by lazy { (activity?.application as EprobaApplication).database.userDao() }
+    private lateinit var service: EprobaService
     var users: MutableList<User> = mutableListOf()
     val sharedPreferences: SharedPreferences by lazy {
         PreferenceManager.getDefaultSharedPreferences(
@@ -54,11 +55,12 @@ class AcceptTasksFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentManageExamsBinding.inflate(inflater, container, false)
+        service = (activity?.application as EprobaApplication).service()
         mAuthStateManager = AuthStateManager.getInstance(requireContext())
         authService = AuthorizationService(requireContext())
         recyclerView = binding.recyclerView
         recyclerView?.layoutManager = LinearLayoutManager(view?.context)
-        recyclerView?.adapter = AcceptTasksAdapter(examList, users)
+        recyclerView?.adapter = AcceptTasksAdapter(examList, users, service)
         mSwipeRefreshLayout = binding.swipeRefreshLayout
         mSwipeRefreshLayout.setColorSchemeColors(
             MaterialColors.getColor(

@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.czaplicki.eproba.api.EprobaService
 import com.czaplicki.eproba.db.Exam
 import com.czaplicki.eproba.db.User
 import com.czaplicki.eproba.ui.manage_exams.ManagedTaskAdapter
@@ -16,7 +17,11 @@ import com.google.android.gms.ads.nativead.NativeAdView
 import com.google.android.material.divider.MaterialDividerItemDecoration
 
 
-class AcceptTasksAdapter(private val dataSet: MutableList<Exam>, private val users: List<User>) :
+class AcceptTasksAdapter(
+    private val dataSet: MutableList<Exam>,
+    private val users: List<User>,
+    var service: EprobaService
+) :
     RecyclerView.Adapter<AcceptTasksAdapter.ViewHolder>() {
 
 
@@ -101,7 +106,7 @@ class AcceptTasksAdapter(private val dataSet: MutableList<Exam>, private val use
         }
         viewHolder.taskList.visibility = View.VISIBLE
         viewHolder.taskList.adapter =
-            ManagedTaskAdapter(dataSet[position], users, viewHolder.progressPercentage)
+            ManagedTaskAdapter(dataSet[position], users, viewHolder.progressPercentage, service)
         viewHolder.adFrame.visibility = View.GONE
     }
 

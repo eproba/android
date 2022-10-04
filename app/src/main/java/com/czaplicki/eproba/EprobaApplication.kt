@@ -41,4 +41,10 @@ class EprobaApplication : Application() {
         }
         return api.create(this, accessToken)!!.create(EprobaService::class.java)
     }
+
+    fun refreshToken() {
+        authStateManager.current.performActionWithFreshTokens(authService) { _, _, _ ->
+            authStateManager.updateSavedState()
+        }
+    }
 }

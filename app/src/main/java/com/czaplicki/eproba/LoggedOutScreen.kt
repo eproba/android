@@ -6,12 +6,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
-import com.czaplicki.eproba.databinding.FragmentErrorBinding
+import com.czaplicki.eproba.databinding.FragmentLoggedOutBinding
 
 
-class ErrorScreen(val message: String? = null) : DialogFragment() {
+class LoggedOutScreen : DialogFragment() {
 
-    private lateinit var binding: FragmentErrorBinding
+    private lateinit var binding: FragmentLoggedOutBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,18 +25,12 @@ class ErrorScreen(val message: String? = null) : DialogFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentErrorBinding.inflate(inflater, container, false)
+        binding = FragmentLoggedOutBinding.inflate(inflater, container, false)
 
         binding.button.setOnClickListener {
             val refresh = Intent(activity, MainActivity::class.java)
             refresh.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
             startActivity(refresh)
-        }
-
-        if (message != null) {
-            binding.errorMessage.text = message
-        } else {
-            binding.errorMessage.visibility = View.GONE
         }
 
         return binding.root

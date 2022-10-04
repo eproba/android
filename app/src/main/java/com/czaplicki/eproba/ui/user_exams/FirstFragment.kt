@@ -52,6 +52,7 @@ class FirstFragment : Fragment() {
     private val examDao: ExamDao by lazy { (activity?.application as EprobaApplication).database.examDao() }
     private lateinit var service: EprobaService
     var users: MutableList<User> = mutableListOf()
+    val viewModel: ExamsViewModel by viewModels { ExamsViewModel.Factory }
     val sharedPreferences: SharedPreferences by lazy {
         PreferenceManager.getDefaultSharedPreferences(
             requireContext()
@@ -83,7 +84,6 @@ class FirstFragment : Fragment() {
             )
         )
 
-        val viewModel: ExamsViewModel by viewModels { ExamsViewModel.Factory }
 
         (activity as MainActivity).user?.let { viewModel.setUserId(it.id) }
         lifecycle.coroutineScope.launch {
@@ -167,6 +167,17 @@ class FirstFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        service = (activity?.application as EprobaApplication).service()
+        Log.d("onResume", "onResume")
+        Log.d("onResume", (activity as MainActivity).user.toString())
+        (activity as MainActivity).user?.let {
+            Log.d("onResume", "user not null")
+            Log.d("onResume", it.toString())
+            if (viewModel.savedStateHandle.get<Int>("user_id") != it.id) {
+                viewModel.setUserId(it.id)
+            }
+        }
+        (activity as MainActivity).user?.let { viewModel.setUserId(it.id) }
         if (mAuthStateManager.current.isAuthorized) {
             updateExams()
         }
@@ -177,6 +188,7 @@ class FirstFragment : Fragment() {
 
     private fun updateExams() {
         mSwipeRefreshLayout.isRefreshing = true
+        (activity as MainActivity).user?.let { viewModel.setUserId(it.id) }
         service.getUserExams()
             .enqueue(object : retrofit2.Callback<List<Exam>> {
                 override fun onFailure(call: retrofit2.Call<List<Exam>>, t: Throwable) {

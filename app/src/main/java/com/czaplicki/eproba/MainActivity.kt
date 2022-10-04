@@ -45,19 +45,20 @@ class MainActivity : AppCompatActivity() {
     private val navController by lazy { findNavController(R.id.nav_host_fragment_content_main) }
     private lateinit var authService: AuthorizationService
     private lateinit var mAuthStateManager: AuthStateManager
-    val user: User? by lazy {
-        Gson().fromJson(
-            PreferenceManager.getDefaultSharedPreferences(this).getString("user", null),
-            User::class.java
-        )
-    }
+    private val api: EprobaApi = EprobaApi()
+    private lateinit var service: EprobaService
+    var user: User? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         super.onCreate(savedInstanceState)
-
+        user = Gson().fromJson(
+            PreferenceManager.getDefaultSharedPreferences(this).getString("user", null),
+            User::class.java
+        )
         binding = ActivityMainBinding.inflate(layoutInflater)
+        service = (application as EprobaApplication).service()
         setContentView(binding.root)
 
         setSupportActionBar(binding.toolbar)
@@ -164,10 +165,13 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        if (navController.currentDestination?.id == R.id.navigation_your_exams && !mAuthStateManager.current.isAuthorized) {
-            navController.navigate(R.id.action_FirstFragment_to_LoginFragment)
+        if (mAuthStateManager.current.needsTokenRefresh && mAuthStateManager.current.refreshToken != null) {
+            (application as EprobaApplication).refreshToken()
+            service = (application as EprobaApplication).service()
+        } else if (!mAuthStateManager.current.isAuthorized) {
+            navController.navigate(R.id.action_global_loginFragment)
         } else if (navController.currentDestination?.id == R.id.LoginFragment && mAuthStateManager.current.isAuthorized) {
-            navController.navigate(R.id.action_LoginFragment_to_FirstFragment)
+            navController.navigate(R.id.navigation_your_exams)
         }
         if (PreferenceManager.getDefaultSharedPreferences(this)
                 .getString("server", "https://dev.eproba.pl") != "https://eproba.pl"
@@ -186,7 +190,7 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    fun isOnline(context: Context): Boolean {
+    private fun isOnline(context: Context): Boolean {
         val connectivityManager =
             context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val capabilities =
@@ -249,40 +253,8 @@ class MainActivity : AppCompatActivity() {
         ) { resp, ex ->
             if (resp != null) {
                 mAuthStateManager.updateAfterTokenResponse(resp, ex)
-                val apiService: EprobaService =
-                    EprobaApi().create(this, mAuthStateManager.current.accessToken!!)!!
-                        .create(EprobaService::class.java)
-                apiService.getUserInfo().enqueue(object : Callback<User> {
-                    override fun onFailure(call: Call<User>, t: Throwable) {
-                        Toast.makeText(this@MainActivity, "Error: ${t.message}", Toast.LENGTH_LONG)
-                            .show()
-                        val errorScreen = ErrorScreen()
-                        errorScreen.isCancelable = false
-                        errorScreen.show(supportFragmentManager, "error")
-                    }
-
-                    override fun onResponse(
-                        call: Call<User>,
-                        response: Response<User>
-                    ) {
-                        if (response.body() != null) {
-                            PreferenceManager.getDefaultSharedPreferences(this@MainActivity)
-                                .edit()
-                                .putString("user", Gson().toJson(response.body()))
-                                .apply()
-                            this@MainActivity.recreate()
-                        } else {
-                            Toast.makeText(
-                                this@MainActivity,
-                                "Error: ${response.message()}",
-                                Toast.LENGTH_LONG
-                            ).show()
-                            val errorScreen = ErrorScreen()
-                            errorScreen.isCancelable = false
-                            errorScreen.show(supportFragmentManager, "error")
-                        }
-                    }
-                })
+                service = (application as EprobaApplication).service()
+                fetchUser(fragmentId = R.id.navigation_your_exams)
             } else {
                 if (ex != null) {
                     Toast.makeText(this, "Error: ${ex.error}", Toast.LENGTH_LONG).show()
@@ -291,5 +263,53 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+
+    fun fetchUser(previousResponseCode: Int = 0, fragmentId: Int? = null) {
+        service.getUserInfo().enqueue(object : Callback<User> {
+            override fun onFailure(call: Call<User>, t: Throwable) {
+                val errorScreen = ErrorScreen(t.message)
+                errorScreen.show(supportFragmentManager, "error")
+            }
+
+            override fun onResponse(
+                call: Call<User>,
+                response: Response<User>
+            ) {
+                if (response.code() == 403) {
+                    if (previousResponseCode == 403) {
+                        Toast.makeText(
+                            this@MainActivity,
+                            "Sesja wygasła, zaloguj się ponownie",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        mAuthStateManager.current.needsTokenRefresh = true
+                        navController.navigate(R.id.action_global_loginFragment)
+                        return
+                    }
+                    (application as EprobaApplication).refreshToken()
+                    service = (application as EprobaApplication).service()
+                    fetchUser(403)
+                } else if (response.body() != null) {
+                    PreferenceManager.getDefaultSharedPreferences(this@MainActivity)
+                        .edit()
+                        .putString("user", Gson().toJson(response.body()))
+                        .apply()
+                    if (response.body()!!.scout.function < 2) {
+                        bottomNavigation.visibility = View.GONE
+                    } else {
+                        bottomNavigation.visibility = View.VISIBLE
+                    }
+                    user = response.body()!!
+                    if (fragmentId != null) {
+                        navController.navigate(fragmentId)
+                    }
+
+                } else {
+                    val errorScreen = ErrorScreen("Error: ${response.message()}")
+                    errorScreen.show(supportFragmentManager, "error")
+                }
+            }
+        })
+    }
 
 }

@@ -5,10 +5,7 @@ import com.czaplicki.eproba.db.Task
 import com.czaplicki.eproba.db.User
 import okhttp3.RequestBody
 import retrofit2.Call
-import retrofit2.http.Body
-import retrofit2.http.GET
-import retrofit2.http.PATCH
-import retrofit2.http.Path
+import retrofit2.http.*
 
 interface EprobaService {
 
@@ -36,8 +33,11 @@ interface EprobaService {
     @GET("exam/tasks/tbc/")
     fun getTasksTBC(): Call<List<Exam>>
 
-    @GET("exam/")
-    fun getExam(id: Int): Call<Exam>
+    @GET("exam/{id}/")
+    fun getExam(@Path("id") id: Int): Call<Exam>
+
+    @DELETE("exam/{id}/")
+    fun deleteExam(@Path("id") id: Int): Call<Void>
 
     @PATCH("exam/{exam_id}/task/{task_id}/")
     fun updateTaskStatus(
