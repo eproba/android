@@ -25,6 +25,8 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import net.openid.appauth.AuthorizationService
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -85,13 +87,13 @@ class ManagedExamAdapter(
 
         // Get element from your dataset at this position and replace the
         // contents of the view with that element
-        if (exam.id == -1 && exam.name == "no_exams") {
+        if (exam.id == -1L && exam.name == "no_exams") {
             viewHolder.name.text = viewHolder.itemView.context.getString(R.string.no_exams)
             viewHolder.supervisor.visibility = View.GONE
             viewHolder.progressPercentage.visibility = View.GONE
             viewHolder.taskList.visibility = View.GONE
             return
-        } else if (exam.id == -1 && exam.name == "ad") {
+        } else if (exam.id == -1L && exam.name == "ad") {
             viewHolder.name.text = viewHolder.itemView.context.getString(R.string.advertisement)
             viewHolder.supervisor.visibility = View.GONE
             viewHolder.progressPercentage.visibility = View.GONE
@@ -238,13 +240,90 @@ class ManagedExamAdapter(
                         true
                     }
                     R.id.archive_exam -> {
-                        Toast.makeText(
+                        MaterialAlertDialogBuilder(
                             viewHolder.itemView.context,
-                            viewHolder.itemView.context.getString(
-                                R.string.not_implemented_yet,
-                            ),
-                            Toast.LENGTH_SHORT
-                        ).show()
+                            com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
+                        )
+                            .setTitle(R.string.archive_exam_title)
+                            .setMessage(
+                                viewHolder.itemView.context.getString(
+                                    R.string.archive_exam_confirmation,
+                                    exam.name + " - " + users.find { it.id == exam.userId }?.nicknameWithRank
+                                )
+                            )
+                            .setIcon(R.drawable.archive_48px)
+                            .setNeutralButton(R.string.cancel) { dialog, _ ->
+                                dialog.dismiss()
+                            }
+                            .setPositiveButton(R.string.archive_exam) { dialog, _ ->
+                                val mAuthStateManager =
+                                    AuthStateManager.getInstance(viewHolder.itemView.context)
+                                val authService = AuthorizationService(viewHolder.itemView.context)
+                                mAuthStateManager.current.performActionWithFreshTokens(
+                                    authService
+                                ) { accessToken, _, _ ->
+                                    if (accessToken == null) return@performActionWithFreshTokens
+                                    mAuthStateManager.updateSavedState()
+                                    EprobaApi().create(viewHolder.itemView.context, accessToken)!!
+                                        .create(
+                                            EprobaService::class.java
+                                        ).updateExam(
+                                            exam.id,
+                                            "{\"is_archived\": true}".toRequestBody("application/json".toMediaTypeOrNull())
+                                        ).enqueue(object : Callback<Exam> {
+                                            override fun onResponse(
+                                                call: Call<Exam>,
+                                                response: Response<Exam>
+                                            ) {
+                                                if (response.isSuccessful) {
+                                                    GlobalScope.launch {
+                                                        examDao.deleteExams(exam)
+                                                    }
+                                                    dataSet.removeAt(viewHolder.adapterPosition)
+                                                    notifyItemRemoved(viewHolder.adapterPosition)
+                                                    Snackbar.make(
+                                                        viewHolder.itemView.rootView,
+                                                        viewHolder.itemView.context.getString(
+                                                            R.string.exam_archived
+                                                        ),
+                                                        Snackbar.LENGTH_LONG
+                                                    ).show()
+                                                    dialog.dismiss()
+                                                } else {
+                                                    MaterialAlertDialogBuilder(
+                                                        viewHolder.itemView.context,
+                                                        com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
+                                                    )
+                                                        .setTitle(R.string.error_dialog_title)
+                                                        .setIcon(R.drawable.ic_error)
+                                                        .setMessage(R.string.exam_deletion_error)
+                                                        .setPositiveButton(android.R.string.ok) { dialog, _ ->
+                                                            dialog.dismiss()
+                                                        }
+                                                        .show()
+                                                    dialog.dismiss()
+                                                }
+                                            }
+
+                                            override fun onFailure(call: Call<Exam>, t: Throwable) {
+                                                MaterialAlertDialogBuilder(
+                                                    viewHolder.itemView.context,
+                                                    com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
+                                                )
+                                                    .setTitle(R.string.error_dialog_title)
+                                                    .setIcon(R.drawable.ic_error)
+                                                    .setMessage(R.string.exam_deletion_error)
+                                                    .setPositiveButton(android.R.string.ok) { dialog, _ ->
+                                                        dialog.dismiss()
+                                                    }
+                                                    .show()
+                                                dialog.dismiss()
+                                            }
+                                        })
+
+                                }
+                            }
+                            .show()
                         true
                     }
                     else -> false

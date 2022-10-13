@@ -9,7 +9,7 @@ interface ExamDao {
     fun getAll(): Flow<List<Exam>>
 
     @Query("SELECT * FROM exams WHERE userId = :userId")
-    fun getExamsByUserId(userId: Int): Flow<List<Exam>>
+    fun getExamsByUserId(userId: Long): Flow<List<Exam>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertExams(vararg exam: Exam)
@@ -21,6 +21,6 @@ interface ExamDao {
     suspend fun deleteExams(vararg exam: Exam)
 
     @Query("SELECT * FROM exams WHERE id = :id")
-    suspend fun loadExamsById(id: Int): Exam
+    suspend fun loadExamsById(id: Long): Exam
 
 }

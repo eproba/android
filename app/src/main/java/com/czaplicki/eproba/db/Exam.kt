@@ -12,10 +12,10 @@ import java.util.*
 @Entity(tableName = "exams")
 class Exam(
     @PrimaryKey
-    var id: Int = 0,
+    var id: Long = 0,
     var name: String? = null,
-    @SerializedName("user") var userId: Int? = null,
-    var supervisor: Int? = null,
+    @SerializedName("user") var userId: Long? = null,
+    var supervisor: Long? = null,
     @SerializedName("is_archived") var isArchived: Boolean = false,
     var tasks: MutableList<Task> = mutableListOf()
 ) {
@@ -99,11 +99,11 @@ class Exam(
 }
 
 data class Task(
-    val id: Int,
+    val id: Long,
     val task: String,
     val description: String = "",
     var status: Int = 0,
-    var approver: Int? = null,
+    var approver: Long? = null,
     @SerializedName("approval_date")
     var approvalDate: ZonedDateTime? = ZonedDateTime.now(),
 ) {

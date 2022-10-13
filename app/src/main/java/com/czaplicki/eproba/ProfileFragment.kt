@@ -48,7 +48,7 @@ class ProfileFragment : Fragment() {
             PreferenceManager.getDefaultSharedPreferences(requireContext()).edit().clear().apply()
             PreferenceManager.getDefaultSharedPreferences(requireContext()).edit()
                 .putString("server", server).apply()
-            requireContext().deleteDatabase("eproba.db")
+            (activity?.application as EprobaApplication).database.clearAllTables()
             Toast.makeText(requireContext(), "Logged out", Toast.LENGTH_SHORT).show()
             requireActivity().finish()
         }
@@ -89,7 +89,7 @@ class ProfileFragment : Fragment() {
                             val user: User = response.body()!!
                             PreferenceManager.getDefaultSharedPreferences(requireContext())
                                 .edit()
-                                .putInt("userId", user.id)
+                                .putLong("userId", user.id)
                                 .apply()
                             activity?.runOnUiThread {
                                 binding.progressBar.visibility = View.GONE

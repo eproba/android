@@ -13,7 +13,7 @@ interface EprobaService {
     fun getUserInfo(): Call<User>
 
     @GET("user/{id}/")
-    fun getUserInfo(@Path("id") id: Int): Call<User>
+    fun getUserInfo(@Path("id") id: Long): Call<User>
 
     @GET("users/")
     fun getUsersPublicInfo(): Call<List<User>>
@@ -34,15 +34,21 @@ interface EprobaService {
     fun getTasksTBC(): Call<List<Exam>>
 
     @GET("exam/{id}/")
-    fun getExam(@Path("id") id: Int): Call<Exam>
+    fun getExam(@Path("id") id: Long): Call<Exam>
 
     @DELETE("exam/{id}/")
-    fun deleteExam(@Path("id") id: Int): Call<Void>
+    fun deleteExam(@Path("id") id: Long): Call<Void>
 
     @PATCH("exam/{exam_id}/task/{task_id}/")
     fun updateTaskStatus(
-        @Path("exam_id") examId: Int,
-        @Path("task_id") taskId: Int,
+        @Path("exam_id") examId: Long,
+        @Path("task_id") taskId: Long,
         @Body status: RequestBody
     ): Call<Task>
+
+    @PATCH("exam/{exam_id}/")
+    fun updateExam(
+        @Path("exam_id") examId: Long,
+        @Body body: RequestBody
+    ): Call<Exam>
 }

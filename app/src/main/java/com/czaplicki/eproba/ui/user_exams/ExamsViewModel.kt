@@ -18,10 +18,10 @@ class ExamsViewModel(private val examDao: ExamDao, val savedStateHandle: SavedSt
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val exams: Flow<List<Exam>> =
-        savedStateHandle.getStateFlow("user_id", -1)
+        savedStateHandle.getStateFlow("user_id", -1L)
             .flatMapLatest { userId -> examDao.getExamsByUserId(userId) }
 
-    fun setUserId(id: Int) {
+    fun setUserId(id: Long) {
         savedStateHandle["user_id"] = id
     }
 

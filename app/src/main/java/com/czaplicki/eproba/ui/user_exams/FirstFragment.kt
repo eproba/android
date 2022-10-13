@@ -173,7 +173,7 @@ class FirstFragment : Fragment() {
         (activity as MainActivity).user?.let {
             Log.d("onResume", "user not null")
             Log.d("onResume", it.toString())
-            if (viewModel.savedStateHandle.get<Int>("user_id") != it.id) {
+            if (viewModel.savedStateHandle.get<Long>("user_id") != it.id) {
                 viewModel.setUserId(it.id)
             }
         }
@@ -221,7 +221,7 @@ class FirstFragment : Fragment() {
                         }
                     }
                     mSwipeRefreshLayout.isRefreshing = false
-                    val userIds: MutableSet<Int> = mutableSetOf()
+                    val userIds: MutableSet<Long> = mutableSetOf()
                     examList.forEach {
                         if (it.userId != null) userIds.add(it.userId!!)
                         if (it.supervisor != null) userIds.add(it.supervisor!!)
@@ -338,7 +338,7 @@ class FirstFragment : Fragment() {
     private fun filter(text: String) {
         val filteredList: ArrayList<Exam> = ArrayList<Exam>()
 
-        for (item in originalExamList.filter { it.id != -1 }) {
+        for (item in originalExamList.filter { it.id != -1L }) {
             if (item.name!!.lowercase(Locale.ROOT).contains(text.lowercase(Locale.getDefault()))) {
                 filteredList.add(item)
             }

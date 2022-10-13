@@ -62,4 +62,12 @@
     <string name="exam_deletion_error">Wystąpił błąd i próba nie został usunięta</string>
     <string name="logged_out_message">Zostałeś wylogowany</string>
     <string name="relogin">Zaloguj się ponownie</string>
+    <string name="archive_exam_title">Przenieś do archiwum?</string>
+    <string name="exam_archived">Zarchiwizowano</string>
+    <string name="archived">Zarchiwizowane</string>
+    <string name="team">Drużyna</string>
+    <string name="patrol">Zastęp</string>
+    <string name="select_team">Wybierz drużynę</string>
+    <string name="select_patrols">Wybież zastęp</string>
+    <string name="archive_exam_confirmation">Czy na pewno chcesz zarchiwizować tę próbę (%s)? Trafi ona do archiwum i będzie można ją później przywrócić</string>
 </resources>

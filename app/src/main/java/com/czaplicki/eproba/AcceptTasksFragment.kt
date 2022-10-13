@@ -111,6 +111,8 @@ class AcceptTasksFragment : Fragment() {
             }
         }
 
+        binding.chipGroup.visibility = View.GONE
+
         return binding.root
 
     }
@@ -185,7 +187,7 @@ class AcceptTasksFragment : Fragment() {
                         }
                         recyclerView?.adapter?.notifyDataSetChanged()
                         mSwipeRefreshLayout.isRefreshing = false
-                        val userIds: MutableSet<Int> = mutableSetOf()
+                        val userIds: MutableSet<Long> = mutableSetOf()
                         examList.forEach {
                             if (it.userId != null) userIds.add(it.userId!!)
                             if (it.supervisor != null) userIds.add(it.supervisor!!)

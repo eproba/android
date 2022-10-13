@@ -4,6 +4,9 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.view.*
+import android.widget.CheckBox
+import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.MenuHost
@@ -21,10 +24,8 @@ import com.czaplicki.eproba.*
 import com.czaplicki.eproba.api.EprobaApi
 import com.czaplicki.eproba.api.EprobaService
 import com.czaplicki.eproba.databinding.FragmentManageExamsBinding
-import com.czaplicki.eproba.db.Exam
-import com.czaplicki.eproba.db.ExamDao
-import com.czaplicki.eproba.db.User
-import com.czaplicki.eproba.db.UserDao
+import com.czaplicki.eproba.db.*
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
@@ -50,11 +51,101 @@ class ManageExamsFragment : Fragment() {
     private lateinit var examDao: ExamDao
     private lateinit var service: EprobaService
     var users: MutableList<User> = mutableListOf()
+    var teams: MutableList<Team> = mutableListOf()
+    var selectedTeams: MutableList<Team> = mutableListOf()
+    var patrols: MutableList<Patrol> = mutableListOf()
+    var selectedPatrols: MutableList<Patrol> = mutableListOf()
     val sharedPreferences: SharedPreferences by lazy {
         PreferenceManager.getDefaultSharedPreferences(
             requireContext()
         )
     }
+
+    class TeamFilterBottomSheet(val parent: ManageExamsFragment) : BottomSheetDialogFragment() {
+
+        override fun onCreateView(
+            inflater: LayoutInflater,
+            container: ViewGroup?,
+            savedInstanceState: Bundle?
+        ): View? = inflater.inflate(R.layout.modal_bottom_sheet_filter, container, false)
+
+        override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+            super.onViewCreated(view, savedInstanceState)
+            val teamCheckboxContainer =
+                view.findViewById<LinearLayout>(R.id.team_checkbox_container)
+
+            for (team in parent.teams.sortedBy { it.name }) {
+                val checkBox = CheckBox(requireContext())
+                checkBox.text = team.name
+                checkBox.id = team.id.toInt()
+                checkBox.setOnCheckedChangeListener { _, isChecked ->
+                    if (isChecked) {
+                        if (!parent.selectedTeams.contains(team)) {
+                            parent.selectedTeams.add(team)
+                        }
+                    } else {
+                        parent.selectedTeams.remove(team)
+                    }
+                    parent.filterByTeams(parent.selectedTeams)
+                }
+                if (parent.selectedTeams.contains(team)) {
+                    checkBox.isChecked = true
+                }
+                teamCheckboxContainer.addView(checkBox)
+            }
+
+        }
+
+        companion object {
+            const val TAG = "TeamFilterBottomSheet"
+        }
+    }
+
+
+    class PatrolFilterBottomSheet(val parent: ManageExamsFragment) : BottomSheetDialogFragment() {
+
+        override fun onCreateView(
+            inflater: LayoutInflater,
+            container: ViewGroup?,
+            savedInstanceState: Bundle?
+        ): View? {
+            val view = inflater.inflate(R.layout.modal_bottom_sheet_filter, container, false)
+            view.findViewById<TextView>(R.id.filter_title).text = getString(R.string.select_patrols)
+            return view
+        }
+
+        override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+            super.onViewCreated(view, savedInstanceState)
+            val teamCheckboxContainer =
+                view.findViewById<LinearLayout>(R.id.team_checkbox_container)
+
+            for (patrol in parent.patrols.sortedBy { it.name }) {
+                val checkBox = CheckBox(requireContext())
+                checkBox.text = patrol.name
+                checkBox.id = patrol.id.toInt()
+                checkBox.setOnCheckedChangeListener { _, isChecked ->
+                    if (isChecked) {
+                        if (!parent.selectedPatrols.contains(patrol)) {
+                            parent.selectedPatrols.add(patrol)
+                        }
+                    } else {
+                        parent.selectedPatrols.remove(patrol)
+                    }
+                    parent.filterByPatrols(parent.selectedPatrols)
+                }
+                if (parent.selectedPatrols.contains(patrol)) {
+                    checkBox.isChecked = true
+                }
+                teamCheckboxContainer.addView(checkBox)
+            }
+
+        }
+
+        companion object {
+            const val TAG = "PatrolFilterBottomSheet"
+        }
+    }
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -104,9 +195,9 @@ class ManageExamsFragment : Fragment() {
         val viewModel: ManagedExamsViewModel by viewModels { ManagedExamsViewModel.Factory }
 
         lifecycle.coroutineScope.launch {
-            viewModel.exams.collect {
+            viewModel.exams.collect { exam ->
                 examList.clear()
-                examList.addAll(it)
+                examList.addAll(exam)
                 if (examList.isEmpty()) {
                     examList.add(Exam(id = -1, name = "no_exams"))
                 }
@@ -116,7 +207,7 @@ class ManageExamsFragment : Fragment() {
                     for (i in 5..examList.size step 5) {
                         examList.add(i, Exam(id = -1, name = "ad"))
                     }
-                    if (!(examList.last().name == "ad" && examList.last().id == -1)) {
+                    if (!(examList.last().name == "ad" && examList.last().id == -1L)) {
                         examList.add(Exam(id = -1, name = "ad"))
                     }
                 }
@@ -125,6 +216,26 @@ class ManageExamsFragment : Fragment() {
                     filter(searchView?.query.toString())
                 } else {
                     recyclerView?.adapter?.notifyDataSetChanged()
+                }
+
+                for (_exam in examList) {
+                    if (users.find { it.id == _exam.userId }?.scout?.teamId !in teams.map { it.id } && users.find { it.id == _exam.userId }?.scout?.teamId != null && users.find { it.id == _exam.userId }?.scout?.teamName != null) {
+                        teams.add(
+                            Team(
+                                id = users.find { it.id == _exam.userId }?.scout?.teamId!!,
+                                name = users.find { it.id == _exam.userId }?.scout?.teamName!!
+                            )
+                        )
+                    }
+                    if (users.find { it.id == _exam.userId }?.scout?.patrolId !in patrols.map { it.id } && users.find { it.id == _exam.userId }?.scout?.patrolId != null && users.find { it.id == _exam.userId }?.scout?.patrolName != null && users.find { it.id == _exam.userId }?.scout?.teamId != null) {
+                        patrols.add(
+                            Patrol(
+                                id = users.find { it.id == _exam.userId }?.scout?.patrolId!!,
+                                name = users.find { it.id == _exam.userId }?.scout?.patrolName!!,
+                                teamId = users.find { it.id == _exam.userId }?.scout?.teamId!!
+                            )
+                        )
+                    }
                 }
             }
         }
@@ -151,8 +262,30 @@ class ManageExamsFragment : Fragment() {
                 return false
             }
         }, viewLifecycleOwner, Lifecycle.State.RESUMED)
-        return binding.root
 
+
+        binding.chipTeam.setOnClickListener {
+            val modalBottomSheet = TeamFilterBottomSheet(this)
+            modalBottomSheet.show(parentFragmentManager, TeamFilterBottomSheet.TAG)
+
+        }
+
+        binding.chipPatrol.setOnClickListener {
+            val modalBottomSheet = PatrolFilterBottomSheet(this)
+            modalBottomSheet.show(parentFragmentManager, PatrolFilterBottomSheet.TAG)
+
+        }
+
+        binding.chipArchive.setOnCheckedChangeListener { _, isChecked ->
+            selectedTeams.clear()
+            selectedPatrols.clear()
+            searchView?.setQuery("", false)
+            searchView?.clearFocus()
+            updateChips()
+            filterArchived(isChecked)
+        }
+
+        return binding.root
     }
 
     override fun onDestroyView() {
@@ -169,6 +302,53 @@ class ManageExamsFragment : Fragment() {
         updateExams()
         (activity as? MainActivity)?.bottomNavigation?.setOnItemReselectedListener {
             recyclerView?.smoothScrollToPosition(0)
+        }
+    }
+
+    private fun updateChips(team: Boolean = true, patrol: Boolean = true) {
+        if (team) {
+            if (selectedTeams.isEmpty()) {
+                binding.chipTeam.text = this.getString(R.string.team)
+                binding.chipTeam.isSelected = false
+            } else {
+                binding.chipTeam.isSelected = true
+                if (selectedTeams.size == 1) {
+                    binding.chipTeam.text =
+                        selectedTeams[0].shortName ?: if (selectedTeams[0].name.length > 10) {
+                            selectedTeams[0].name.substring(0, 7) + "..."
+                        } else {
+                            selectedTeams[0].name
+                        }
+                } else {
+                    binding.chipTeam.text =
+                        selectedTeams[0].shortName ?: ((if (selectedTeams[0].name.length > 10) {
+                            selectedTeams[0].name.substring(0, 7) + "..."
+                        } else {
+                            selectedTeams[0].name
+                        }) + " +" + (selectedTeams.size - 1))
+                }
+            }
+        }
+        if (patrol) {
+            if (selectedPatrols.isEmpty()) {
+                binding.chipPatrol.text = this.getString(R.string.patrol)
+                binding.chipPatrol.isSelected = false
+            } else {
+                binding.chipPatrol.isSelected = true
+                if (selectedPatrols.size == 1) {
+                    binding.chipPatrol.text = if (selectedPatrols[0].name.length > 17) {
+                        selectedPatrols[0].name.substring(0, 10) + "..."
+                    } else {
+                        selectedPatrols[0].name
+                    }
+                } else {
+                    binding.chipPatrol.text = if (selectedPatrols[0].name.length > 17) {
+                        selectedPatrols[0].name.substring(0, 10) + "..."
+                    } else {
+                        selectedPatrols[0].name
+                    } + " +" + (selectedPatrols.size - 1)
+                }
+            }
         }
     }
 
@@ -227,7 +407,7 @@ class ManageExamsFragment : Fragment() {
                         }
                     }
                     mSwipeRefreshLayout.isRefreshing = false
-                    val userIds: MutableSet<Int> = mutableSetOf()
+                    val userIds: MutableSet<Long> = mutableSetOf()
                     examList.forEach {
                         if (it.userId != null) userIds.add(it.userId!!)
                         if (it.supervisor != null) userIds.add(it.supervisor!!)
@@ -329,7 +509,7 @@ class ManageExamsFragment : Fragment() {
     private fun filter(text: String) {
         val filteredList: ArrayList<Exam> = ArrayList<Exam>()
 
-        for (item in originalExamList.filter { it.id != -1 }) {
+        for (item in originalExamList.filter { it.id != -1L }) {
             if ((item.name + " - " + users.find { it.id == item.userId }?.nicknameWithRank).lowercase(
                     Locale.ROOT
                 ).contains(text.lowercase(Locale.getDefault()))
@@ -343,6 +523,100 @@ class ManageExamsFragment : Fragment() {
         if (sharedPreferences
                 .getBoolean("ads", true)
         ) filteredList.add(Exam(id = -1, name = "ad"))
+        (recyclerView?.adapter as ManagedExamAdapter).filterList(filteredList)
+    }
+
+    private fun filterArchived(isArchived: Boolean = false) {
+        val filteredList: ArrayList<Exam> = ArrayList<Exam>()
+
+        for (item in originalExamList.filter { it.id != -1L }) {
+            if (item.isArchived == isArchived) {
+                filteredList.add(item)
+            }
+        }
+        if (filteredList.isEmpty()) {
+            filteredList.add(Exam(id = -1, name = "no_exams"))
+        }
+        if (sharedPreferences.getBoolean("ads", true)) {
+            for (i in 5..filteredList.size step 5) {
+                filteredList.add(i, Exam(id = -1, name = "ad"))
+            }
+            if (!(filteredList.last().name == "ad" && filteredList.last().id == -1L)) {
+                filteredList.add(Exam(id = -1, name = "ad"))
+            }
+        }
+        (recyclerView?.adapter as ManagedExamAdapter).filterList(filteredList)
+    }
+
+    private fun filterByTeams(teams: MutableList<Team>) {
+        val filteredList: ArrayList<Exam> = ArrayList<Exam>()
+
+        updateChips(team = true, patrol = false)
+
+        if (teams.isEmpty()) {
+            filteredList.addAll(originalExamList.filter { it.id != -1L })
+        } else {
+            for (item in originalExamList.filter { it.id != -1L }) {
+                if (users.find { it.id == item.userId }?.scout?.teamId in teams.map { it.id }) {
+                    filteredList.add(item)
+                }
+            }
+            if (selectedPatrols.isNotEmpty()) {
+                for (item in filteredList.filter { it.id != -1L }) {
+                    if (users.find { it.id == item.userId }?.scout?.patrolId !in selectedPatrols.map { it.id }) {
+                        filteredList.remove(item)
+                    }
+                }
+            }
+        }
+        if (filteredList.isEmpty()) {
+            filteredList.add(Exam(id = -1, name = "no_exams"))
+        }
+        if (sharedPreferences.getBoolean("ads", true)) {
+            for (i in 5..filteredList.size step 5) {
+                filteredList.add(i, Exam(id = -1, name = "ad"))
+            }
+            if (!(filteredList.last().name == "ad" && filteredList.last().id == -1L)) {
+                filteredList.add(Exam(id = -1, name = "ad"))
+            }
+        }
+        (recyclerView?.adapter as ManagedExamAdapter).filterList(filteredList)
+    }
+
+
+    private fun filterByPatrols(patrols: MutableList<Patrol>) {
+        val filteredList: ArrayList<Exam> = ArrayList<Exam>()
+
+        updateChips(team = false, patrol = true)
+
+        if (patrols.isEmpty()) {
+            filteredList.addAll(originalExamList.filter { it.id != -1L })
+        } else if (selectedTeams.isNotEmpty()) {
+            for (item in originalExamList.filter { exam -> exam.id != -1L && users.find { it.id == exam.userId }?.scout?.teamId in selectedTeams.map { it.id } }) {
+                if (users.find { it.id == item.userId }?.scout?.patrolId in patrols.map { it.id }) {
+                    filteredList.add(item)
+                }
+            }
+        } else {
+            for (item in originalExamList.filter { exam -> exam.id != -1L }) {
+                if (users.find { it.id == item.userId }?.scout?.patrolId in patrols.map { it.id }) {
+                    filteredList.add(item)
+                }
+            }
+        }
+
+        if (filteredList.isEmpty()) {
+            filteredList.add(Exam(id = -1, name = "no_exams"))
+        }
+        if (sharedPreferences.getBoolean("ads", true)) {
+
+            for (i in 5..filteredList.size step 5) {
+                filteredList.add(i, Exam(id = -1, name = "ad"))
+            }
+            if (!(filteredList.last().name == "ad" && filteredList.last().id == -1L)) {
+                filteredList.add(Exam(id = -1, name = "ad"))
+            }
+        }
         (recyclerView?.adapter as ManagedExamAdapter).filterList(filteredList)
     }
 

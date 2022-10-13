@@ -63,13 +63,13 @@ class ExamAdapter(private var dataSet: MutableList<Exam>, private val users: Lis
 
         // Get element from your dataset at this position and replace the
         // contents of the view with that element
-        if (dataSet[position].id == -1 && dataSet[position].name == "no_exams") {
+        if (dataSet[position].id == -1L && dataSet[position].name == "no_exams") {
             viewHolder.name.text = viewHolder.itemView.context.getString(R.string.no_exams)
             viewHolder.supervisor.visibility = View.GONE
             viewHolder.progressPercentage.visibility = View.GONE
             viewHolder.taskList.visibility = View.GONE
             return
-        } else if (dataSet[position].id == -1 && dataSet[position].name == "ad" && position == itemCount - 1) {
+        } else if (dataSet[position].id == -1L && dataSet[position].name == "ad" && position == itemCount - 1) {
             viewHolder.name.text = viewHolder.itemView.context.getString(R.string.advertisement)
             viewHolder.supervisor.visibility = View.GONE
             viewHolder.progressPercentage.visibility = View.GONE

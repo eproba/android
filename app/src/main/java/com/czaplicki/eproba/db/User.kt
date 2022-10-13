@@ -8,7 +8,7 @@ import com.google.gson.annotations.SerializedName
 @Entity(tableName = "users")
 data class User(
     @PrimaryKey
-    val id: Int,
+    val id: Long,
     @ColumnInfo(name = "first_name")
     @SerializedName("first_name")
     val firstName: String?,
@@ -32,13 +32,13 @@ data class User(
 data class Scout(
     @ColumnInfo(name = "patrol")
     @SerializedName("patrol")
-    val patrolId: Int?,
+    val patrolId: Long?,
     @ColumnInfo(name = "patrol_name")
     @SerializedName("patrol_name")
     val patrolName: String?,
     @ColumnInfo(name = "team")
     @SerializedName("team")
-    val teamId: Int?,
+    val teamId: Long?,
     @ColumnInfo(name = "team_name")
     @SerializedName("team_name")
     val teamName: String?,
