@@ -6,19 +6,15 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
-import com.czaplicki.eproba.AuthStateManager
 import com.czaplicki.eproba.R
-import com.czaplicki.eproba.api.EprobaApi
 import com.czaplicki.eproba.api.EprobaService
 import com.czaplicki.eproba.db.Exam
 import com.czaplicki.eproba.db.Task
 import com.czaplicki.eproba.db.User
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.gson.Gson
-import net.openid.appauth.AuthorizationService
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.Call
@@ -113,21 +109,6 @@ class ManagedTaskAdapter(
             }
         }
         viewHolder.itemView.setOnClickListener {
-            if (PreferenceManager.getDefaultSharedPreferences(viewHolder.itemView.context)
-                    .getString(
-                        "server",
-                        ""
-                    ) == "https://eproba.pl" && PreferenceManager.getDefaultSharedPreferences(
-                    viewHolder.itemView.context
-                ).getString("server_key", "") != "47"
-            ) {
-                Toast.makeText(
-                    viewHolder.itemView.context,
-                    "You can't manage tasks on main server",
-                    Toast.LENGTH_LONG
-                ).show()
-                return@setOnClickListener
-            }
             MaterialAlertDialogBuilder(
                 viewHolder.itemView.context,
                 com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
@@ -139,203 +120,181 @@ class ManagedTaskAdapter(
                     dialog.dismiss()
                 }
                 .setNegativeButton(R.string.reject) { dialog, _ ->
-                    val mAuthStateManager =
-                        AuthStateManager.getInstance(viewHolder.itemView.context)
-                    val authService = AuthorizationService(viewHolder.itemView.context)
-                    mAuthStateManager.current.performActionWithFreshTokens(
-                        authService
-                    ) { accessToken, _, _ ->
-                        if (accessToken == null) return@performActionWithFreshTokens
-                        mAuthStateManager.updateSavedState()
-                        EprobaApi().create(viewHolder.itemView.context, accessToken)!!
-                            .create(
-                                EprobaService::class.java
-                            ).updateTaskStatus(
-                                exam.id, exam.tasks[position].id,
-                                "{\"status\": ${Task.Status.REJECTED}, \"approver\": ${
+                    service.updateTaskStatus(
+                        exam.id, exam.tasks[position].id,
+                        "{\"status\": ${Task.Status.REJECTED}, \"approver\": ${
+                            Gson().fromJson(
+                                PreferenceManager.getDefaultSharedPreferences(viewHolder.itemView.context)
+                                    .getString("user", null),
+                                User::class.java
+                            ).id
+                        }, \"approval_date\": \"${
+                            DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now())
+                        }\"}"
+                            .toRequestBody("application/json".toMediaTypeOrNull())
+                    ).enqueue(object : Callback<Task> {
+                        override fun onResponse(
+                            call: Call<Task>,
+                            response: Response<Task>
+                        ) {
+                            if (response.isSuccessful) {
+                                exam.tasks[viewHolder.adapterPosition].status =
+                                    Task.Status.REJECTED
+                                exam.tasks[viewHolder.adapterPosition].approver =
                                     Gson().fromJson(
-                                        PreferenceManager.getDefaultSharedPreferences(viewHolder.itemView.context)
-                                            .getString("user", null),
-                                        User::class.java
+                                        PreferenceManager.getDefaultSharedPreferences(
+                                            viewHolder.itemView.context
+                                        )
+                                            .getString("user", null), User::class.java
                                     ).id
-                                }, \"approval_date\": \"${
-                                    DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now())
-                                }\"}"
-                                    .toRequestBody("application/json".toMediaTypeOrNull())
-                            ).enqueue(object : Callback<Task> {
-                                override fun onResponse(
-                                    call: Call<Task>,
-                                    response: Response<Task>
-                                ) {
-                                    if (response.isSuccessful) {
-                                        exam.tasks[viewHolder.adapterPosition].status =
-                                            Task.Status.REJECTED
-                                        exam.tasks[viewHolder.adapterPosition].approver =
-                                            Gson().fromJson(
-                                                PreferenceManager.getDefaultSharedPreferences(
-                                                    viewHolder.itemView.context
-                                                )
-                                                    .getString("user", null), User::class.java
-                                            ).id
-                                        exam.tasks[viewHolder.adapterPosition].approvalDate =
-                                            ZonedDateTime.now()
-                                        progressPercentage.text =
-                                            viewHolder.itemView.context.getString(
-                                                R.string.progress_percentage,
-                                                exam.tasks.count { it.status == Task.Status.APPROVED } * 100 / exam.tasks.size)
-                                        viewHolder.status.setImageIcon(
-                                            Icon.createWithResource(
-                                                "com.czaplicki.eproba",
-                                                R.drawable.cancel_24px
+                                exam.tasks[viewHolder.adapterPosition].approvalDate =
+                                    ZonedDateTime.now()
+                                progressPercentage.text =
+                                    viewHolder.itemView.context.getString(
+                                        R.string.progress_percentage,
+                                        exam.tasks.count { it.status == Task.Status.APPROVED } * 100 / exam.tasks.size)
+                                viewHolder.status.setImageIcon(
+                                    Icon.createWithResource(
+                                        "com.czaplicki.eproba",
+                                        R.drawable.cancel_24px
+                                    )
+                                )
+                                viewHolder.status.tooltipText =
+                                    viewHolder.itemView.context.getString(
+                                        R.string.rejected,
+                                        DateTimeFormatter.ofPattern("dd LLLL, yyyy")
+                                            .format(ZonedDateTime.now()),
+                                        DateTimeFormatter.ofPattern("HH:mm")
+                                            .format(ZonedDateTime.now()),
+                                        Gson().fromJson(
+                                            PreferenceManager.getDefaultSharedPreferences(
+                                                viewHolder.itemView.context
                                             )
-                                        )
-                                        viewHolder.status.tooltipText =
-                                            viewHolder.itemView.context.getString(
-                                                R.string.rejected,
-                                                DateTimeFormatter.ofPattern("dd LLLL, yyyy")
-                                                    .format(ZonedDateTime.now()),
-                                                DateTimeFormatter.ofPattern("HH:mm")
-                                                    .format(ZonedDateTime.now()),
-                                                Gson().fromJson(
-                                                    PreferenceManager.getDefaultSharedPreferences(
-                                                        viewHolder.itemView.context
-                                                    )
-                                                        .getString("user", null), User::class.java
-                                                ).nickname
-                                            )
-                                        dialog.dismiss()
-                                    } else {
-                                        MaterialAlertDialogBuilder(
-                                            viewHolder.itemView.context,
-                                            com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
-                                        )
-                                            .setTitle(R.string.error_dialog_title)
-                                            .setIcon(R.drawable.ic_error)
-                                            .setMessage(R.string.task_rejection_error_message)
-                                            .setPositiveButton(android.R.string.ok) { dialog, _ ->
-                                                dialog.dismiss()
-                                            }
-                                            .show()
+                                                .getString("user", null), User::class.java
+                                        ).nickname
+                                    )
+                                dialog.dismiss()
+                            } else {
+                                MaterialAlertDialogBuilder(
+                                    viewHolder.itemView.context,
+                                    com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
+                                )
+                                    .setTitle(R.string.error_dialog_title)
+                                    .setIcon(R.drawable.ic_error)
+                                    .setMessage(R.string.task_rejection_error_message)
+                                    .setPositiveButton(android.R.string.ok) { dialog, _ ->
                                         dialog.dismiss()
                                     }
-                                }
+                                    .show()
+                                dialog.dismiss()
+                            }
+                        }
 
-                                override fun onFailure(call: Call<Task>, t: Throwable) {
-                                    MaterialAlertDialogBuilder(
-                                        viewHolder.itemView.context,
-                                        com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
-                                    )
-                                        .setTitle(R.string.error_dialog_title)
-                                        .setIcon(R.drawable.ic_error)
-                                        .setMessage(R.string.task_rejection_error_message)
-                                        .setPositiveButton(android.R.string.ok) { dialog, _ ->
-                                            dialog.dismiss()
-                                        }
-                                        .show()
+                        override fun onFailure(call: Call<Task>, t: Throwable) {
+                            MaterialAlertDialogBuilder(
+                                viewHolder.itemView.context,
+                                com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
+                            )
+                                .setTitle(R.string.error_dialog_title)
+                                .setIcon(R.drawable.ic_error)
+                                .setMessage(R.string.task_rejection_error_message)
+                                .setPositiveButton(android.R.string.ok) { dialog, _ ->
                                     dialog.dismiss()
                                 }
-                            })
-                    }
+                                .show()
+                            dialog.dismiss()
+                        }
+                    })
+
                 }
                 .setPositiveButton(R.string.accept) { dialog, _ ->
-                    val mAuthStateManager =
-                        AuthStateManager.getInstance(viewHolder.itemView.context)
-                    val authService = AuthorizationService(viewHolder.itemView.context)
-                    mAuthStateManager.current.performActionWithFreshTokens(
-                        authService
-                    ) { accessToken, _, _ ->
-                        if (accessToken == null) return@performActionWithFreshTokens
-                        mAuthStateManager.updateSavedState()
-                        EprobaApi().create(viewHolder.itemView.context, accessToken)!!
-                            .create(
-                                EprobaService::class.java
-                            ).updateTaskStatus(
-                                exam.id, exam.tasks[position].id,
-                                "{\"status\": ${Task.Status.APPROVED}, \"approver\": ${
+                    service.updateTaskStatus(
+                        exam.id, exam.tasks[position].id,
+                        "{\"status\": ${Task.Status.APPROVED}, \"approver\": ${
+                            Gson().fromJson(
+                                PreferenceManager.getDefaultSharedPreferences(viewHolder.itemView.context)
+                                    .getString("user", null),
+                                User::class.java
+                            ).id
+                        }, \"approval_date\": \"${
+                            DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now())
+                        }\"}"
+                            .toRequestBody("application/json".toMediaTypeOrNull())
+                    ).enqueue(object : Callback<Task> {
+                        override fun onResponse(
+                            call: Call<Task>,
+                            response: Response<Task>
+                        ) {
+                            if (response.isSuccessful) {
+                                exam.tasks[viewHolder.adapterPosition].status =
+                                    Task.Status.APPROVED
+                                exam.tasks[viewHolder.adapterPosition].approver =
                                     Gson().fromJson(
-                                        PreferenceManager.getDefaultSharedPreferences(viewHolder.itemView.context)
-                                            .getString("user", null),
-                                        User::class.java
+                                        PreferenceManager.getDefaultSharedPreferences(
+                                            viewHolder.itemView.context
+                                        )
+                                            .getString("user", null), User::class.java
                                     ).id
-                                }, \"approval_date\": \"${
-                                    DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now())
-                                }\"}"
-                                    .toRequestBody("application/json".toMediaTypeOrNull())
-                            ).enqueue(object : Callback<Task> {
-                                override fun onResponse(
-                                    call: Call<Task>,
-                                    response: Response<Task>
-                                ) {
-                                    if (response.isSuccessful) {
-                                        exam.tasks[viewHolder.adapterPosition].status =
-                                            Task.Status.APPROVED
-                                        exam.tasks[viewHolder.adapterPosition].approver =
-                                            Gson().fromJson(
-                                                PreferenceManager.getDefaultSharedPreferences(
-                                                    viewHolder.itemView.context
-                                                )
-                                                    .getString("user", null), User::class.java
-                                            ).id
-                                        exam.tasks[viewHolder.adapterPosition].approvalDate =
-                                            ZonedDateTime.now()
-                                        progressPercentage.text =
-                                            viewHolder.itemView.context.getString(
-                                                R.string.progress_percentage,
-                                                exam.tasks.count { it.status == Task.Status.APPROVED } * 100 / exam.tasks.size)
-                                        viewHolder.status.setImageIcon(
-                                            Icon.createWithResource(
-                                                "com.czaplicki.eproba",
-                                                R.drawable.check_circle_24px
+                                exam.tasks[viewHolder.adapterPosition].approvalDate =
+                                    ZonedDateTime.now()
+                                progressPercentage.text =
+                                    viewHolder.itemView.context.getString(
+                                        R.string.progress_percentage,
+                                        exam.tasks.count { it.status == Task.Status.APPROVED } * 100 / exam.tasks.size)
+                                viewHolder.status.setImageIcon(
+                                    Icon.createWithResource(
+                                        "com.czaplicki.eproba",
+                                        R.drawable.check_circle_24px
+                                    )
+                                )
+                                viewHolder.status.tooltipText =
+                                    viewHolder.itemView.context.getString(
+                                        R.string.approved,
+                                        DateTimeFormatter.ofPattern("dd LLLL, yyyy")
+                                            .format(ZonedDateTime.now()),
+                                        DateTimeFormatter.ofPattern("HH:mm")
+                                            .format(ZonedDateTime.now()),
+                                        Gson().fromJson(
+                                            PreferenceManager.getDefaultSharedPreferences(
+                                                viewHolder.itemView.context
                                             )
-                                        )
-                                        viewHolder.status.tooltipText =
-                                            viewHolder.itemView.context.getString(
-                                                R.string.approved,
-                                                DateTimeFormatter.ofPattern("dd LLLL, yyyy")
-                                                    .format(ZonedDateTime.now()),
-                                                DateTimeFormatter.ofPattern("HH:mm")
-                                                    .format(ZonedDateTime.now()),
-                                                Gson().fromJson(
-                                                    PreferenceManager.getDefaultSharedPreferences(
-                                                        viewHolder.itemView.context
-                                                    )
-                                                        .getString("user", null), User::class.java
-                                                ).nickname
-                                            )
-                                        dialog.dismiss()
-                                    } else {
-                                        MaterialAlertDialogBuilder(
-                                            viewHolder.itemView.context,
-                                            com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
-                                        )
-                                            .setTitle(R.string.error_dialog_title)
-                                            .setIcon(R.drawable.ic_error)
-                                            .setMessage(R.string.task_approval_error_message)
-                                            .setPositiveButton(android.R.string.ok) { dialog, _ ->
-                                                dialog.dismiss()
-                                            }
-                                            .show()
+                                                .getString("user", null), User::class.java
+                                        ).nickname
+                                    )
+                                dialog.dismiss()
+                            } else {
+                                MaterialAlertDialogBuilder(
+                                    viewHolder.itemView.context,
+                                    com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
+                                )
+                                    .setTitle(R.string.error_dialog_title)
+                                    .setIcon(R.drawable.ic_error)
+                                    .setMessage(R.string.task_approval_error_message)
+                                    .setPositiveButton(android.R.string.ok) { dialog, _ ->
                                         dialog.dismiss()
                                     }
-                                }
+                                    .show()
+                                dialog.dismiss()
+                            }
+                        }
 
-                                override fun onFailure(call: Call<Task>, t: Throwable) {
-                                    MaterialAlertDialogBuilder(
-                                        viewHolder.itemView.context,
-                                        com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
-                                    )
-                                        .setTitle(R.string.error_dialog_title)
-                                        .setIcon(R.drawable.ic_error)
-                                        .setMessage(R.string.task_approval_error_message)
-                                        .setPositiveButton(android.R.string.ok) { dialog, _ ->
-                                            dialog.dismiss()
-                                        }
-                                        .show()
+                        override fun onFailure(call: Call<Task>, t: Throwable) {
+                            MaterialAlertDialogBuilder(
+                                viewHolder.itemView.context,
+                                com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
+                            )
+                                .setTitle(R.string.error_dialog_title)
+                                .setIcon(R.drawable.ic_error)
+                                .setMessage(R.string.task_approval_error_message)
+                                .setPositiveButton(android.R.string.ok) { dialog, _ ->
                                     dialog.dismiss()
                                 }
-                            })
-                    }
+                                .show()
+                            dialog.dismiss()
+                        }
+                    })
                 }
+
                 .show()
         }
     }

@@ -1,4 +1,4 @@
-package com.czaplicki.eproba
+package com.czaplicki.eproba.ui.accept_tasks
 
 import android.view.LayoutInflater
 import android.view.View
@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.czaplicki.eproba.R
 import com.czaplicki.eproba.api.EprobaService
 import com.czaplicki.eproba.db.Exam
 import com.czaplicki.eproba.db.User
@@ -15,7 +16,6 @@ import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.gms.ads.nativead.NativeAdView
 import com.google.android.material.divider.MaterialDividerItemDecoration
-
 
 class AcceptTasksAdapter(
     private val dataSet: MutableList<Exam>,

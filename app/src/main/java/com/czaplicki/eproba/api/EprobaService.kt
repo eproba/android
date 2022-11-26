@@ -51,4 +51,7 @@ interface EprobaService {
         @Path("exam_id") examId: Long,
         @Body body: RequestBody
     ): Call<Exam>
+
+    @POST("exam/")
+    fun createExam(@Body body: RequestBody): Call<Exam>
 }

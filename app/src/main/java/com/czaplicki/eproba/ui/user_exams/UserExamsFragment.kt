@@ -21,7 +21,6 @@ import com.czaplicki.eproba.AuthStateManager
 import com.czaplicki.eproba.EprobaApplication
 import com.czaplicki.eproba.MainActivity
 import com.czaplicki.eproba.R
-import com.czaplicki.eproba.api.EprobaApi
 import com.czaplicki.eproba.api.EprobaService
 import com.czaplicki.eproba.databinding.FragmentFirstBinding
 import com.czaplicki.eproba.db.Exam
@@ -35,7 +34,7 @@ import net.openid.appauth.AuthorizationService
 import java.util.*
 
 
-class FirstFragment : Fragment() {
+class UserExamsFragment : Fragment() {
 
     private var _binding: FragmentFirstBinding? = null
 
@@ -43,16 +42,16 @@ class FirstFragment : Fragment() {
     private lateinit var authService: AuthorizationService
     private var recyclerView: RecyclerView? = null
     private lateinit var mSwipeRefreshLayout: SwipeRefreshLayout
-    private val api: EprobaApi = EprobaApi()
     private var searchView: SearchView? = null
     var originalExamList: MutableList<Exam> = mutableListOf()
     var examList: MutableList<Exam> = mutableListOf()
     private val binding get() = _binding!!
-    private val userDao: UserDao by lazy { (activity?.application as EprobaApplication).database.userDao() }
-    private val examDao: ExamDao by lazy { (activity?.application as EprobaApplication).database.examDao() }
-    private lateinit var service: EprobaService
+    private val app = EprobaApplication.instance
+    private val service: EprobaService = app.service
+    private val userDao: UserDao = app.database.userDao()
+    private val examDao: ExamDao = app.database.examDao()
     var users: MutableList<User> = mutableListOf()
-    val viewModel: ExamsViewModel by viewModels { ExamsViewModel.Factory }
+    private val viewModel: ExamsViewModel by viewModels { ExamsViewModel.Factory }
     val sharedPreferences: SharedPreferences by lazy {
         PreferenceManager.getDefaultSharedPreferences(
             requireContext()
@@ -64,7 +63,6 @@ class FirstFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentFirstBinding.inflate(inflater, container, false)
-        service = (activity?.application as EprobaApplication).service()
         mAuthStateManager = AuthStateManager.getInstance(requireContext())
         authService = AuthorizationService(requireContext())
         recyclerView = binding.recyclerView
@@ -167,7 +165,6 @@ class FirstFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        service = (activity?.application as EprobaApplication).service()
         Log.d("onResume", "onResume")
         Log.d("onResume", (activity as MainActivity).user.toString())
         (activity as MainActivity).user?.let {
@@ -292,21 +289,7 @@ class FirstFragment : Fragment() {
                     call: retrofit2.Call<List<User>>,
                     response: retrofit2.Response<List<User>>
                 ) {
-                    if (response.code() == 403) {
-                        if (previousResponseCode == 403) {
-                            view?.let {
-                                Snackbar.make(
-                                    it,
-                                    "Nie jesteś zalogowany",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-                        } else {
-                            service = api.create(requireContext(), null)!!
-                                .create(EprobaService::class.java)
-                            return getUsers(403)
-                        }
-                    } else if (response.body() != null) {
+                    if (response.body() != null) {
                         users.clear()
                         users.addAll(response.body()!!)
                         lifecycleScope.launch {

@@ -42,11 +42,6 @@ class AuthStateManager private constructor(context: Context) {
     }
 
     @AnyThread
-    fun updateSavedState() {
-        writeState(mCurrentAuthState.get())
-    }
-
-    @AnyThread
     fun updateAfterAuthorization(
         response: AuthorizationResponse?,
         ex: AuthorizationException?

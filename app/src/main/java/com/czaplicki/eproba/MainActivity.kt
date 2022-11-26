@@ -22,8 +22,6 @@ import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import androidx.preference.PreferenceManager
-import com.czaplicki.eproba.api.EprobaApi
-import com.czaplicki.eproba.api.EprobaService
 import com.czaplicki.eproba.databinding.ActivityMainBinding
 import com.czaplicki.eproba.db.User
 import com.google.android.gms.ads.MobileAds
@@ -45,8 +43,7 @@ class MainActivity : AppCompatActivity() {
     private val navController by lazy { findNavController(R.id.nav_host_fragment_content_main) }
     private lateinit var authService: AuthorizationService
     private lateinit var mAuthStateManager: AuthStateManager
-    private val api: EprobaApi = EprobaApi()
-    private lateinit var service: EprobaService
+    private val service = EprobaApplication.instance.service
     var user: User? = null
 
 
@@ -58,7 +55,6 @@ class MainActivity : AppCompatActivity() {
             User::class.java
         )
         binding = ActivityMainBinding.inflate(layoutInflater)
-        service = (application as EprobaApplication).service()
         setContentView(binding.root)
 
         setSupportActionBar(binding.toolbar)
@@ -165,16 +161,13 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        if (mAuthStateManager.current.needsTokenRefresh && mAuthStateManager.current.refreshToken != null) {
-            (application as EprobaApplication).refreshToken()
-            service = (application as EprobaApplication).service()
-        } else if (!mAuthStateManager.current.isAuthorized) {
+        if (!mAuthStateManager.current.isAuthorized) {
             navController.navigate(R.id.action_global_loginFragment)
         } else if (navController.currentDestination?.id == R.id.LoginFragment && mAuthStateManager.current.isAuthorized) {
             navController.navigate(R.id.navigation_your_exams)
         }
         if (PreferenceManager.getDefaultSharedPreferences(this)
-                .getString("server", "https://dev.eproba.pl") != "https://eproba.pl"
+                .getString("server", "https://eproba.pl") != "https://eproba.pl"
         ) {
             binding.devServerStatus.visibility = View.VISIBLE
         } else {
@@ -211,7 +204,7 @@ class MainActivity : AppCompatActivity() {
         val redirectUri = Uri.parse("com.czaplicki.eproba://oauth2redirect")
         val clientId = "57wXiwkX1865qziVedFEXXum01m9QHJ6MDMVD03i"
         val baseUrl = PreferenceManager.getDefaultSharedPreferences(this)
-            .getString("server", "https://dev.eproba.pl")
+            .getString("server", "https://eproba.pl")
         val builder = AuthorizationRequest.Builder(
             AuthorizationServiceConfiguration(
                 Uri.parse("$baseUrl/oauth2/authorize/"), // authorization endpoint
@@ -253,7 +246,6 @@ class MainActivity : AppCompatActivity() {
         ) { resp, ex ->
             if (resp != null) {
                 mAuthStateManager.updateAfterTokenResponse(resp, ex)
-                service = (application as EprobaApplication).service()
                 fetchUser(fragmentId = R.id.navigation_your_exams)
             } else {
                 if (ex != null) {
@@ -264,7 +256,7 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    fun fetchUser(previousResponseCode: Int = 0, fragmentId: Int? = null) {
+    private fun fetchUser(fragmentId: Int? = null) {
         service.getUserInfo().enqueue(object : Callback<User> {
             override fun onFailure(call: Call<User>, t: Throwable) {
                 val errorScreen = ErrorScreen(t.message)
@@ -275,21 +267,7 @@ class MainActivity : AppCompatActivity() {
                 call: Call<User>,
                 response: Response<User>
             ) {
-                if (response.code() == 403) {
-                    if (previousResponseCode == 403) {
-                        Toast.makeText(
-                            this@MainActivity,
-                            "Sesja wygasła, zaloguj się ponownie",
-                            Toast.LENGTH_LONG
-                        ).show()
-                        mAuthStateManager.current.needsTokenRefresh = true
-                        navController.navigate(R.id.action_global_loginFragment)
-                        return
-                    }
-                    (application as EprobaApplication).refreshToken()
-                    service = (application as EprobaApplication).service()
-                    fetchUser(403)
-                } else if (response.body() != null) {
+                if (response.body() != null) {
                     PreferenceManager.getDefaultSharedPreferences(this@MainActivity)
                         .edit()
                         .putString("user", Gson().toJson(response.body()))

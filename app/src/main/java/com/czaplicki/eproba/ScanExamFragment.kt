@@ -1,23 +1,19 @@
 package com.czaplicki.eproba
 
-import android.app.Activity
 import android.app.AlertDialog
-import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
-import com.czaplicki.eproba.api.EprobaApi
 import com.czaplicki.eproba.api.EprobaService
 import com.czaplicki.eproba.databinding.FragmentScanExamBinding
 import com.czaplicki.eproba.db.Exam
@@ -34,9 +30,11 @@ import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import kotlinx.coroutines.launch
 import net.openid.appauth.AuthorizationService
-import okhttp3.*
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.io.IOException
 import java.util.*
 
@@ -53,11 +51,10 @@ class ScanExamFragment : Fragment() {
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!
-    private val client = OkHttpClient()
-    private val api: EprobaApi = EprobaApi()
+    private val service: EprobaService = EprobaApplication.instance.service
     private lateinit var baseUrl: String
     private lateinit var user: User
-    private val userDao: UserDao by lazy { (activity?.application as EprobaApplication).database.userDao() }
+    private val userDao: UserDao = EprobaApplication.instance.database.userDao()
     private val users = mutableListOf<User>()
 
 
@@ -71,14 +68,14 @@ class ScanExamFragment : Fragment() {
     ): View {
         _binding = FragmentScanExamBinding.inflate(inflater, container, false)
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
-        baseUrl = sharedPreferences.getString("server", "https://dev.eproba.pl")!!
+        baseUrl = sharedPreferences.getString("server", "https://eproba.pl")!!
         user = Gson().fromJson(sharedPreferences.getString("user", null), User::class.java)
         authService = AuthorizationService(requireContext())
         mAuthStateManager = AuthStateManager.getInstance(requireContext())
         binding.refreshButton.visibility = View.VISIBLE
         binding.refreshButton.setOnClickListener {
             binding.refreshButton.visibility = View.GONE
-            pickImage()
+            getImage()
         }
         (requireActivity() as CreateExamActivity).supportActionBar?.setDisplayHomeAsUpEnabled(true)
         updateUsers()
@@ -148,52 +145,13 @@ class ScanExamFragment : Fragment() {
         return tasks
     }
 
-    private fun pickImage() {
-        // check sdk version and launch the correct action
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val intent = Intent(MediaStore.ACTION_PICK_IMAGES)
-            intent.type = "image/*"
-            getContent.launch(intent)
-        } else {
-            getContentOld.launch("image/*")
-        }
+    private fun getImage() {
+        getImage.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
     }
 
-    private val getContentOld =
-        registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-            if (uri != null) {
-                recognizeExam(uri)
-            } else {
-                Toast.makeText(context, "No image selected", Toast.LENGTH_SHORT).show()
-                binding.refreshButton.visibility = View.VISIBLE
-                binding.refreshButton.setOnClickListener {
-                    binding.textviewCamera.text = ""
-                    binding.textviewCamera.visibility = View.GONE
-                    binding.submitButton.visibility = View.GONE
-                    binding.refreshButton.visibility = View.GONE
-                    pickImage()
-                }
-            }
-        }
-
-    private val getContent =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            if (it.resultCode == Activity.RESULT_OK) {
-                val uri: Uri? = it.data?.data
-                if (uri == null) {
-                    Toast.makeText(context, "No photo picked", Toast.LENGTH_SHORT).show()
-                    binding.refreshButton.visibility = View.VISIBLE
-                    binding.refreshButton.setOnClickListener {
-                        binding.textviewCamera.text = ""
-                        binding.textviewCamera.visibility = View.GONE
-                        binding.submitButton.visibility = View.GONE
-                        binding.refreshButton.visibility = View.GONE
-                        pickImage()
-                    }
-                    return@registerForActivityResult
-                }
-                recognizeExam(uri)
-            } else {
+    private val getImage =
+        registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri: Uri? ->
+            if (uri == null) {
                 Toast.makeText(context, "No photo picked", Toast.LENGTH_SHORT).show()
                 binding.refreshButton.visibility = View.VISIBLE
                 binding.refreshButton.setOnClickListener {
@@ -201,8 +159,10 @@ class ScanExamFragment : Fragment() {
                     binding.textviewCamera.visibility = View.GONE
                     binding.submitButton.visibility = View.GONE
                     binding.refreshButton.visibility = View.GONE
-                    pickImage()
+                    getImage()
                 }
+            } else {
+                recognizeExam(uri)
             }
         }
 
@@ -331,7 +291,7 @@ class ScanExamFragment : Fragment() {
                     binding.textviewCamera.visibility = View.GONE
                     binding.submitButton.visibility = View.GONE
                     binding.refreshButton.visibility = View.GONE
-                    pickImage()
+                    getImage()
                 }
             }
             .addOnFailureListener { e ->
@@ -342,7 +302,7 @@ class ScanExamFragment : Fragment() {
                     binding.textviewCamera.visibility = View.GONE
                     binding.submitButton.visibility = View.GONE
                     binding.refreshButton.visibility = View.GONE
-                    pickImage()
+                    getImage()
                 }
             }
         return
@@ -362,26 +322,7 @@ class ScanExamFragment : Fragment() {
         } else {
             exam.userId = user.id
         }
-        if (baseUrl == "https://eproba.pl" && sharedPreferences.getString("server_key", "") != "47"
-        ) {
-            Snackbar.make(
-                binding.root,
-                "You can't submit exam on main server. Please use a testing server.",
-                Snackbar.LENGTH_LONG
-            ).show()
-            return
-        }
-
-//        if (authStateManager.current.accessToken == null) {
-//            Snackbar.make(
-//                binding.root,
-//                "You are not logged in",
-//                Snackbar.LENGTH_LONG
-//            ).show()
-//            return
-//        }
-
-        if (exam.name == null) {
+        if (exam.name.isNullOrBlank()) {
             val examNameInput: View =
                 LayoutInflater.from(context).inflate(R.layout.exam_name_alert, null)
             val mAlertDialog = MaterialAlertDialogBuilder(
@@ -417,87 +358,73 @@ class ScanExamFragment : Fragment() {
             return
         }
         binding.progressBar.visibility = View.VISIBLE
-        mAuthStateManager.current.performActionWithFreshTokens(
-            authService
-        ) { accessToken, _, _ ->
-            mAuthStateManager.updateSavedState()
-            val request = Request.Builder()
-                .url("$baseUrl/api/exam/")
-                .header(
-                    "Authorization",
-                    "Bearer $accessToken"
-                )
-                .method("POST", exam.toJson().toRequestBody("application/json".toMediaTypeOrNull()))
-                .build()
-
-
-            client.newCall(request).enqueue(object : Callback {
-                override fun onFailure(call: Call, e: IOException) {
-                    e.printStackTrace()
+        service.createExam(exam.toJson().toRequestBody("application/json".toMediaType()))
+            .enqueue(object : Callback<Exam> {
+                override fun onFailure(call: Call<Exam>, t: Throwable) {
+                    t.printStackTrace()
                     activity?.runOnUiThread {
                         binding.progressBar.visibility = View.GONE
-                        Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, t.message, Toast.LENGTH_SHORT).show()
                     }
                 }
 
-                override fun onResponse(call: Call, response: Response) {
-                    response.use {
-                        if (!response.isSuccessful) {
-                            activity?.runOnUiThread {
-                                binding.progressBar.visibility = View.GONE
-                            }
-                            when (response.code) {
-                                401, 403 -> {
-                                    activity?.runOnUiThread {
-                                        MaterialAlertDialogBuilder(
-                                            requireContext(),
-                                            com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
-                                        )
-                                            .setTitle("Próba nie została zapisana")
-                                            .setMessage("Nie jesteś autoryzowany do utworzenia próby, spróbuj ponownie, a jeśli problem będźie się dalej powtarzał autoryzuj ponownie aplikację. ${response.code} ${response.message}")
-                                            .setIcon(R.drawable.ic_error)
-                                            .setPositiveButton(R.string.retry) { _, _ ->
-                                                binding.progressBar.visibility = View.VISIBLE
-                                                mAuthStateManager.current.needsTokenRefresh = true
-                                                submitExam(exam)
-                                            }
-                                            .setNegativeButton(R.string.cancel, null)
-                                            .show()
-                                    }
-                                }
-                                else -> {
-                                    activity?.runOnUiThread {
-                                        Snackbar.make(
-                                            binding.root,
-                                            "Error: ${response.code}",
-                                            Snackbar.LENGTH_LONG
-                                        ).show()
-                                    }
-                                }
-                            }
-                            return
-                        }
+                override fun onResponse(call: Call<Exam>, response: Response<Exam>) {
+                    if (!response.isSuccessful) {
                         activity?.runOnUiThread {
                             binding.progressBar.visibility = View.GONE
-                            MaterialAlertDialogBuilder(
-                                requireContext(),
-                                com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
-                            )
-                                .setTitle("Próba zapisana")
-                                .setMessage("Próba została utworzona")
-                                .setIcon(R.drawable.ic_success)
-                                .setPositiveButton(
-                                    "OK"
-                                ) { dialog, _ ->
-                                    dialog.dismiss()
-                                    activity?.finish()
-                                }
-                                .show()
                         }
+                        when (response.code()) {
+                            401, 403 -> {
+                                activity?.runOnUiThread {
+                                    MaterialAlertDialogBuilder(
+                                        requireContext(),
+                                        com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
+                                    )
+                                        .setTitle("Próba nie została zapisana")
+                                        .setMessage("Nie jesteś autoryzowany do utworzenia próby, spróbuj ponownie, a jeśli problem będźie się dalej powtarzał autoryzuj ponownie aplikację. ${response.code()} ${response.message()}")
+                                        .setIcon(R.drawable.ic_error)
+                                        .setPositiveButton(R.string.retry) { _, _ ->
+                                            binding.progressBar.visibility = View.VISIBLE
+                                            mAuthStateManager.current.needsTokenRefresh = true
+                                            submitExam(exam)
+                                        }
+                                        .setNegativeButton(R.string.cancel, null)
+                                        .show()
+                                }
+                            }
+                            else -> {
+                                activity?.runOnUiThread {
+                                    Snackbar.make(
+                                        binding.root,
+                                        "Error: ${response.code()}",
+                                        Snackbar.LENGTH_LONG
+                                    ).show()
+                                }
+                            }
+                        }
+                        return
                     }
+                    activity?.runOnUiThread {
+                        binding.progressBar.visibility = View.GONE
+                        MaterialAlertDialogBuilder(
+                            requireContext(),
+                            com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
+                        )
+                            .setTitle("Próba zapisana")
+                            .setMessage("Próba została utworzona")
+                            .setIcon(R.drawable.ic_success)
+                            .setPositiveButton(
+                                "OK"
+                            ) { dialog, _ ->
+                                dialog.dismiss()
+                                activity?.finish()
+                            }
+                            .show()
+                    }
+
                 }
             })
-        }
+
     }
 
 
@@ -506,18 +433,34 @@ class ScanExamFragment : Fragment() {
             users.clear()
             users.addAll(userDao.getAll())
         }
-        mAuthStateManager.current.performActionWithFreshTokens(
-            authService
-        ) { accessToken, _, _ ->
-            if (accessToken == null) {
-                requireActivity().recreate()
-                return@performActionWithFreshTokens
-            }
-            mAuthStateManager.updateSavedState()
-            api.create(requireContext(), accessToken)!!
-                .create(EprobaService::class.java).getUsersPublicInfo()
-                .enqueue(object : retrofit2.Callback<List<User>> {
-                    override fun onFailure(call: retrofit2.Call<List<User>>, t: Throwable) {
+        service.getUsersPublicInfo()
+            .enqueue(object : Callback<List<User>> {
+                override fun onFailure(call: Call<List<User>>, t: Throwable) {
+                    Snackbar.make(
+                        binding.root,
+                        "Błąd połączenia z serwerem",
+                        Snackbar.LENGTH_LONG
+                    ).show()
+                    lifecycleScope.launch {
+                        users.clear()
+                        users.addAll(userDao.getAll())
+                    }
+                    t.message?.let { Log.e("FirstFragment", it) }
+                }
+
+                override fun onResponse(
+                    call: Call<List<User>>,
+                    response: Response<List<User>>
+                ) {
+                    if (response.body() != null) {
+                        lifecycleScope.launch {
+                            userDao.insertUsers(*users.toTypedArray())
+                            users.clear()
+                            users.addAll(userDao.getAll())
+                        }
+                        sharedPreferences.edit()
+                            .putLong("lastUsersUpdate", System.currentTimeMillis()).apply()
+                    } else {
                         Snackbar.make(
                             binding.root,
                             "Błąd połączenia z serwerem",
@@ -527,35 +470,10 @@ class ScanExamFragment : Fragment() {
                             users.clear()
                             users.addAll(userDao.getAll())
                         }
-                        t.message?.let { Log.e("FirstFragment", it) }
                     }
-
-                    override fun onResponse(
-                        call: retrofit2.Call<List<User>>,
-                        response: retrofit2.Response<List<User>>
-                    ) {
-                        if (response.body() != null) {
-                            lifecycleScope.launch {
-                                userDao.insertUsers(*users.toTypedArray())
-                                users.clear()
-                                users.addAll(userDao.getAll())
-                            }
-                            sharedPreferences.edit()
-                                .putLong("lastUsersUpdate", System.currentTimeMillis()).apply()
-                        } else {
-                            Snackbar.make(
-                                binding.root,
-                                "Błąd połączenia z serwerem",
-                                Snackbar.LENGTH_LONG
-                            ).show()
-                            lifecycleScope.launch {
-                                users.clear()
-                                users.addAll(userDao.getAll())
-                            }
-                        }
-                    }
-                })
-        }
+                }
+            })
     }
+
 
 }

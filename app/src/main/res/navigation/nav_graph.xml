@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/navigation_your_exams"
-        android:name="com.czaplicki.eproba.ui.user_exams.FirstFragment"
+        android:name="com.czaplicki.eproba.ui.user_exams.UserExamsFragment"
         android:label="@string/first_fragment_label"
         tools:layout="@layout/fragment_first">
 
@@ -48,7 +48,7 @@
         app:destination="@id/createExamActivity" />
     <fragment
         android:id="@+id/navigation_accept_tasks"
-        android:name="com.czaplicki.eproba.AcceptTasksFragment"
+        android:name="com.czaplicki.eproba.ui.accept_tasks.AcceptTasksFragment"
         android:label="@string/title_accept_tasks" />
     <action
         android:id="@+id/action_global_loginFragment"

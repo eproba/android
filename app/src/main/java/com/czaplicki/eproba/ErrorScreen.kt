@@ -9,7 +9,7 @@ import androidx.fragment.app.DialogFragment
 import com.czaplicki.eproba.databinding.FragmentErrorBinding
 
 
-class ErrorScreen(val message: String? = null) : DialogFragment() {
+class ErrorScreen(private val message: String? = null) : DialogFragment() {
 
     private lateinit var binding: FragmentErrorBinding
 

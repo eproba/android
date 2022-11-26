@@ -20,8 +20,10 @@ import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.czaplicki.eproba.*
-import com.czaplicki.eproba.api.EprobaApi
+import com.czaplicki.eproba.AuthStateManager
+import com.czaplicki.eproba.EprobaApplication
+import com.czaplicki.eproba.MainActivity
+import com.czaplicki.eproba.R
 import com.czaplicki.eproba.api.EprobaService
 import com.czaplicki.eproba.databinding.FragmentManageExamsBinding
 import com.czaplicki.eproba.db.*
@@ -29,7 +31,6 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
-import net.openid.appauth.AuthState
 import net.openid.appauth.AuthorizationService
 import java.util.*
 
@@ -45,11 +46,10 @@ class ManageExamsFragment : Fragment() {
     private var searchView: SearchView? = null
     private var originalExamList: MutableList<Exam> = mutableListOf()
     var examList: MutableList<Exam> = mutableListOf()
-    private val api: EprobaApi = EprobaApi()
     private val binding get() = _binding!!
     private lateinit var userDao: UserDao
     private lateinit var examDao: ExamDao
-    private lateinit var service: EprobaService
+    private val service: EprobaService = EprobaApplication.instance.service
     var users: MutableList<User> = mutableListOf()
     var teams: MutableList<Team> = mutableListOf()
     var selectedTeams: MutableList<Team> = mutableListOf()
@@ -152,7 +152,6 @@ class ManageExamsFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentManageExamsBinding.inflate(inflater, container, false)
-        service = (activity?.application as EprobaApplication).service()
         mAuthStateManager = AuthStateManager.getInstance(requireContext())
         authService = AuthorizationService(requireContext())
         userDao = (activity?.application as EprobaApplication).database.userDao()
@@ -352,7 +351,7 @@ class ManageExamsFragment : Fragment() {
         }
     }
 
-    private fun updateExams(previousResponseCode: Int = 0) {
+    private fun updateExams() {
         mSwipeRefreshLayout.isRefreshing = true
         service.getExams()
             .enqueue(object : retrofit2.Callback<List<Exam>> {
@@ -372,27 +371,7 @@ class ManageExamsFragment : Fragment() {
                     call: retrofit2.Call<List<Exam>>,
                     response: retrofit2.Response<List<Exam>>
                 ) {
-                    if (response.code() == 403) {
-                        if (previousResponseCode == 403) {
-                            view?.let {
-                                Snackbar.make(
-                                    it,
-                                    "Nie jesteś zalogowany",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                activity?.let { act ->
-                                    mAuthStateManager.replace(AuthState()); LoggedOutScreen().show(
-                                    act.supportFragmentManager,
-                                    "error"
-                                )
-                                }
-                            }
-                        } else {
-                            service = api.create(requireContext(), null)!!
-                                .create(EprobaService::class.java)
-                            return updateExams(403)
-                        }
-                    } else if (response.body() != null) {
+                    if (response.body() != null) {
                         lifecycleScope.launch {
                             examDao.deleteExams()
                             examDao.insertExams(*response.body()!!.toTypedArray())
