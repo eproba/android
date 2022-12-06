@@ -32,7 +32,13 @@
         android:id="@+id/LoginFragment"
         android:name="com.czaplicki.eproba.LoginFragment"
         android:label="fragment_login"
-        tools:layout="@layout/fragment_login" />
+        tools:layout="@layout/fragment_login">
+        <action
+            android:id="@+id/action_LoginFragment_to_navigation_your_exams"
+            app:destination="@id/navigation_your_exams"
+            app:popUpTo="@id/navigation_your_exams"
+            app:popUpToInclusive="true" />
+    </fragment>
     <activity
         android:id="@+id/createExamActivity"
         android:name="com.czaplicki.eproba.CreateExamActivity"
@@ -54,5 +60,7 @@
         android:id="@+id/action_global_loginFragment"
         app:destination="@id/LoginFragment"
         app:enterAnim="@anim/nav_default_enter_anim"
-        app:exitAnim="@anim/nav_default_exit_anim" />
+        app:exitAnim="@anim/nav_default_exit_anim"
+        app:popUpTo="@id/LoginFragment"
+        app:popUpToInclusive="true" />
 </navigation>

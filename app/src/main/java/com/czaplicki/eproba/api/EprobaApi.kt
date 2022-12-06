@@ -12,6 +12,7 @@ import net.openid.appauth.AuthState
 import net.openid.appauth.AuthorizationException
 import okhttp3.*
 import okhttp3.ResponseBody.Companion.toResponseBody
+import okhttp3.internal.http.HTTP_UNAUTHORIZED
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.IOException
@@ -29,7 +30,6 @@ class EprobaApi {
     fun create(context: Context): Retrofit? {
         if (retrofit == null) {
             client = OkHttpClient.Builder().callTimeout(10, SECONDS)
-                .authenticator(AccessTokenAuthenticator())
                 .addInterceptor(AccessTokenInterceptor())
                 .build()
             val gson = GsonBuilder().registerTypeAdapter(
@@ -58,8 +58,6 @@ class AccessTokenInterceptor : Interceptor {
 
     val app = EprobaApplication.instance
 
-    private val accessTokenAuthenticator: AccessTokenAuthenticator = AccessTokenAuthenticator()
-
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
         var accessToken: String? = app.authStateManager.current.accessToken
@@ -73,24 +71,33 @@ class AccessTokenInterceptor : Interceptor {
                 }
             }
         }
-        try {
-            val request: Request =
-                accessTokenAuthenticator.newRequestWithAccessToken(chain.request(), accessToken!!)
-            return chain.proceed(request)
-        } catch (e: AuthorizationException) {
-            if (e == AuthorizationException.TokenRequestErrors.INVALID_GRANT) {
-                app.getActiveActivity()?.let { activity ->
-                    LoggedOutScreen().show(
-                        (activity as AppCompatActivity).supportFragmentManager,
-                        "loggedOut"
-                    )
-                }
-                app.api.client.dispatcher.cancelAll()
+        val request: Request = newRequestWithAccessToken(chain.request(), accessToken!!)
+        var response = chain.proceed(request)
 
-            } else {
-                throw e
+        if (response.code == HTTP_UNAUTHORIZED) {
+            try {
+                runBlocking {
+                    accessToken = refreshToken()
+                }
+                val request: Request = newRequestWithAccessToken(chain.request(), accessToken!!)
+                return chain.proceed(request)
+            } catch (e: AuthorizationException) {
+                if (e == AuthorizationException.TokenRequestErrors.INVALID_GRANT) {
+                    app.getActiveActivity()?.let { activity ->
+                        LoggedOutScreen().show(
+                            (activity as AppCompatActivity).supportFragmentManager,
+                            "loggedOut"
+                        )
+                    }
+                    app.api.client.dispatcher.cancelAll()
+                } else {
+                    throw e
+                }
             }
+        } else {
+            return response
         }
+
         return Response.Builder() // This is a dummy response to satisfy the compiler
             .code(418)
             .body("".toResponseBody(null))
@@ -99,31 +106,8 @@ class AccessTokenInterceptor : Interceptor {
             .request(chain.request())
             .build()
     }
-}
 
-class AccessTokenAuthenticator : Authenticator {
-    val app = EprobaApplication.instance
-
-
-    override fun authenticate(route: Route?, response: Response): Request? {
-        var accessToken: String?
-        if (!isRequestWithAccessToken(response)) {
-            return null
-        }
-        runBlocking {
-            accessToken = refreshToken()
-        }
-
-        return newRequestWithAccessToken(response.request, accessToken!!)
-
-    }
-
-    private fun isRequestWithAccessToken(response: Response): Boolean {
-        val header = response.request.header("Authorization")
-        return header != null && header.startsWith("Bearer")
-    }
-
-    fun newRequestWithAccessToken(request: Request, accessToken: String): Request {
+    private fun newRequestWithAccessToken(request: Request, accessToken: String): Request {
         return request.newBuilder()
             .header("Authorization", "Bearer $accessToken")
             .build()
@@ -150,3 +134,53 @@ class AccessTokenAuthenticator : Authenticator {
         }
     }
 }
+
+//class AccessTokenAuthenticator : Authenticator {
+//    val app = EprobaApplication.instance
+//
+//
+//    override fun authenticate(route: Route?, response: Response): Request? {
+//        var accessToken: String?
+//        if (!isRequestWithAccessToken(response)) {
+//            return null
+//        }
+//        runBlocking {
+//            accessToken = refreshToken()
+//        }
+//
+//        return newRequestWithAccessToken(response.request, accessToken!!)
+//
+//    }
+//
+//    private fun isRequestWithAccessToken(response: Response): Boolean {
+//        val header = response.request.header("Authorization")
+//        return header != null && header.startsWith("Bearer")
+//    }
+//
+//    fun newRequestWithAccessToken(request: Request, accessToken: String): Request {
+//        return request.newBuilder()
+//            .header("Authorization", "Bearer $accessToken")
+//            .build()
+//    }
+//
+//    private suspend fun refreshToken(): String = suspendCoroutine {
+//        if (app.authStateManager.current.refreshToken == null) {
+//            it.resumeWithException(AuthorizationException.AuthorizationRequestErrors.INVALID_REQUEST)
+//        }
+//        app.authService.performTokenRequest(app.authStateManager.current.createTokenRefreshRequest()) { tokenResponse, ex ->
+//            if (ex?.code == AuthorizationException.TokenRequestErrors.INVALID_GRANT.code) {
+//                app.authStateManager.replace(AuthState())
+//                it.resumeWithException(ex)
+//                return@performTokenRequest
+//            }
+//            if (tokenResponse != null) {
+//                app.authStateManager.updateAfterTokenResponse(tokenResponse, ex)
+//            }
+//            if (tokenResponse != null) {
+//                tokenResponse.accessToken?.let { it1 -> it.resume(it1) }
+//            } else {
+//                it.resume("")
+//            }
+//        }
+//    }
+//}

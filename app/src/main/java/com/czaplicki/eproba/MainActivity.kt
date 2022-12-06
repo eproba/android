@@ -7,6 +7,7 @@ import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
@@ -40,7 +41,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     lateinit var fab: ExtendedFloatingActionButton
     lateinit var bottomNavigation: BottomNavigationView
-    private val navController by lazy { findNavController(R.id.nav_host_fragment_content_main) }
+    val navController by lazy { findNavController(R.id.nav_host_fragment_content_main) }
     private lateinit var authService: AuthorizationService
     private lateinit var mAuthStateManager: AuthStateManager
     private val service = EprobaApplication.instance.service
@@ -164,7 +165,8 @@ class MainActivity : AppCompatActivity() {
         if (!mAuthStateManager.current.isAuthorized) {
             navController.navigate(R.id.action_global_loginFragment)
         } else if (navController.currentDestination?.id == R.id.LoginFragment && mAuthStateManager.current.isAuthorized) {
-            navController.navigate(R.id.navigation_your_exams)
+            Log.d("Login", "Logged in")
+            navController.navigate(R.id.action_LoginFragment_to_navigation_your_exams)
         }
         if (PreferenceManager.getDefaultSharedPreferences(this)
                 .getString("server", "https://eproba.pl") != "https://eproba.pl"
@@ -246,7 +248,7 @@ class MainActivity : AppCompatActivity() {
         ) { resp, ex ->
             if (resp != null) {
                 mAuthStateManager.updateAfterTokenResponse(resp, ex)
-                fetchUser(fragmentId = R.id.navigation_your_exams)
+                fetchUser()
             } else {
                 if (ex != null) {
                     Toast.makeText(this, "Error: ${ex.error}", Toast.LENGTH_LONG).show()
@@ -256,7 +258,7 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    private fun fetchUser(fragmentId: Int? = null) {
+    private fun fetchUser() {
         service.getUserInfo().enqueue(object : Callback<User> {
             override fun onFailure(call: Call<User>, t: Throwable) {
                 val errorScreen = ErrorScreen(t.message)
@@ -278,9 +280,7 @@ class MainActivity : AppCompatActivity() {
                         bottomNavigation.visibility = View.VISIBLE
                     }
                     user = response.body()!!
-                    if (fragmentId != null) {
-                        navController.navigate(fragmentId)
-                    }
+                    navController.navigate(R.id.action_LoginFragment_to_navigation_your_exams)
 
                 } else {
                     val errorScreen = ErrorScreen("Error: ${response.message()}")

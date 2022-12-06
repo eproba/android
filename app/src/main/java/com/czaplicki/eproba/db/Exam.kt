@@ -16,6 +16,7 @@ class Exam(
     var name: String? = null,
     @SerializedName("user") var userId: Long? = null,
     var supervisor: Long? = null,
+    @SerializedName("deleted") var isDeleted: Boolean = false,
     @SerializedName("is_archived") var isArchived: Boolean = false,
     var tasks: MutableList<Task> = mutableListOf()
 ) {
