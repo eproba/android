@@ -6,6 +6,8 @@ import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import com.czaplicki.eproba.R
 import com.google.gson.annotations.SerializedName
+import java.sql.Timestamp
+import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.*
 
@@ -18,6 +20,8 @@ class Exam(
     var supervisor: Long? = null,
     @SerializedName("deleted") var isDeleted: Boolean = false,
     @SerializedName("is_archived") var isArchived: Boolean = false,
+    @SerializedName("updated_at") var lastUpdate: ZonedDateTime = Timestamp(0).toInstant()
+        .atZone(ZoneId.systemDefault()),
     var tasks: MutableList<Task> = mutableListOf()
 ) {
 

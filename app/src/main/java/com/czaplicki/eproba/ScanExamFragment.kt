@@ -459,7 +459,7 @@ class ScanExamFragment : Fragment() {
                             users.addAll(userDao.getAll())
                         }
                         sharedPreferences.edit()
-                            .putLong("lastUsersUpdate", System.currentTimeMillis()).apply()
+                            .putLong("lastSync", System.currentTimeMillis()).apply()
                     } else {
                         Snackbar.make(
                             binding.root,

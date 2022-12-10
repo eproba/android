@@ -179,7 +179,7 @@ class ManageExamsFragment : Fragment() {
                 (activity as? MainActivity)?.fab?.shrink()
             }
         }
-        sharedPreferences.getLong("lastUsersUpdate", 0).let {
+        sharedPreferences.getLong("lastSync", 0).let {
             lifecycleScope.launch {
                 users.clear()
                 users.addAll(userDao.getAll())
@@ -353,6 +353,7 @@ class ManageExamsFragment : Fragment() {
 
     private fun updateExams() {
         mSwipeRefreshLayout.isRefreshing = true
+        var lastSync = sharedPreferences.getLong("lastSync", 0)
         service.getExams()
             .enqueue(object : retrofit2.Callback<List<Exam>> {
                 override fun onFailure(call: retrofit2.Call<List<Exam>>, t: Throwable) {
@@ -373,8 +374,8 @@ class ManageExamsFragment : Fragment() {
                 ) {
                     if (response.body() != null) {
                         lifecycleScope.launch {
-                            examDao.deleteExams()
-                            examDao.insertExams(*response.body()!!.toTypedArray())
+                            examDao.deleteAll()
+                            examDao.insertAll(*response.body()!!.toTypedArray())
                         }
                     } else {
                         view?.let {
@@ -420,7 +421,7 @@ class ManageExamsFragment : Fragment() {
                                             userDao.insertUsers(response.body()!!)
                                         }
                                         sharedPreferences.edit().putLong(
-                                            "lastUsersUpdate",
+                                            "lastSync",
                                             System.currentTimeMillis()
                                         ).apply()
                                         recyclerView?.adapter?.notifyDataSetChanged()
@@ -464,7 +465,7 @@ class ManageExamsFragment : Fragment() {
                             userDao.insertUsers(*users.toTypedArray())
                         }
                         sharedPreferences.edit()
-                            .putLong("lastUsersUpdate", System.currentTimeMillis()).apply()
+                            .putLong("lastSync", System.currentTimeMillis()).apply()
                         recyclerView?.adapter?.notifyDataSetChanged()
                     } else {
                         view?.let {

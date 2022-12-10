@@ -12,13 +12,13 @@ interface ExamDao {
     fun getExamsByUserId(userId: Long): Flow<List<Exam>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertExams(vararg exam: Exam)
+    suspend fun insertAll(vararg exam: Exam)
 
     @Update
     suspend fun updateExams(vararg exam: Exam)
 
     @Delete
-    suspend fun deleteExams(vararg exam: Exam)
+    suspend fun deleteAll(vararg exam: Exam)
 
     @Query("SELECT * FROM exams WHERE id = :id")
     suspend fun loadExamsById(id: Long): Exam

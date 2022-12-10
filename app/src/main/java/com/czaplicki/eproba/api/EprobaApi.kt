@@ -11,8 +11,6 @@ import kotlinx.coroutines.runBlocking
 import net.openid.appauth.AuthState
 import net.openid.appauth.AuthorizationException
 import okhttp3.*
-import okhttp3.ResponseBody.Companion.toResponseBody
-import okhttp3.internal.http.HTTP_UNAUTHORIZED
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.IOException
@@ -31,6 +29,7 @@ class EprobaApi {
         if (retrofit == null) {
             client = OkHttpClient.Builder().callTimeout(10, SECONDS)
                 .addInterceptor(AccessTokenInterceptor())
+                .authenticator(TokenAuthenticator())
                 .build()
             val gson = GsonBuilder().registerTypeAdapter(
                 ZonedDateTime::class.java,
@@ -57,6 +56,7 @@ class EprobaApi {
 class AccessTokenInterceptor : Interceptor {
 
     val app = EprobaApplication.instance
+    val authenticator = TokenAuthenticator()
 
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
@@ -71,43 +71,56 @@ class AccessTokenInterceptor : Interceptor {
                 }
             }
         }
-        val request: Request = newRequestWithAccessToken(chain.request(), accessToken!!)
-        var response = chain.proceed(request)
-
-        if (response.code == HTTP_UNAUTHORIZED) {
-            try {
-                runBlocking {
-                    accessToken = refreshToken()
-                }
-                val request: Request = newRequestWithAccessToken(chain.request(), accessToken!!)
-                return chain.proceed(request)
-            } catch (e: AuthorizationException) {
-                if (e == AuthorizationException.TokenRequestErrors.INVALID_GRANT) {
-                    app.getActiveActivity()?.let { activity ->
-                        LoggedOutScreen().show(
-                            (activity as AppCompatActivity).supportFragmentManager,
-                            "loggedOut"
-                        )
-                    }
-                    app.api.client.dispatcher.cancelAll()
-                } else {
-                    throw e
-                }
-            }
-        } else {
-            return response
-        }
-
-        return Response.Builder() // This is a dummy response to satisfy the compiler
-            .code(418)
-            .body("".toResponseBody(null))
-            .protocol(Protocol.HTTP_3)
-            .message("Dummy response")
-            .request(chain.request())
-            .build()
+        val request: Request =
+            authenticator.newRequestWithAccessToken(chain.request(), accessToken!!)
+        return chain.proceed(request)
     }
 
-    private fun newRequestWithAccessToken(request: Request, accessToken: String): Request {
+}
+
+class TokenAuthenticator : Authenticator {
+    val app = EprobaApplication.instance
+
+
+    @Synchronized
+    override fun authenticate(route: Route?, response: Response): Request? {
+        var accessToken: String? = app.authStateManager.current.accessToken
+        val accessTokenOfRequest = response.request.header("Authorization")?.split(" ")?.get(1)
+        if (!isRequestWithAccessToken(response)) {
+            return null
+        }
+        if (accessToken != null && accessTokenOfRequest != accessToken) {
+            return newRequestWithAccessToken(response.request, accessToken)
+        }
+
+        try {
+            runBlocking {
+                accessToken = refreshToken()
+            }
+            return newRequestWithAccessToken(response.request, accessToken!!)
+        } catch (e: AuthorizationException) {
+            if (e == AuthorizationException.TokenRequestErrors.INVALID_GRANT || e == AuthorizationException.TokenRequestErrors.INVALID_REQUEST) {
+                app.getActiveActivity()?.let { activity ->
+                    LoggedOutScreen().show(
+                        (activity as AppCompatActivity).supportFragmentManager,
+                        "loggedOut"
+                    )
+                }
+                app.api.client.dispatcher.cancelAll()
+            } else {
+                throw e
+            }
+        }
+        return null
+
+    }
+
+    private fun isRequestWithAccessToken(response: Response): Boolean {
+        val header = response.request.header("Authorization")
+        return header != null && header.startsWith("Bearer")
+    }
+
+    fun newRequestWithAccessToken(request: Request, accessToken: String): Request {
         return request.newBuilder()
             .header("Authorization", "Bearer $accessToken")
             .build()
@@ -115,7 +128,7 @@ class AccessTokenInterceptor : Interceptor {
 
     private suspend fun refreshToken(): String = suspendCoroutine {
         if (app.authStateManager.current.refreshToken == null) {
-            it.resumeWithException(AuthorizationException.AuthorizationRequestErrors.INVALID_REQUEST)
+            it.resumeWithException(AuthorizationException.TokenRequestErrors.INVALID_REQUEST)
         }
         app.authService.performTokenRequest(app.authStateManager.current.createTokenRefreshRequest()) { tokenResponse, ex ->
             if (ex?.code == AuthorizationException.TokenRequestErrors.INVALID_GRANT.code) {
@@ -131,56 +144,7 @@ class AccessTokenInterceptor : Interceptor {
             } else {
                 it.resume("")
             }
+
         }
     }
 }
-
-//class AccessTokenAuthenticator : Authenticator {
-//    val app = EprobaApplication.instance
-//
-//
-//    override fun authenticate(route: Route?, response: Response): Request? {
-//        var accessToken: String?
-//        if (!isRequestWithAccessToken(response)) {
-//            return null
-//        }
-//        runBlocking {
-//            accessToken = refreshToken()
-//        }
-//
-//        return newRequestWithAccessToken(response.request, accessToken!!)
-//
-//    }
-//
-//    private fun isRequestWithAccessToken(response: Response): Boolean {
-//        val header = response.request.header("Authorization")
-//        return header != null && header.startsWith("Bearer")
-//    }
-//
-//    fun newRequestWithAccessToken(request: Request, accessToken: String): Request {
-//        return request.newBuilder()
-//            .header("Authorization", "Bearer $accessToken")
-//            .build()
-//    }
-//
-//    private suspend fun refreshToken(): String = suspendCoroutine {
-//        if (app.authStateManager.current.refreshToken == null) {
-//            it.resumeWithException(AuthorizationException.AuthorizationRequestErrors.INVALID_REQUEST)
-//        }
-//        app.authService.performTokenRequest(app.authStateManager.current.createTokenRefreshRequest()) { tokenResponse, ex ->
-//            if (ex?.code == AuthorizationException.TokenRequestErrors.INVALID_GRANT.code) {
-//                app.authStateManager.replace(AuthState())
-//                it.resumeWithException(ex)
-//                return@performTokenRequest
-//            }
-//            if (tokenResponse != null) {
-//                app.authStateManager.updateAfterTokenResponse(tokenResponse, ex)
-//            }
-//            if (tokenResponse != null) {
-//                tokenResponse.accessToken?.let { it1 -> it.resume(it1) }
-//            } else {
-//                it.resume("")
-//            }
-//        }
-//    }
-//}

@@ -98,7 +98,7 @@ class AcceptTasksFragment : Fragment() {
                 (activity as? MainActivity)?.fab?.shrink()
             }
         }
-        sharedPreferences.getLong("lastUsersUpdate", 0).let {
+        sharedPreferences.getLong("lastSync", 0).let {
             if (it == 0L || System.currentTimeMillis() - it > 3600000) {
                 getUsers()
                 recyclerView?.adapter?.notifyDataSetChanged()
@@ -212,7 +212,7 @@ class AcceptTasksFragment : Fragment() {
                                             userDao.insertUsers(response.body()!!)
                                         }
                                         sharedPreferences.edit().putLong(
-                                            "lastUsersUpdate",
+                                            "lastSync",
                                             System.currentTimeMillis()
                                         ).apply()
                                         recyclerView?.adapter?.notifyDataSetChanged()
@@ -256,7 +256,7 @@ class AcceptTasksFragment : Fragment() {
                             userDao.insertUsers(*users.toTypedArray())
                         }
                         sharedPreferences.edit()
-                            .putLong("lastUsersUpdate", System.currentTimeMillis()).apply()
+                            .putLong("lastSync", System.currentTimeMillis()).apply()
                         recyclerView?.adapter?.notifyDataSetChanged()
                     } else {
                         view?.let {

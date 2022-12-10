@@ -6,6 +6,7 @@ import com.czaplicki.eproba.db.User
 import okhttp3.RequestBody
 import retrofit2.Call
 import retrofit2.http.*
+import java.time.ZonedDateTime
 
 interface EprobaService {
 
@@ -29,6 +30,9 @@ interface EprobaService {
 
     @GET("exam/")
     fun getExams(): Call<List<Exam>>
+
+    @GET("exam/")
+    fun getExams(@Header("last_sync") lastSync: ZonedDateTime): Call<List<Exam>>
 
     @GET("exam/tasks/tbc/")
     fun getTasksTBC(): Call<List<Exam>>

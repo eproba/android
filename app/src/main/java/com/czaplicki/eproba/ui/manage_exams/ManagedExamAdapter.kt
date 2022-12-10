@@ -176,7 +176,7 @@ class ManagedExamAdapter(
                                     ) {
                                         if (response.isSuccessful) {
                                             GlobalScope.launch {
-                                                examDao.deleteExams(exam)
+                                                examDao.deleteAll(exam)
                                             }
                                             dataSet.removeAt(viewHolder.adapterPosition)
                                             notifyItemRemoved(viewHolder.adapterPosition)
@@ -252,7 +252,7 @@ class ManagedExamAdapter(
                                     ) {
                                         if (response.isSuccessful) {
                                             GlobalScope.launch {
-                                                examDao.deleteExams(exam)
+                                                examDao.deleteAll(exam)
                                             }
                                             dataSet.removeAt(viewHolder.adapterPosition)
                                             notifyItemRemoved(viewHolder.adapterPosition)
