@@ -37,11 +37,6 @@ class Exam(
     @Ignore
     var team: String? = null
 
-    @Ignore
-    var tasksTableTopCoordinate: Int? = null
-
-    @Ignore
-    var averageLineHeight: Float? = null
 
     override fun toString(): String {
         return "Exam(id=$id. name=$name, first_name=$first_name, last_name=$last_name, nickname=$nickname, team=$team, tasks=$tasks)"
@@ -51,46 +46,6 @@ class Exam(
         return "$name\nImię: $first_name\nNazwisko: $last_name\nPseudonim: $nickname\nDrużyna: $team\nZadania:\n${tasks.joinToString { "\n$it" }}"
     }
 
-    fun setFirstName(firstName: String) {
-        if (firstName.isNotEmpty()) {
-            first_name =
-                firstName.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
-        }
-    }
-
-    fun setLastName(lastName: String) {
-        if (lastName.isNotEmpty()) {
-            last_name =
-                lastName.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
-        }
-    }
-
-    @JvmName("setNickname1")
-    fun setNickname(nickname: String) {
-        if (nickname.isNotEmpty()) {
-            this.nickname =
-                nickname.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
-        }
-    }
-
-    @JvmName("setTeam1")
-    fun setTeam(team: String) {
-        if (team.isNotEmpty()) {
-            this.team = team
-        }
-    }
-
-    fun setTaskTableTopCoordinate(y: Int) {
-        tasksTableTopCoordinate = y
-    }
-
-    fun updateAverageLineHeight(height: Int) {
-        averageLineHeight = if (averageLineHeight == null) {
-            height.toFloat()
-        } else {
-            (averageLineHeight!! + height) / 2
-        }
-    }
 
     fun toJson(): String {
         return """{
@@ -128,6 +83,7 @@ data class Task(
                 "com.czaplicki.eproba",
                 R.drawable.radio_button_unchecked_24px
             )
+
             1 -> Icon.createWithResource("com.czaplicki.eproba", R.drawable.schedule_24px)
             2 -> Icon.createWithResource("com.czaplicki.eproba", R.drawable.check_circle_24px)
             3 -> Icon.createWithResource("com.czaplicki.eproba", R.drawable.cancel_24px)

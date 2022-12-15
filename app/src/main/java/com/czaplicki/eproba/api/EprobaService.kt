@@ -50,6 +50,19 @@ interface EprobaService {
         @Body status: RequestBody
     ): Call<Task>
 
+    @POST("exam/{exam_id}/task/{task_id}/submit")
+    fun submitTask(
+        @Path("exam_id") examId: Long,
+        @Path("task_id") taskId: Long,
+        @Body approver: RequestBody
+    ): Call<Task>
+
+    @POST("exam/{exam_id}/task/{task_id}/unsubmit")
+    fun unsubmitTask(
+        @Path("exam_id") examId: Long,
+        @Path("task_id") taskId: Long
+    ): Call<Task>
+
     @PATCH("exam/{exam_id}/")
     fun updateExam(
         @Path("exam_id") examId: Long,

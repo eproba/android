@@ -3,10 +3,15 @@ package com.czaplicki.eproba.ui.user_exams
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.Button
+import android.widget.FrameLayout
+import android.widget.ImageView
+import android.widget.RatingBar
+import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.czaplicki.eproba.R
+import com.czaplicki.eproba.api.EprobaService
 import com.czaplicki.eproba.db.Exam
 import com.czaplicki.eproba.db.Task
 import com.czaplicki.eproba.db.User
@@ -17,7 +22,11 @@ import com.google.android.gms.ads.nativead.NativeAdView
 import com.google.android.material.divider.MaterialDividerItemDecoration
 
 
-class ExamAdapter(private var dataSet: MutableList<Exam>, private val users: List<User>) :
+class ExamAdapter(
+    private var dataSet: MutableList<Exam>,
+    private val users: List<User>,
+    private val service: EprobaService
+) :
     RecyclerView.Adapter<ExamAdapter.ViewHolder>() {
 
 
@@ -111,7 +120,7 @@ class ExamAdapter(private var dataSet: MutableList<Exam>, private val users: Lis
                 dataSet[position].tasks.filter { it.status == Task.Status.APPROVED }.size * 100 / dataSet[position].tasks.size
             )
         viewHolder.taskList.visibility = View.VISIBLE
-        viewHolder.taskList.adapter = TaskAdapter(dataSet[position].tasks, users)
+        viewHolder.taskList.adapter = TaskAdapter(dataSet[position], users, service)
         viewHolder.adFrame.visibility = View.GONE
     }
 

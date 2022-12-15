@@ -20,6 +20,9 @@ interface ExamDao {
     @Delete
     suspend fun deleteAll(vararg exam: Exam)
 
+    @Query("DELETE FROM exams")
+    suspend fun nukeTable()
+
     @Query("SELECT * FROM exams WHERE id = :id")
     suspend fun loadExamsById(id: Long): Exam
 

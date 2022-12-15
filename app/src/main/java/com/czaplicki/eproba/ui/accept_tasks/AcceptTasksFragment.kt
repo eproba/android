@@ -3,7 +3,12 @@ package com.czaplicki.eproba.ui.accept_tasks
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
-import android.view.*
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
@@ -11,6 +16,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.czaplicki.eproba.AuthStateManager
@@ -117,6 +123,20 @@ class AcceptTasksFragment : Fragment() {
 
     }
 
+
+    private fun RecyclerView.smoothSnapToPosition(
+        position: Int,
+        snapMode: Int = LinearSmoothScroller.SNAP_TO_START
+    ) {
+        val smoothScroller = object : LinearSmoothScroller(this.context) {
+            override fun getVerticalSnapPreference(): Int = snapMode
+            override fun getHorizontalSnapPreference(): Int = snapMode
+        }
+        smoothScroller.targetPosition = position
+        layoutManager?.startSmoothScroll(smoothScroller)
+    }
+
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
@@ -131,7 +151,7 @@ class AcceptTasksFragment : Fragment() {
         }
         updateExams()
         (activity as? MainActivity)?.bottomNavigation?.setOnItemReselectedListener {
-            recyclerView?.smoothScrollToPosition(0)
+            recyclerView?.smoothSnapToPosition(0)
         }
     }
 
@@ -179,7 +199,7 @@ class AcceptTasksFragment : Fragment() {
                     recyclerView?.adapter?.notifyDataSetChanged()
                     mSwipeRefreshLayout.isRefreshing = false
                     val userIds: MutableSet<Long> = mutableSetOf()
-                    examList.forEach {
+                    response.body()?.forEach {
                         if (it.userId != null) userIds.add(it.userId!!)
                         if (it.supervisor != null) userIds.add(it.supervisor!!)
                         if (it.tasks.isNotEmpty()) it.tasks.forEach { task ->

@@ -1,12 +1,12 @@
 <resources>
     <!-- Reply Preference -->
     <string-array name="server_entries">
-        <item>@string/dev_server</item>
         <item>@string/main_server</item>
+        <item>@string/dev_server</item>
     </string-array>
 
     <string-array name="server_values">
-        <item>https://dev.eproba.pl</item>
         <item>https://eproba.pl</item>
+        <item>https://dev.eproba.pl</item>
     </string-array>
 </resources>

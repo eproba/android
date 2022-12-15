@@ -3,7 +3,12 @@ package com.czaplicki.eproba.ui.manage_exams
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
-import android.view.*
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -18,6 +23,7 @@ import androidx.lifecycle.coroutineScope
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.czaplicki.eproba.AuthStateManager
@@ -26,13 +32,18 @@ import com.czaplicki.eproba.MainActivity
 import com.czaplicki.eproba.R
 import com.czaplicki.eproba.api.EprobaService
 import com.czaplicki.eproba.databinding.FragmentManageExamsBinding
-import com.czaplicki.eproba.db.*
+import com.czaplicki.eproba.db.Exam
+import com.czaplicki.eproba.db.ExamDao
+import com.czaplicki.eproba.db.Patrol
+import com.czaplicki.eproba.db.Team
+import com.czaplicki.eproba.db.User
+import com.czaplicki.eproba.db.UserDao
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import net.openid.appauth.AuthorizationService
-import java.util.*
+import java.util.Locale
 
 
 class ManageExamsFragment : Fragment() {
@@ -287,6 +298,18 @@ class ManageExamsFragment : Fragment() {
         return binding.root
     }
 
+    private fun RecyclerView.smoothSnapToPosition(
+        position: Int,
+        snapMode: Int = LinearSmoothScroller.SNAP_TO_START
+    ) {
+        val smoothScroller = object : LinearSmoothScroller(this.context) {
+            override fun getVerticalSnapPreference(): Int = snapMode
+            override fun getHorizontalSnapPreference(): Int = snapMode
+        }
+        smoothScroller.targetPosition = position
+        layoutManager?.startSmoothScroll(smoothScroller)
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
@@ -300,7 +323,7 @@ class ManageExamsFragment : Fragment() {
         }
         updateExams()
         (activity as? MainActivity)?.bottomNavigation?.setOnItemReselectedListener {
-            recyclerView?.smoothScrollToPosition(0)
+            recyclerView?.smoothSnapToPosition(0)
         }
     }
 
@@ -364,7 +387,7 @@ class ManageExamsFragment : Fragment() {
                             Snackbar.LENGTH_SHORT
                         ).show()
                     }
-                    t.message?.let { Log.e("FirstFragment", it) }
+                    t.message?.let { Log.e("ManageExamsFragment", it) }
                     mSwipeRefreshLayout.isRefreshing = false
                 }
 
@@ -374,7 +397,7 @@ class ManageExamsFragment : Fragment() {
                 ) {
                     if (response.body() != null) {
                         lifecycleScope.launch {
-                            examDao.deleteAll()
+                            examDao.nukeTable()
                             examDao.insertAll(*response.body()!!.toTypedArray())
                         }
                     } else {
@@ -388,7 +411,7 @@ class ManageExamsFragment : Fragment() {
                     }
                     mSwipeRefreshLayout.isRefreshing = false
                     val userIds: MutableSet<Long> = mutableSetOf()
-                    examList.forEach {
+                    response.body()?.forEach {
                         if (it.userId != null) userIds.add(it.userId!!)
                         if (it.supervisor != null) userIds.add(it.supervisor!!)
                         if (it.tasks.isNotEmpty()) it.tasks.forEach { task ->

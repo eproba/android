@@ -22,7 +22,7 @@
     <string name="display_ads">Wyświetlaj reklamy</string>
     <string name="select_server">Serwer aplikacji</string>
     <string name="dev_server">Serwer deweloperski</string>
-    <string name="main_server">Serwer główny (używaj z ostrożnością, niektóre funkcje mogą być niedostępne)</string>
+    <string name="main_server">Serwer główny</string>
     <string name="awaiting_approval">%sr. o godzinie %s wysłano prośbę o zatwierdzenie do %s</string>
     <string name="approved">%s o %s zadanie zostało zatwierdzone przez %s</string>
     <string name="rejected">%s o %s zadanie zostało odrzucone przez %s</string>
@@ -68,4 +68,11 @@
     <string name="select_team">Wybierz drużynę</string>
     <string name="select_patrols">Wybież zastęp</string>
     <string name="archive_exam_confirmation">Czy na pewno chcesz zarchiwizować tę próbę (%s)? Trafi ona do archiwum i będzie można ją później przywrócić</string>
+    <string name="task_submission_error_message">Wystąpił błąd i prośba o zatwierdzenie nie została wysłana, spróbuj ponownie później</string>
+    <string name="task_unsubmission_error_message">Wystąpił błąd i prośba o zatwierdzenie nie została anulowana, spróbuj ponownie później</string>
+    <string name="unsubmit_task">Anuluj prośbę</string>
+    <string name="submit_task">Poproś o zatwierdzenie</string>
+    <string name="close">Zamknij</string>
+    <string name="select_approver">Wybierz kogo chcesz poprosić o zatwierdzenie</string>
+    <string name="approver">Zatwierdzający</string>
 </resources>

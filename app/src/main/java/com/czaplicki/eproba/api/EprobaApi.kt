@@ -60,19 +60,31 @@ class AccessTokenInterceptor : Interceptor {
 
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
-        var accessToken: String? = app.authStateManager.current.accessToken
-        if (accessToken == null || app.authStateManager.current.needsTokenRefresh) {
-            runBlocking {
-                app.authService.performTokenRequest(app.authStateManager.current.createTokenRefreshRequest()) { tokenResponse, ex ->
-                    if (tokenResponse != null) {
-                        app.authStateManager.updateAfterTokenResponse(tokenResponse, ex)
-                        accessToken = tokenResponse.accessToken
+        var accessToken: String = app.authStateManager.current.accessToken
+            ?: return chain.proceed(chain.request())
+        synchronized(this) {
+            if (app.authStateManager.current.needsTokenRefresh) {
+                try {
+                    runBlocking {
+                        accessToken = authenticator.refreshToken()
+                    }
+                } catch (e: AuthorizationException) {
+                    if (e == AuthorizationException.TokenRequestErrors.INVALID_GRANT || e == AuthorizationException.TokenRequestErrors.INVALID_REQUEST) {
+                        app.getActiveActivity()?.let { activity ->
+                            LoggedOutScreen().show(
+                                (activity as AppCompatActivity).supportFragmentManager,
+                                "loggedOut"
+                            )
+                        }
+                        app.api.client.dispatcher.cancelAll()
+                    } else {
+                        throw e
                     }
                 }
             }
         }
         val request: Request =
-            authenticator.newRequestWithAccessToken(chain.request(), accessToken!!)
+            authenticator.newRequestWithAccessToken(chain.request(), accessToken)
         return chain.proceed(request)
     }
 
@@ -126,25 +138,25 @@ class TokenAuthenticator : Authenticator {
             .build()
     }
 
-    private suspend fun refreshToken(): String = suspendCoroutine {
+    suspend fun refreshToken(): String = suspendCoroutine {
         if (app.authStateManager.current.refreshToken == null) {
             it.resumeWithException(AuthorizationException.TokenRequestErrors.INVALID_REQUEST)
-        }
-        app.authService.performTokenRequest(app.authStateManager.current.createTokenRefreshRequest()) { tokenResponse, ex ->
-            if (ex?.code == AuthorizationException.TokenRequestErrors.INVALID_GRANT.code) {
-                app.authStateManager.replace(AuthState())
-                it.resumeWithException(ex)
-                return@performTokenRequest
+        } else {
+            app.authService.performTokenRequest(app.authStateManager.current.createTokenRefreshRequest()) { tokenResponse, ex ->
+                if (ex?.code == AuthorizationException.TokenRequestErrors.INVALID_GRANT.code) {
+                    app.authStateManager.replace(AuthState())
+                    it.resumeWithException(ex)
+                    return@performTokenRequest
+                }
+                if (tokenResponse != null) {
+                    app.authStateManager.updateAfterTokenResponse(tokenResponse, ex)
+                }
+                if (tokenResponse != null) {
+                    tokenResponse.accessToken?.let { it1 -> it.resume(it1) }
+                } else {
+                    it.resume("")
+                }
             }
-            if (tokenResponse != null) {
-                app.authStateManager.updateAfterTokenResponse(tokenResponse, ex)
-            }
-            if (tokenResponse != null) {
-                tokenResponse.accessToken?.let { it1 -> it.resume(it1) }
-            } else {
-                it.resume("")
-            }
-
         }
     }
 }

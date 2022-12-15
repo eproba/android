@@ -36,7 +36,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.io.IOException
-import java.util.*
+import java.util.Locale
 
 /**
  * A simple [Fragment] subclass as the second destination in the navigation.
@@ -191,57 +191,71 @@ class ScanExamFragment : Fragment() {
                         text.contains("zadani") || ((text.contains("lp") || text.contains("podpis")) && scannedExam.tasksTableTopCoordinate == null) -> {
                             scannedExam.setTaskTableTopCoordinate(line.cornerPoints?.get(3)?.y ?: 0)
                         }
+
                         (text.contains("próba na") || text.contains("proba na")) && scannedExam.exam.name == null -> scannedExam.exam.name =
                             line.text
+
                         (text.contains("imię") || text.contains("imie")) && scannedExam.first_name == null -> when {
                             text.contains("imię: ") || text.contains("imie: ") -> scannedExam.setFirstName(
                                 line.text.substring(6).trim()
                             )
+
                             text.contains("imię:") || text.contains("imię ") || text.contains("imie:") || text.contains(
                                 "imie "
                             ) -> scannedExam.setFirstName(line.text.substring(5).trim())
+
                             text.contains("imię") || text.contains("imie") -> scannedExam.setFirstName(
                                 line.text.substring(
                                     4
                                 ).trim()
                             )
                         }
+
                         text.contains("nazwisko") && scannedExam.last_name == null -> when {
                             text.contains("nazwisko: ") -> scannedExam.setLastName(
                                 line.text.substring(10).trim()
                             )
+
                             text.contains("nazwisko:") || text.contains("nazwisko ") -> scannedExam.setLastName(
                                 line.text.substring(9).trim()
                             )
+
                             text.contains("nazwisko") -> scannedExam.setLastName(
                                 line.text.substring(8).trim()
                             )
                         }
+
                         text.contains("pseudonim") && scannedExam.nickname == null -> when {
                             text.contains("pseudonim: ") -> scannedExam.setNickname(
                                 line.text.substring(11).trim()
                             )
+
                             text.contains("pseudonim:") || text.contains("pseudonim ") -> scannedExam.setNickname(
                                 line.text.substring(10).trim()
                             )
+
                             text.contains("pseudonim") -> scannedExam.setNickname(
                                 line.text.substring(9).trim()
                             )
 
                         }
+
                         (text.contains("drużyna") || text.contains("druzyna")) && scannedExam.team == null -> when {
                             text.contains("drużyna: ") || text.contains("druzyna: ") -> scannedExam.setTeam(
                                 line.text.substring(9).trim()
                             )
+
                             text.contains("drużyna:") || text.contains("drużyna ") || text.contains(
                                 "druzyna:"
                             ) || text.contains("druzyna ") -> scannedExam.setTeam(
                                 line.text.substring(8).trim()
                             )
+
                             text.contains("drużyna") || text.contains("druzyna") -> scannedExam.setTeam(
                                 line.text.substring(7).trim()
                             )
                         }
+
                         else -> {
                             scannedExam.updateAverageLineHeight(line.boundingBox!!.height())
                         }
@@ -269,13 +283,25 @@ class ScanExamFragment : Fragment() {
                         val fullNameCandidates =
                             users.filter { it.firstName?.lowercase() == scannedExam.first_name?.lowercase() && it.lastName?.lowercase() == scannedExam.last_name?.lowercase() && it.firstName != null && it.lastName != null }
                         if (nicknameCandidates.isEmpty() && fullNameCandidates.isEmpty()) {
-                            binding.userSelect.editText?.setText(user.nickname)
+                            (binding.userSelect.editText as MaterialAutoCompleteTextView).setText(
+                                user.nickname,
+                                false
+                            )
                         } else if (nicknameCandidates.size == 1) {
-                            binding.userSelect.editText?.setText(nicknameCandidates[0].nickname)
+                            (binding.userSelect.editText as MaterialAutoCompleteTextView).setText(
+                                nicknameCandidates[0].nickname,
+                                false
+                            )
                         } else if (fullNameCandidates.size == 1) {
-                            binding.userSelect.editText?.setText(nicknameCandidates.find { it.id == fullNameCandidates[0].id }?.nickname)
+                            (binding.userSelect.editText as MaterialAutoCompleteTextView).setText(
+                                nicknameCandidates.find { it.id == fullNameCandidates[0].id }?.nickname,
+                                false
+                            )
                         } else {
-                            binding.userSelect.editText?.setText("")
+                            (binding.userSelect.editText as MaterialAutoCompleteTextView).setText(
+                                "",
+                                false
+                            )
                         }
                     }
                 }
@@ -392,6 +418,7 @@ class ScanExamFragment : Fragment() {
                                         .show()
                                 }
                             }
+
                             else -> {
                                 activity?.runOnUiThread {
                                     Snackbar.make(
