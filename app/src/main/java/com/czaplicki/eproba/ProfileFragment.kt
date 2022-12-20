@@ -1,5 +1,12 @@
 package com.czaplicki.eproba
 
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
+import android.graphics.Rect
+import android.graphics.RectF
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -17,9 +24,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import net.openid.appauth.AuthState
 import net.openid.appauth.AuthorizationService
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.math.BigInteger
+import java.security.MessageDigest
+
 
 class ProfileFragment : Fragment() {
 
@@ -34,9 +46,9 @@ class ProfileFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        _binding = FragmentProfileBinding.inflate(inflater, container, false)
         mAuthStateManager = AuthStateManager.getInstance(requireContext())
         authService = AuthorizationService(requireContext())
-        _binding = FragmentProfileBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -59,6 +71,24 @@ class ProfileFragment : Fragment() {
             )
         )
         getUserInfo()
+    }
+
+    private fun getRoundedCroppedBitmap(bitmap: Bitmap): Bitmap? {
+        val widthLight = bitmap.width
+        val heightLight = bitmap.height
+        val output = Bitmap.createBitmap(
+            bitmap.width, bitmap.height,
+            Bitmap.Config.ARGB_8888
+        )
+        val canvas = Canvas(output)
+        val paintColor = Paint()
+        paintColor.flags = Paint.ANTI_ALIAS_FLAG
+        val rectF = RectF(Rect(0, 0, widthLight, heightLight))
+        canvas.drawRoundRect(rectF, (widthLight / 2).toFloat(), (heightLight / 2).toFloat(), paintColor)
+        val paintImage = Paint()
+        paintImage.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_ATOP)
+        canvas.drawBitmap(bitmap, Rect(0, 0, widthLight, heightLight), rectF, paintImage)
+        return output
     }
 
     private fun getUserInfo() {
@@ -85,6 +115,41 @@ class ProfileFragment : Fragment() {
                             binding.progressBar.visibility = View.GONE
                             binding.name.text = user.fullName
                         }
+                        Request.Builder()
+                            .url("https://www.gravatar.com/avatar/${BigInteger(1, MessageDigest.getInstance("MD5").digest(user.email!!.lowercase().toByteArray())).toString(16).padStart(32, '0')}?d=404")
+                                .build()
+                                .let { request ->
+                                    OkHttpClient().newCall(request).enqueue(object : okhttp3.Callback {
+                                        override fun onFailure(call: okhttp3.Call, e: java.io.IOException) {}
+
+                                        override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
+                                            if (response.isSuccessful) {
+                                                activity?.runOnUiThread {
+                                                    binding.avatar.setImageBitmap(getRoundedCroppedBitmap(response.body.byteStream().use { android.graphics.BitmapFactory.decodeStream(it) }))
+                                                }
+                                            } else if (response.code == 404) {
+                                                Request.Builder()
+                                                    .url("https://api.multiavatar.com/${user.nickname}.png")
+                                                    .build()
+                                                    .let { request ->
+                                                        OkHttpClient().newCall(request).enqueue(object : okhttp3.Callback {
+                                                            override fun onFailure(call: okhttp3.Call, e: java.io.IOException) {}
+
+                                                            override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
+                                                                if (response.isSuccessful) {
+                                                                    activity?.runOnUiThread {
+                                                                        binding.avatar.setImageBitmap(response.body.byteStream().use { android.graphics.BitmapFactory.decodeStream(it) })
+                                                                    }
+                                                                }
+                                                            }
+                                                        })
+                                                    }
+
+                                            }
+                                        }
+                                    })
+                                }
+
                     }
                     else -> {
                         activity?.runOnUiThread {
