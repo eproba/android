@@ -83,10 +83,10 @@ class TaskAdapter(
                     R.string.awaiting_approval,
                     exam.tasks[position].approvalDate?.let {
                         DateTimeFormatter.ofPattern("dd LLLL, yyyy").format(it)
-                    } ?: viewHolder.itemView.context.getString(R.string.some_time),
+                    } ?: viewHolder.itemView.context.getString(R.string.sometime),
                     exam.tasks[position].approvalDate?.let {
                         DateTimeFormatter.ofPattern("HH:mm").format(it)
-                    } ?: viewHolder.itemView.context.getString(R.string.some_time),
+                    } ?: viewHolder.itemView.context.getString(R.string.sometime),
                     approver?.nickname ?: viewHolder.itemView.context.getString(R.string.someone)
                 )
             }
@@ -96,10 +96,10 @@ class TaskAdapter(
                     R.string.approved,
                     exam.tasks[position].approvalDate?.let {
                         DateTimeFormatter.ofPattern("dd LLLL, yyyy").format(it)
-                    } ?: viewHolder.itemView.context.getString(R.string.some_time),
+                    } ?: viewHolder.itemView.context.getString(R.string.sometime),
                     exam.tasks[position].approvalDate?.let {
                         DateTimeFormatter.ofPattern("HH:mm").format(it)
-                    } ?: viewHolder.itemView.context.getString(R.string.some_time),
+                    } ?: viewHolder.itemView.context.getString(R.string.sometime),
                     approver?.nickname ?: viewHolder.itemView.context.getString(R.string.someone)
                 )
             }
@@ -109,15 +109,16 @@ class TaskAdapter(
                     R.string.rejected,
                     exam.tasks[position].approvalDate?.let {
                         DateTimeFormatter.ofPattern("dd LLLL, yyyy").format(it)
-                    } ?: viewHolder.itemView.context.getString(R.string.some_time),
+                    } ?: viewHolder.itemView.context.getString(R.string.sometime),
                     exam.tasks[position].approvalDate?.let {
                         DateTimeFormatter.ofPattern("HH:mm").format(it)
-                    } ?: viewHolder.itemView.context.getString(R.string.some_time),
+                    } ?: viewHolder.itemView.context.getString(R.string.sometime),
                     approver?.nickname ?: viewHolder.itemView.context.getString(R.string.someone)
                 )
             }
         }
         viewHolder.itemView.setOnClickListener {
+            var approverCandidates: Array<String>? = null
             val builder = MaterialAlertDialogBuilder(
                 viewHolder.itemView.context,
                 com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
@@ -183,18 +184,24 @@ class TaskAdapter(
 
                 }
             } else if (exam.tasks[position].status == Task.Status.PENDING || exam.tasks[position].status == Task.Status.REJECTED) {
+                approverCandidates = users.filter {
+                    !it.nickname.isNullOrBlank() && ((it.id != user.id && it.scout.function > 2 && it.scout.teamId == user.scout.teamId && it.scout.function > user.scout.function) || exam.supervisor == it.id)
+                }.map { it.nicknameWithRank }.toTypedArray()
                 builder.setPositiveButton(R.string.submit_task) { dialog, _ ->
                     dialog.dismiss()
                     val approverSelect: View = LayoutInflater.from(viewHolder.itemView.context)
                         .inflate(
                             R.layout.select_task_approver_alert,
-                            viewHolder.itemView.parent as ViewGroup,
+                            viewHolder.itemView.parent as? ViewGroup,
                             false
                         )
+
                     (approverSelect.findViewById<TextInputLayout>(R.id.approver_select).editText as MaterialAutoCompleteTextView)
-                        .setSimpleItems(users.filter {
-                            it.id != user.id && (it.scout.teamId == user.scout.teamId && !it.nickname.isNullOrBlank() && it.scout.function >= user.scout.function) || exam.supervisor == it.id
-                        }.map { it.nicknameWithRank }.toTypedArray())
+                        .setSimpleItems(approverCandidates)
+                    if (approverCandidates.size == 1) {
+                        (approverSelect.findViewById<TextInputLayout>(R.id.approver_select).editText as MaterialAutoCompleteTextView)
+                            .setText(approverCandidates[0], false)
+                    }
                     val approverDialogBuilder =
                         MaterialAlertDialogBuilder(viewHolder.itemView.context)
                             .setTitle(R.string.select_approver)
@@ -292,7 +299,8 @@ class TaskAdapter(
                                 dialog_2.dismiss()
                             }
                             .show()
-                    approverDialogBuilder.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = false
+                    approverDialogBuilder.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled =
+                        approverCandidates.size == 1
                     (approverSelect.findViewById<TextInputLayout>(R.id.approver_select).editText as MaterialAutoCompleteTextView).addTextChangedListener(
                         object : TextWatcher {
                             override fun beforeTextChanged(
@@ -314,15 +322,21 @@ class TaskAdapter(
                             override fun afterTextChanged(s: Editable?) {
                                 approverDialogBuilder.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled =
                                     users.find {
-                                        !it.nickname.isNullOrBlank() && (it.nicknameWithRank.lowercase() == s.toString()
+                                        !it.nickname.isNullOrBlank()
+                                                && (it.nicknameWithRank.lowercase() == s.toString()
                                             .lowercase() || it.nickname.lowercase() == s.toString()
-                                            .lowercase()) && (it.scout.function >= user.scout.function || exam.supervisor == it.id) && it.id != user.id
+                                            .lowercase())
+                                                && (it.id != user.id
+                                                && it.scout.function > user.scout.function
+                                                && it.scout.function >= 2
+                                                || exam.supervisor == it.id)
                                     } != null
                             }
                         })
                 }
             }
-            builder.show()
+            builder.show().getButton(AlertDialog.BUTTON_POSITIVE).isEnabled =
+                !((exam.tasks[position].status == Task.Status.PENDING || exam.tasks[position].status == Task.Status.REJECTED) && approverCandidates?.isEmpty() == true)
         }
     }
 

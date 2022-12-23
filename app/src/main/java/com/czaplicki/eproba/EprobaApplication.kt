@@ -2,9 +2,11 @@ package com.czaplicki.eproba
 
 import android.app.Activity
 import android.app.Application
+import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.room.Room
 import com.czaplicki.eproba.api.EprobaApi
+import com.czaplicki.eproba.api.EprobaApiHelper
 import com.czaplicki.eproba.api.EprobaService
 import com.czaplicki.eproba.db.AppDatabase
 import com.google.android.material.color.DynamicColors
@@ -32,6 +34,10 @@ class EprobaApplication : Application() {
             .build()
     }
 
+    val sharedPreferences: SharedPreferences by lazy {
+        getSharedPreferences("com.czaplicki.eproba_preferences", MODE_PRIVATE)
+    }
+
     override fun onCreate() {
         super.onCreate()
         instance = this
@@ -44,10 +50,18 @@ class EprobaApplication : Application() {
         api.create(this)!!.create(EprobaService::class.java)
     }
 
+    val apiHelper by lazy {
+        EprobaApiHelper()
+    }
+
     override fun onTerminate() {
         unregisterActivityLifecycleCallbacks(activeActivityCallbacks)
         super.onTerminate()
     }
+
+    val currentActivity: Activity?
+        get() = getActiveActivity()
+
 
     fun getActiveActivity(): Activity? = activeActivityCallbacks.getActiveActivity()
 

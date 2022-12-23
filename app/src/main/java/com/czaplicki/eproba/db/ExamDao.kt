@@ -8,22 +8,25 @@ interface ExamDao {
     @Query("SELECT * FROM exams")
     fun getAll(): Flow<List<Exam>>
 
+    @Query("SELECT * FROM exams")
+    suspend fun getAllNow(): List<Exam>
+
     @Query("SELECT * FROM exams WHERE userId = :userId")
     fun getExamsByUserId(userId: Long): Flow<List<Exam>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAll(vararg exam: Exam)
+    suspend fun insert(vararg exam: Exam)
 
     @Update
-    suspend fun updateExams(vararg exam: Exam)
+    suspend fun update(vararg exam: Exam)
 
     @Delete
-    suspend fun deleteAll(vararg exam: Exam)
+    suspend fun delete(vararg exam: Exam)
 
     @Query("DELETE FROM exams")
     suspend fun nukeTable()
 
     @Query("SELECT * FROM exams WHERE id = :id")
-    suspend fun loadExamsById(id: Long): Exam
+    suspend fun getNow(id: Long): Exam?
 
 }

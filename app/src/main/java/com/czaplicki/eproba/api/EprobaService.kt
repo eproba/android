@@ -1,44 +1,50 @@
 package com.czaplicki.eproba.api
 
 import com.czaplicki.eproba.db.Exam
+import com.czaplicki.eproba.db.FCMDevice
 import com.czaplicki.eproba.db.Task
 import com.czaplicki.eproba.db.User
 import okhttp3.RequestBody
 import retrofit2.Call
 import retrofit2.http.*
-import java.time.ZonedDateTime
 
 interface EprobaService {
 
     @GET("user/")
-    fun getUserInfo(): Call<User>
+    fun getUserCall(): Call<User>
+
+    @GET("user/")
+    suspend fun getUser(): User
 
     @GET("user/{id}/")
-    fun getUserInfo(@Path("id") id: Long): Call<User>
+    suspend fun getUser(@Path("id") id: Long): User
 
     @GET("users/")
-    fun getUsersPublicInfo(): Call<List<User>>
+    suspend fun getUsers(): List<User>
 
     @GET("exam/?user")
-    fun getUserExams(): Call<List<Exam>>
+    suspend fun getUserExams(): List<Exam>
+
+    @GET("exam/?user")
+    suspend fun getUserExams(@Query("last_sync") lastSync: Long): List<Exam>
 
     @GET("exam/?templates")
-    fun getTemplates(): Call<List<Exam>>
+    suspend fun getTemplates(): List<Exam>
+
+    @GET("exam/?archived")
+    suspend fun getArchivedExams(): List<Exam>
 
     @GET("exam/")
-    suspend fun getExamsList(): List<Exam>
+    suspend fun getExams(): List<Exam>
 
     @GET("exam/")
-    fun getExams(): Call<List<Exam>>
-
-    @GET("exam/")
-    fun getExams(@Header("last_sync") lastSync: ZonedDateTime): Call<List<Exam>>
+    suspend fun getExams(@Query("last_sync") lastSync: Long): List<Exam>
 
     @GET("exam/tasks/tbc/")
-    fun getTasksTBC(): Call<List<Exam>>
+    suspend fun getTasksTBC(): List<Exam>
 
     @GET("exam/{id}/")
-    fun getExam(@Path("id") id: Long): Call<Exam>
+    suspend fun getExam(@Path("id") id: Long): Exam
 
     @DELETE("exam/{id}/")
     fun deleteExam(@Path("id") id: Long): Call<Void>
@@ -71,4 +77,7 @@ interface EprobaService {
 
     @POST("exam/")
     fun createExam(@Body body: RequestBody): Call<Exam>
+
+    @POST("fcm/devices/")
+    suspend fun registerFCMDevice(@Body body: RequestBody): FCMDevice
 }

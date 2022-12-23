@@ -3,7 +3,14 @@ package com.czaplicki.eproba.ui.manage_exams
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.Button
+import android.widget.FrameLayout
+import android.widget.ImageButton
+import android.widget.ImageView
+import android.widget.PopupMenu
+import android.widget.RatingBar
+import android.widget.TextView
+import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.czaplicki.eproba.R
@@ -119,6 +126,9 @@ class ManagedExamAdapter(
 
         viewHolder.name.text =
             exam.name + " - " + users.find { it.id == exam.userId }?.nicknameWithRank
+        if (exam.isArchived) {
+            viewHolder.name.text = viewHolder.name.text.toString() + " (archiwum)"
+        }
         if (exam.supervisor != null) {
             viewHolder.supervisor.visibility = View.VISIBLE
             viewHolder.supervisor.text =
@@ -152,6 +162,7 @@ class ManagedExamAdapter(
                         ).show()
                         true
                     }
+
                     R.id.delete_exam -> {
                         MaterialAlertDialogBuilder(
                             viewHolder.itemView.context,
@@ -176,7 +187,7 @@ class ManagedExamAdapter(
                                     ) {
                                         if (response.isSuccessful) {
                                             GlobalScope.launch {
-                                                examDao.deleteAll(exam)
+                                                examDao.delete(exam)
                                             }
                                             dataSet.removeAt(viewHolder.adapterPosition)
                                             notifyItemRemoved(viewHolder.adapterPosition)
@@ -225,6 +236,7 @@ class ManagedExamAdapter(
                             .show()
                         true
                     }
+
                     R.id.archive_exam -> {
                         MaterialAlertDialogBuilder(
                             viewHolder.itemView.context,
@@ -252,7 +264,7 @@ class ManagedExamAdapter(
                                     ) {
                                         if (response.isSuccessful) {
                                             GlobalScope.launch {
-                                                examDao.deleteAll(exam)
+                                                examDao.delete(exam)
                                             }
                                             dataSet.removeAt(viewHolder.adapterPosition)
                                             notifyItemRemoved(viewHolder.adapterPosition)
@@ -301,6 +313,7 @@ class ManagedExamAdapter(
                             .show()
                         true
                     }
+
                     else -> false
                 }
             }

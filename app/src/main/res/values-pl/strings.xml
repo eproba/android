@@ -48,8 +48,8 @@
     <string name="scout">Druh/Druhna</string>
     <string name="exam_name">Nazwa próby</string>
     <string name="no_internet_connection">Brak połączenia z internetem</string>
-    <string name="dev_server_message">Korzystasz z serwera deweloperskiego, egzaminy mogą być nieaktualne, a wprowadzone tutaj zmiany nie pojawią się na serwerze podstawowym (eproba.pl). Przejdź do ustawień, aby to zmienić</string>
-    <string name="some_time">Kiedyś</string>
+    <string name="dev_server_message">Korzystasz z niestandardowego serwera, próby mogą być nieaktualne, a wprowadzone tutaj zmiany nie pojawią się na serwerze głównym (eproba.pl). Przejdź do ustawień, aby to zmienić</string>
+    <string name="sometime">Kiedyś</string>
     <string name="edit_exam">Edytuj</string>
     <string name="delete_exam">Usuń</string>
     <string name="archive_exam">Archiwizuj</string>
@@ -75,4 +75,9 @@
     <string name="close">Zamknij</string>
     <string name="select_approver">Wybierz kogo chcesz poprosić o zatwierdzenie</string>
     <string name="approver">Zatwierdzający</string>
+    <string name="promoted_title">Zostałeś awansowany</string>
+    <string name="promoted_message">Gratulujemy awansu 🎉 Właśnie uzyskałeś/aś dostęp do wielu nowych funkcji, nie wahaj się je wypróbować.</string>
+    <string name="demoted_title">Zostałeś/aś zdegradowany/a</string>
+    <string name="demoted_message">Zostałeś/aś zdegradowany/a i utraciłeś/aś dostęp do niektórych funkcji.</string>
+    <string name="general_notification_channel_name">Ogólne</string>
 </resources>

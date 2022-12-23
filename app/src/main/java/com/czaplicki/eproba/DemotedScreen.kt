@@ -1,21 +1,19 @@
 package com.czaplicki.eproba
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
-import com.czaplicki.eproba.databinding.FragmentLoggedOutBinding
+import com.czaplicki.eproba.databinding.FragmentDemotedBinding
 
 
-class LoggedOutScreen : DialogFragment() {
+class DemotedScreen : DialogFragment() {
 
-    private lateinit var binding: FragmentLoggedOutBinding
+    private lateinit var binding: FragmentDemotedBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        isCancelable = false
 
         setStyle(STYLE_NORMAL, com.google.android.material.R.style.MaterialAlertDialog_Material3)
     }
@@ -25,15 +23,12 @@ class LoggedOutScreen : DialogFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentLoggedOutBinding.inflate(inflater, container, false)
+        binding = FragmentDemotedBinding.inflate(inflater, container, false)
 
         binding.button.setOnClickListener {
-            val refresh = Intent(activity, MainActivity::class.java)
-            refresh.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-            startActivity(refresh)
+            dialog?.dismiss()
         }
 
         return binding.root
     }
-
 }

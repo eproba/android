@@ -56,7 +56,7 @@ class EprobaApi {
 class AccessTokenInterceptor : Interceptor {
 
     val app = EprobaApplication.instance
-    val authenticator = TokenAuthenticator()
+    private val authenticator = TokenAuthenticator()
 
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {

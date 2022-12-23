@@ -17,7 +17,7 @@ class ErrorScreen(private val message: String? = null) : DialogFragment() {
         super.onCreate(savedInstanceState)
         isCancelable = false
 
-        setStyle(STYLE_NORMAL, R.style.FullScreenDialogStyle)
+        setStyle(STYLE_NORMAL, com.google.android.material.R.style.MaterialAlertDialog_Material3)
     }
 
     override fun onCreateView(
@@ -40,16 +40,6 @@ class ErrorScreen(private val message: String? = null) : DialogFragment() {
         }
 
         return binding.root
-    }
-
-    override fun onStart() {
-        super.onStart()
-
-        if (dialog != null) {
-            val width = ViewGroup.LayoutParams.MATCH_PARENT
-            val height = ViewGroup.LayoutParams.MATCH_PARENT
-            dialog?.window?.setLayout(width, height)
-        }
     }
 
 }

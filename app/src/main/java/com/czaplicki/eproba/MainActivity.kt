@@ -1,6 +1,8 @@
 package com.czaplicki.eproba
 
 import android.app.Activity
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.Network
@@ -17,6 +19,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.MenuProvider
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
@@ -27,16 +30,26 @@ import com.czaplicki.eproba.databinding.ActivityMainBinding
 import com.czaplicki.eproba.db.User
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.RequestConfiguration
+import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.gson.Gson
-import net.openid.appauth.*
+import kotlinx.coroutines.launch
+import net.openid.appauth.AuthorizationException
+import net.openid.appauth.AuthorizationRequest
+import net.openid.appauth.AuthorizationResponse
+import net.openid.appauth.AuthorizationService
+import net.openid.appauth.AuthorizationServiceConfiguration
+import net.openid.appauth.ResponseTypeValues
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
 
 class MainActivity : AppCompatActivity() {
+    private val TAG = "MainActivity"
+
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
     lateinit var fab: ExtendedFloatingActionButton
@@ -74,7 +87,7 @@ class MainActivity : AppCompatActivity() {
             when (destination.id) {
                 R.id.navigation_your_exams, R.id.navigation_manage_exams -> {
                     fab.show()
-                    if (user == null || user?.scout == null) {
+                    if (user == null) {
                         bottomNavigation.visibility = View.GONE
                     } else if (user!!.scout.function < 2) {
                         bottomNavigation.visibility = View.GONE
@@ -82,9 +95,10 @@ class MainActivity : AppCompatActivity() {
                         bottomNavigation.visibility = View.VISIBLE
                     }
                 }
+
                 R.id.navigation_accept_tasks -> {
                     fab.hide()
-                    if (user == null || user?.scout == null) {
+                    if (user == null) {
                         bottomNavigation.visibility = View.GONE
                     } else if (user!!.scout.function < 2) {
                         bottomNavigation.visibility = View.GONE
@@ -92,6 +106,7 @@ class MainActivity : AppCompatActivity() {
                         bottomNavigation.visibility = View.VISIBLE
                     }
                 }
+
                 else -> {
                     fab.hide()
                     bottomNavigation.visibility = View.GONE
@@ -126,11 +141,13 @@ class MainActivity : AppCompatActivity() {
                         navController.navigate(R.id.action_global_profileActivity)
                         true
                     }
+
                     R.id.settings -> {
                         val navController = findNavController(R.id.nav_host_fragment_content_main)
                         navController.navigate(R.id.action_global_settingsActivity)
                         true
                     }
+
                     else -> false
                 }
             }
@@ -158,6 +175,19 @@ class MainActivity : AppCompatActivity() {
         if (!isOnline(this)) {
             binding.networkStatus.visibility = View.VISIBLE
         }
+
+        // Create channel to show notifications.
+        val channelId = "general"
+        val channelName = getString(R.string.general_notification_channel_name)
+        val notificationManager = getSystemService(NotificationManager::class.java)
+        notificationManager?.createNotificationChannel(
+            NotificationChannel(
+                channelId,
+                channelName,
+                NotificationManager.IMPORTANCE_DEFAULT
+            )
+        )
+
     }
 
     override fun onResume() {
@@ -167,6 +197,20 @@ class MainActivity : AppCompatActivity() {
         } else if (navController.currentDestination?.id == R.id.LoginFragment && mAuthStateManager.current.isAuthorized) {
             Log.d("Login", "Logged in")
             navController.navigate(R.id.action_LoginFragment_to_navigation_your_exams)
+        }
+        user = Gson().fromJson(
+            PreferenceManager.getDefaultSharedPreferences(this).getString("user", null),
+            User::class.java
+        )
+        if (user == null) {
+            bottomNavigation.visibility = View.GONE
+        } else if (user!!.scout.function < 2) {
+            bottomNavigation.visibility = View.GONE
+            if (navController.currentDestination?.id == R.id.navigation_manage_exams || navController.currentDestination?.id == R.id.navigation_accept_tasks) {
+                navController.navigate(R.id.navigation_your_exams)
+            }
+        } else {
+            bottomNavigation.visibility = View.VISIBLE
         }
         if (PreferenceManager.getDefaultSharedPreferences(this)
                 .getString("server", "https://eproba.pl") != "https://eproba.pl"
@@ -249,6 +293,19 @@ class MainActivity : AppCompatActivity() {
             if (resp != null) {
                 mAuthStateManager.updateAfterTokenResponse(resp, ex)
                 fetchUser()
+                FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
+                    if (!task.isSuccessful) {
+                        Log.w(TAG, "Fetching FCM registration token failed", task.exception)
+                        return@OnCompleteListener
+                    }
+
+                    // Get new FCM registration token
+                    val token = task.result
+                    lifecycleScope.launch {
+                        EprobaApplication.instance.apiHelper.registerFCMToken(token)
+                    }
+                    Log.d(TAG, "FCM token: $token")
+                })
             } else {
                 if (ex != null) {
                     Toast.makeText(this, "Error: ${ex.error}", Toast.LENGTH_LONG).show()
@@ -259,7 +316,7 @@ class MainActivity : AppCompatActivity() {
 
 
     private fun fetchUser() {
-        service.getUserInfo().enqueue(object : Callback<User> {
+        service.getUserCall().enqueue(object : Callback<User> {
             override fun onFailure(call: Call<User>, t: Throwable) {
                 val errorScreen = ErrorScreen(t.message)
                 errorScreen.show(supportFragmentManager, "error")
@@ -280,7 +337,8 @@ class MainActivity : AppCompatActivity() {
                         bottomNavigation.visibility = View.VISIBLE
                     }
                     user = response.body()!!
-                    navController.navigate(R.id.action_LoginFragment_to_navigation_your_exams)
+                    EprobaApplication.instance.apiHelper.user = user
+                    navController.navigate(R.id.navigation_your_exams)
 
                 } else {
                     val errorScreen = ErrorScreen("Error: ${response.message()}")

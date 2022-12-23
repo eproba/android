@@ -18,7 +18,6 @@ class ProfileActivity : AppCompatActivity() {
 
         setSupportActionBar(binding.toolbar)
 
-
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setTitle(R.string.account)
     }

@@ -4,7 +4,6 @@ import android.app.AlertDialog
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -458,48 +457,8 @@ class ScanExamFragment : Fragment() {
     private fun updateUsers() {
         lifecycleScope.launch {
             users.clear()
-            users.addAll(userDao.getAll())
+            users.addAll(EprobaApplication.instance.apiHelper.getUsers())
         }
-        service.getUsersPublicInfo()
-            .enqueue(object : Callback<List<User>> {
-                override fun onFailure(call: Call<List<User>>, t: Throwable) {
-                    Snackbar.make(
-                        binding.root,
-                        "Błąd połączenia z serwerem",
-                        Snackbar.LENGTH_LONG
-                    ).show()
-                    lifecycleScope.launch {
-                        users.clear()
-                        users.addAll(userDao.getAll())
-                    }
-                    t.message?.let { Log.e("FirstFragment", it) }
-                }
-
-                override fun onResponse(
-                    call: Call<List<User>>,
-                    response: Response<List<User>>
-                ) {
-                    if (response.body() != null) {
-                        lifecycleScope.launch {
-                            userDao.insertUsers(*users.toTypedArray())
-                            users.clear()
-                            users.addAll(userDao.getAll())
-                        }
-                        sharedPreferences.edit()
-                            .putLong("lastSync", System.currentTimeMillis()).apply()
-                    } else {
-                        Snackbar.make(
-                            binding.root,
-                            "Błąd połączenia z serwerem",
-                            Snackbar.LENGTH_LONG
-                        ).show()
-                        lifecycleScope.launch {
-                            users.clear()
-                            users.addAll(userDao.getAll())
-                        }
-                    }
-                }
-            })
     }
 
 

@@ -21,11 +21,12 @@ class ExamsViewModel(private val examDao: ExamDao, val savedStateHandle: SavedSt
         savedStateHandle.getStateFlow("user_id", -1L)
             .flatMapLatest { userId -> examDao.getExamsByUserId(userId) }
 
-    fun setUserId(id: Long) {
-        savedStateHandle["user_id"] = id
-    }
 
-    val uid: Flow<Int> = savedStateHandle.getStateFlow("user_id", -1)
+    var userId: Long
+        get() = savedStateHandle["user_id"] ?: -1L
+        set(value) {
+            savedStateHandle["user_id"] = value
+        }
 
     companion object {
 

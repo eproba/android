@@ -76,34 +76,36 @@ class ManagedTaskAdapter(
                     R.string.awaiting_approval,
                     exam.tasks[position].approvalDate?.let {
                         DateTimeFormatter.ofPattern("dd LLLL, yyyy").format(it)
-                    } ?: viewHolder.itemView.context.getString(R.string.some_time),
+                    } ?: viewHolder.itemView.context.getString(R.string.sometime),
                     exam.tasks[position].approvalDate?.let {
                         DateTimeFormatter.ofPattern("HH:mm").format(it)
-                    } ?: viewHolder.itemView.context.getString(R.string.some_time),
+                    } ?: viewHolder.itemView.context.getString(R.string.sometime),
                     approver?.nickname ?: viewHolder.itemView.context.getString(R.string.someone)
                 )
             }
+
             Task.Status.APPROVED -> {
                 viewHolder.status.tooltipText = viewHolder.itemView.context.getString(
                     R.string.approved,
                     exam.tasks[position].approvalDate?.let {
                         DateTimeFormatter.ofPattern("dd LLLL, yyyy").format(it)
-                    } ?: viewHolder.itemView.context.getString(R.string.some_time),
+                    } ?: viewHolder.itemView.context.getString(R.string.sometime),
                     exam.tasks[position].approvalDate?.let {
                         DateTimeFormatter.ofPattern("HH:mm").format(it)
-                    } ?: viewHolder.itemView.context.getString(R.string.some_time),
+                    } ?: viewHolder.itemView.context.getString(R.string.sometime),
                     approver?.nickname ?: viewHolder.itemView.context.getString(R.string.someone)
                 )
             }
+
             Task.Status.REJECTED -> {
                 viewHolder.status.tooltipText = viewHolder.itemView.context.getString(
                     R.string.rejected,
                     exam.tasks[position].approvalDate?.let {
                         DateTimeFormatter.ofPattern("dd LLLL, yyyy").format(it)
-                    } ?: viewHolder.itemView.context.getString(R.string.some_time),
+                    } ?: viewHolder.itemView.context.getString(R.string.sometime),
                     exam.tasks[position].approvalDate?.let {
                         DateTimeFormatter.ofPattern("HH:mm").format(it)
-                    } ?: viewHolder.itemView.context.getString(R.string.some_time),
+                    } ?: viewHolder.itemView.context.getString(R.string.sometime),
                     approver?.nickname ?: viewHolder.itemView.context.getString(R.string.someone)
                 )
             }

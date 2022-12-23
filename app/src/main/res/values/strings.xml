@@ -51,8 +51,8 @@
     <string name="scout">Scout</string>
     <string name="exam_name">Exam name</string>
     <string name="no_internet_connection">No internet connection</string>
-    <string name="dev_server_message">You are using a development server, exams may be outdated and changes made here won\'t appear on a primary server (eproba.pl). Visit settings to change it</string>
-    <string name="some_time">Sometime\'</string>
+    <string name="dev_server_message">You are using a custom server, exams may be outdated and changes made here won\'t appear on a primary server (eproba.pl). Visit settings to change it</string>
+    <string name="sometime">Sometime</string>
     <string name="edit_exam">Edit</string>
     <string name="delete_exam">Delete</string>
     <string name="archive_exam">Archive</string>
@@ -74,4 +74,9 @@
     <string name="close">Close</string>
     <string name="select_approver">Select approver</string>
     <string name="approver">Approver</string>
+    <string name="promoted_title">You\'ve been promoted</string>
+    <string name="promoted_message">Congratulations on your promotion 🎉\nYou just got access to new features, feel free to try them out.</string>
+    <string name="demoted_title">You\'ve been demoted</string>
+    <string name="demoted_message">Unfortunately, you have been demoted. \nPlease be aware that you will no longer have access to certain features.</string>
+    <string name="general_notification_channel_name">General</string>
 </resources>

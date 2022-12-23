@@ -12,7 +12,6 @@ import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.LinearLayout
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
@@ -40,7 +39,6 @@ import com.czaplicki.eproba.db.User
 import com.czaplicki.eproba.db.UserDao
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.color.MaterialColors
-import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import net.openid.appauth.AuthorizationService
 import java.util.Locale
@@ -193,7 +191,7 @@ class ManageExamsFragment : Fragment() {
         sharedPreferences.getLong("lastSync", 0).let {
             lifecycleScope.launch {
                 users.clear()
-                users.addAll(userDao.getAll())
+                users.addAll(userDao.getAllNow())
                 recyclerView?.adapter?.notifyDataSetChanged()
             }
             if (it == 0L || System.currentTimeMillis() - it > 3600000) {
@@ -247,6 +245,7 @@ class ManageExamsFragment : Fragment() {
                         )
                     }
                 }
+                filterArchived(binding.chipArchive.isChecked)
             }
         }
 
@@ -286,13 +285,15 @@ class ManageExamsFragment : Fragment() {
 
         }
 
-        binding.chipArchive.setOnCheckedChangeListener { _, isChecked ->
+        binding.chipArchive.setOnCheckedChangeListener { _, _ ->
             selectedTeams.clear()
             selectedPatrols.clear()
             searchView?.setQuery("", false)
             searchView?.clearFocus()
             updateChips()
-            filterArchived(isChecked)
+            lifecycleScope.launch {
+                examDao.insert(*service.getArchivedExams().toTypedArray())
+            }
         }
 
         return binding.root
@@ -375,137 +376,101 @@ class ManageExamsFragment : Fragment() {
     }
 
     private fun updateExams() {
-        mSwipeRefreshLayout.isRefreshing = true
-        var lastSync = sharedPreferences.getLong("lastSync", 0)
-        service.getExams()
-            .enqueue(object : retrofit2.Callback<List<Exam>> {
-                override fun onFailure(call: retrofit2.Call<List<Exam>>, t: Throwable) {
-                    view?.let {
-                        Snackbar.make(
-                            it,
-                            "Błąd połączenia z serwerem",
-                            Snackbar.LENGTH_SHORT
-                        ).show()
-                    }
-                    t.message?.let { Log.e("ManageExamsFragment", it) }
-                    mSwipeRefreshLayout.isRefreshing = false
-                }
-
-                override fun onResponse(
-                    call: retrofit2.Call<List<Exam>>,
-                    response: retrofit2.Response<List<Exam>>
-                ) {
-                    if (response.body() != null) {
-                        lifecycleScope.launch {
-                            examDao.nukeTable()
-                            examDao.insertAll(*response.body()!!.toTypedArray())
-                        }
-                    } else {
-                        view?.let {
-                            Snackbar.make(
-                                it,
-                                "Błąd połączenia z serwerem",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    }
-                    mSwipeRefreshLayout.isRefreshing = false
-                    val userIds: MutableSet<Long> = mutableSetOf()
-                    response.body()?.forEach {
-                        if (it.userId != null) userIds.add(it.userId!!)
-                        if (it.supervisor != null) userIds.add(it.supervisor!!)
-                        if (it.tasks.isNotEmpty()) it.tasks.forEach { task ->
-                            if (task.approver != null) userIds.add(task.approver!!)
-                        }
-                    }
-                    userIds.filter { id -> users.find { it.id == id } == null }.forEach { id ->
-                        service.getUserInfo(id)
-                            .enqueue(object : retrofit2.Callback<User> {
-                                override fun onFailure(
-                                    call: retrofit2.Call<User>,
-                                    t: Throwable
-                                ) {
-                                    view?.let {
-                                        Snackbar.make(
-                                            it,
-                                            "Błąd połączenia z serwerem",
-                                            Snackbar.LENGTH_SHORT
-                                        ).show()
-                                    }
-                                }
-
-                                override fun onResponse(
-                                    call: retrofit2.Call<User>,
-                                    response: retrofit2.Response<User>
-                                ) {
-                                    if (response.body() != null) {
-                                        users.add(response.body()!!)
-                                        lifecycleScope.launch {
-                                            userDao.insertUsers(response.body()!!)
-                                        }
-                                        sharedPreferences.edit().putLong(
-                                            "lastSync",
-                                            System.currentTimeMillis()
-                                        ).apply()
-                                        recyclerView?.adapter?.notifyDataSetChanged()
-                                    }
-                                }
-                            })
-
-                    }
-                }
-            })
+        lifecycleScope.launch {
+            mSwipeRefreshLayout.isRefreshing = true
+            EprobaApplication.instance.apiHelper.getExams()
+            mSwipeRefreshLayout.isRefreshing = false
+        }
+//        var lastSync = sharedPreferences.getLong("lastSync", 0)
+//        service.getExamsList()
+//            .enqueue(object : retrofit2.Callback<List<Exam>> {
+//                override fun onFailure(call: retrofit2.Call<List<Exam>>, t: Throwable) {
+//                    view?.let {
+//                        Snackbar.make(
+//                            it,
+//                            "Błąd połączenia z serwerem",
+//                            Snackbar.LENGTH_SHORT
+//                        ).show()
+//                    }
+//                    t.message?.let { Log.e("ManageExamsFragment", it) }
+//                    mSwipeRefreshLayout.isRefreshing = false
+//                }
+//
+//                override fun onResponse(
+//                    call: retrofit2.Call<List<Exam>>,
+//                    response: retrofit2.Response<List<Exam>>
+//                ) {
+//                    if (response.body() != null) {
+//                        lifecycleScope.launch {
+//                            examDao.nukeTable()
+//                            examDao.insert(*response.body()!!.toTypedArray())
+//                        }
+//                    } else {
+//                        view?.let {
+//                            Snackbar.make(
+//                                it,
+//                                "Błąd połączenia z serwerem",
+//                                Toast.LENGTH_SHORT
+//                            ).show()
+//                        }
+//                    }
+//                    mSwipeRefreshLayout.isRefreshing = false
+//                    val userIds: MutableSet<Long> = mutableSetOf()
+//                    response.body()?.forEach {
+//                        if (it.userId != null) userIds.add(it.userId!!)
+//                        if (it.supervisor != null) userIds.add(it.supervisor!!)
+//                        if (it.tasks.isNotEmpty()) it.tasks.forEach { task ->
+//                            if (task.approver != null) userIds.add(task.approver!!)
+//                        }
+//                    }
+//                    userIds.filter { id -> users.find { it.id == id } == null }.forEach { id ->
+//                        service.getUserCall(id)
+//                            .enqueue(object : retrofit2.Callback<User> {
+//                                override fun onFailure(
+//                                    call: retrofit2.Call<User>,
+//                                    t: Throwable
+//                                ) {
+//                                    view?.let {
+//                                        Snackbar.make(
+//                                            it,
+//                                            "Błąd połączenia z serwerem",
+//                                            Snackbar.LENGTH_SHORT
+//                                        ).show()
+//                                    }
+//                                }
+//
+//                                override fun onResponse(
+//                                    call: retrofit2.Call<User>,
+//                                    response: retrofit2.Response<User>
+//                                ) {
+//                                    if (response.body() != null) {
+//                                        users.add(response.body()!!)
+//                                        lifecycleScope.launch {
+//                                            userDao.insert(response.body()!!)
+//                                        }
+//                                        sharedPreferences.edit().putLong(
+//                                            "lastSync",
+//                                            System.currentTimeMillis()
+//                                        ).apply()
+//                                        recyclerView?.adapter?.notifyDataSetChanged()
+//                                    }
+//                                }
+//                            })
+//
+//                    }
+//                }
+//            })
     }
 
 
     private fun getUsers() {
-        service.getUsersPublicInfo()
-            .enqueue(object : retrofit2.Callback<List<User>> {
-                override fun onFailure(call: retrofit2.Call<List<User>>, t: Throwable) {
-                    view?.let {
-                        Snackbar.make(
-                            it,
-                            "Błąd połączenia z serwerem",
-                            Snackbar.LENGTH_SHORT
-                        ).show()
-                    }
-                    lifecycleScope.launch {
-                        users.clear()
-                        users.addAll(userDao.getAll())
-                        recyclerView?.adapter?.notifyDataSetChanged()
-                    }
-                    t.message?.let { Log.e("FirstFragment", it) }
-                }
-
-                override fun onResponse(
-                    call: retrofit2.Call<List<User>>,
-                    response: retrofit2.Response<List<User>>
-                ) {
-                    if (response.body() != null) {
-                        users.clear()
-                        users.addAll(response.body()!!)
-                        lifecycleScope.launch {
-                            userDao.insertUsers(*users.toTypedArray())
-                        }
-                        sharedPreferences.edit()
-                            .putLong("lastSync", System.currentTimeMillis()).apply()
-                        recyclerView?.adapter?.notifyDataSetChanged()
-                    } else {
-                        view?.let {
-                            Snackbar.make(
-                                it,
-                                "Błąd połączenia z serwerem",
-                                Snackbar.LENGTH_SHORT
-                            ).show()
-                        }
-                        lifecycleScope.launch {
-                            users.clear()
-                            users.addAll(userDao.getAll())
-                            recyclerView?.adapter?.notifyDataSetChanged()
-                        }
-                    }
-                }
-            })
+        lifecycleScope.launch {
+            mSwipeRefreshLayout.isRefreshing = true
+            users.clear()
+            users.addAll(EprobaApplication.instance.apiHelper.getUsers())
+            recyclerView?.adapter?.notifyDataSetChanged()
+            mSwipeRefreshLayout.isRefreshing = false
+        }
     }
 
 
