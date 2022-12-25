@@ -6,6 +6,7 @@ import com.czaplicki.eproba.db.Task
 import com.czaplicki.eproba.db.User
 import okhttp3.RequestBody
 import retrofit2.Call
+import retrofit2.Response
 import retrofit2.http.*
 
 interface EprobaService {
@@ -47,7 +48,10 @@ interface EprobaService {
     suspend fun getExam(@Path("id") id: Long): Exam
 
     @DELETE("exam/{id}/")
-    fun deleteExam(@Path("id") id: Long): Call<Void>
+    suspend fun deleteExam(@Path("id") id: Long): Response<Void>
+
+    @DELETE("exam/{id}/?archived")
+    suspend fun deleteArchivedExam(@Path("id") id: Long): Response<Void>
 
     @PATCH("exam/{exam_id}/task/{task_id}/")
     fun updateTaskStatus(
@@ -57,26 +61,32 @@ interface EprobaService {
     ): Call<Task>
 
     @POST("exam/{exam_id}/task/{task_id}/submit")
-    fun submitTask(
+    suspend fun submitTask(
         @Path("exam_id") examId: Long,
         @Path("task_id") taskId: Long,
         @Body approver: RequestBody
-    ): Call<Task>
+    ): Task
 
     @POST("exam/{exam_id}/task/{task_id}/unsubmit")
-    fun unsubmitTask(
+    suspend fun unsubmitTask(
         @Path("exam_id") examId: Long,
         @Path("task_id") taskId: Long
-    ): Call<Task>
+    ): Task
 
     @PATCH("exam/{exam_id}/")
-    fun updateExam(
+    suspend fun updateExam(
         @Path("exam_id") examId: Long,
         @Body body: RequestBody
-    ): Call<Exam>
+    ): Exam
+
+    @PATCH("exam/{exam_id}/?archived")
+    suspend fun updateExamInArchive(
+        @Path("exam_id") examId: Long,
+        @Body body: RequestBody
+    ): Exam
 
     @POST("exam/")
-    fun createExam(@Body body: RequestBody): Call<Exam>
+    suspend fun createExam(@Body body: RequestBody): Exam
 
     @POST("fcm/devices/")
     suspend fun registerFCMDevice(@Body body: RequestBody): FCMDevice

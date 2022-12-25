@@ -33,13 +33,13 @@ class SettingsActivity : AppCompatActivity() {
                     MaterialAlertDialogBuilder(requireContext())
                         .setTitle("Zmiana serwera")
                         .setMessage("Zmiana serwera spowoduje wylogowanie")
-                        .setPositiveButton("OK") { _, _ ->
+                        .setPositiveButton(android.R.string.ok) { _, _ ->
                             EprobaApplication.instance.authStateManager.replace(AuthState())
                             val refresh = Intent(requireContext(), MainActivity::class.java)
                             refresh.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
                             startActivity(refresh)
                         }
-                        .setNegativeButton("Anuluj") { _, _ ->
+                        .setNegativeButton(android.R.string.cancel) { _, _ ->
                             serverPreference.value = oldServerValue
                         }
                         .show()

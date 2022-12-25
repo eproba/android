@@ -16,9 +16,9 @@ import androidx.preference.PreferenceManager
 import com.czaplicki.eproba.api.EprobaService
 import com.czaplicki.eproba.databinding.FragmentScanExamBinding
 import com.czaplicki.eproba.db.Exam
+import com.czaplicki.eproba.db.ExamDao
 import com.czaplicki.eproba.db.Task
 import com.czaplicki.eproba.db.User
-import com.czaplicki.eproba.db.UserDao
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
@@ -31,9 +31,8 @@ import kotlinx.coroutines.launch
 import net.openid.appauth.AuthorizationService
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import okhttp3.internal.http.HTTP_FORBIDDEN
+import retrofit2.HttpException
 import java.io.IOException
 import java.util.Locale
 
@@ -51,9 +50,8 @@ class ScanExamFragment : Fragment() {
     // onDestroyView.
     private val binding get() = _binding!!
     private val service: EprobaService = EprobaApplication.instance.service
-    private lateinit var baseUrl: String
     private lateinit var user: User
-    private val userDao: UserDao = EprobaApplication.instance.database.userDao()
+    private val examDao: ExamDao = EprobaApplication.instance.database.examDao()
     private val users = mutableListOf<User>()
 
 
@@ -67,7 +65,6 @@ class ScanExamFragment : Fragment() {
     ): View {
         _binding = FragmentScanExamBinding.inflate(inflater, container, false)
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
-        baseUrl = sharedPreferences.getString("server", "https://eproba.pl")!!
         user = Gson().fromJson(sharedPreferences.getString("user", null), User::class.java)
         authService = AuthorizationService(requireContext())
         mAuthStateManager = AuthStateManager.getInstance(requireContext())
@@ -375,6 +372,7 @@ class ScanExamFragment : Fragment() {
                     examName.error = "To pole jest wymagane"
                 } else {
                     exam.name = examName.editText?.text.toString()
+                    binding.examName.editText?.setText(exam.name)
                     binding.textviewCamera.text = exam.toFormattedString()
                     mAlertDialog.dismiss()
                     submitExam(exam)
@@ -383,74 +381,59 @@ class ScanExamFragment : Fragment() {
             return
         }
         binding.progressBar.visibility = View.VISIBLE
-        service.createExam(exam.toJson().toRequestBody("application/json".toMediaType()))
-            .enqueue(object : Callback<Exam> {
-                override fun onFailure(call: Call<Exam>, t: Throwable) {
-                    t.printStackTrace()
-                    activity?.runOnUiThread {
-                        binding.progressBar.visibility = View.GONE
-                        Toast.makeText(context, t.message, Toast.LENGTH_SHORT).show()
-                    }
+        lifecycleScope.launch {
+            try {
+                examDao.insert(
+                    service.createExam(
+                        exam.toJson().toRequestBody("application/json".toMediaType())
+                    )
+                )
+                activity?.runOnUiThread {
+                    binding.progressBar.visibility = View.GONE
+                    MaterialAlertDialogBuilder(
+                        requireContext(),
+                        com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
+                    )
+                        .setTitle(R.string.exam_creaded)
+                        .setIcon(R.drawable.ic_success)
+                        .setPositiveButton(android.R.string.ok) { dialog, _ ->
+                            dialog.dismiss()
+                            activity?.finish()
+                        }
+                        .show()
                 }
-
-                override fun onResponse(call: Call<Exam>, response: Response<Exam>) {
-                    if (!response.isSuccessful) {
-                        activity?.runOnUiThread {
-                            binding.progressBar.visibility = View.GONE
-                        }
-                        when (response.code()) {
-                            401, 403 -> {
-                                activity?.runOnUiThread {
-                                    MaterialAlertDialogBuilder(
-                                        requireContext(),
-                                        com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
-                                    )
-                                        .setTitle("Próba nie została zapisana")
-                                        .setMessage("Nie jesteś autoryzowany do utworzenia próby, spróbuj ponownie, a jeśli problem będźie się dalej powtarzał autoryzuj ponownie aplikację. ${response.code()} ${response.message()}")
-                                        .setIcon(R.drawable.ic_error)
-                                        .setPositiveButton(R.string.retry) { _, _ ->
-                                            binding.progressBar.visibility = View.VISIBLE
-                                            mAuthStateManager.current.needsTokenRefresh = true
-                                            submitExam(exam)
-                                        }
-                                        .setNegativeButton(R.string.cancel, null)
-                                        .show()
-                                }
-                            }
-
-                            else -> {
-                                activity?.runOnUiThread {
-                                    Snackbar.make(
-                                        binding.root,
-                                        "Error: ${response.code()}",
-                                        Snackbar.LENGTH_LONG
-                                    ).show()
-                                }
-                            }
-                        }
-                        return
-                    }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                if (e is HttpException && e.code() == HTTP_FORBIDDEN) {
                     activity?.runOnUiThread {
                         binding.progressBar.visibility = View.GONE
                         MaterialAlertDialogBuilder(
                             requireContext(),
                             com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
                         )
-                            .setTitle("Próba zapisana")
-                            .setMessage("Próba została utworzona")
-                            .setIcon(R.drawable.ic_success)
-                            .setPositiveButton(
-                                "OK"
-                            ) { dialog, _ ->
-                                dialog.dismiss()
-                                activity?.finish()
-                            }
+                            .setTitle(R.string.error_dialog_title)
+                            .setMessage(R.string.exam_creating_unauthorized_error)
+                            .setIcon(R.drawable.ic_error)
+                            .setPositiveButton(android.R.string.ok, null)
+                            .show()
+
+                    }
+                } else {
+                    activity?.runOnUiThread {
+                        binding.progressBar.visibility = View.GONE
+                        MaterialAlertDialogBuilder(
+                            requireContext(),
+                            com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
+                        )
+                            .setTitle(R.string.error_dialog_title)
+                            .setMessage(getString(R.string.exam_creating_error, e))
+                            .setIcon(R.drawable.ic_error)
+                            .setPositiveButton(android.R.string.ok, null)
                             .show()
                     }
-
                 }
-            })
-
+            }
+        }
     }
 
 

@@ -4,10 +4,12 @@ import android.app.Activity
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -202,7 +204,7 @@ class MainActivity : AppCompatActivity() {
             PreferenceManager.getDefaultSharedPreferences(this).getString("user", null),
             User::class.java
         )
-        if (user == null) {
+        if (user == null || !mAuthStateManager.current.isAuthorized) {
             bottomNavigation.visibility = View.GONE
         } else if (user!!.scout.function < 2) {
             bottomNavigation.visibility = View.GONE
@@ -339,7 +341,9 @@ class MainActivity : AppCompatActivity() {
                     user = response.body()!!
                     EprobaApplication.instance.apiHelper.user = user
                     navController.navigate(R.id.navigation_your_exams)
-
+                    if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        NotificationsRequestScreen().show(supportFragmentManager, "notifications")
+                    }
                 } else {
                     val errorScreen = ErrorScreen("Error: ${response.message()}")
                     errorScreen.show(supportFragmentManager, "error")

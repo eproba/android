@@ -96,7 +96,7 @@ class ProfileFragment : Fragment() {
             try {
                 val user = EprobaApplication.instance.apiHelper.getUser()
                 activity?.runOnUiThread {
-                    binding.name.text = user.fullName
+                    _binding?.name?.text = user.fullName
                 }
                 Request.Builder()
                     .url(
@@ -122,7 +122,7 @@ class ProfileFragment : Fragment() {
                                         response.body.byteStream()
                                             .use { android.graphics.BitmapFactory.decodeStream(it) })
                                     activity?.runOnUiThread {
-                                        binding.avatar.setImageBitmap(avatar)
+                                        _binding?.avatar?.setImageBitmap(avatar)
                                     }
                                 } else if (response.code == 404) {
                                     Request.Builder()
@@ -149,7 +149,9 @@ class ProfileFragment : Fragment() {
                                                                     )
                                                                 }
                                                             activity?.runOnUiThread {
-                                                                binding.avatar.setImageBitmap(avatar)
+                                                                _binding?.avatar?.setImageBitmap(
+                                                                    avatar
+                                                                )
                                                             }
                                                         }
                                                     }
@@ -163,10 +165,12 @@ class ProfileFragment : Fragment() {
 
 
             } catch (e: Exception) {
-                Snackbar.make(binding.root, e.message.toString(), Snackbar.LENGTH_LONG).show()
+                _binding?.root?.let {
+                    Snackbar.make(it, e.message.toString(), Snackbar.LENGTH_LONG).show()
+                }
             }
         }.invokeOnCompletion {
-            binding.progressBar.visibility = View.GONE
+            _binding?.progressBar?.visibility = View.GONE
         }
     }
 

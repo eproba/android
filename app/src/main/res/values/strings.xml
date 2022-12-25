@@ -56,16 +56,24 @@
     <string name="edit_exam">Edit</string>
     <string name="delete_exam">Delete</string>
     <string name="archive_exam">Archive</string>
+    <string name="unarchive_exam">Unarchive</string>
     <string name="not_implemented_yet">Not implemented yet</string>
     <string name="delete_exam_confirmation">Are you sure you want to delete this exam (%s)? You will not be able to restore it later</string>
     <string name="archive_exam_confirmation">Are you sure you want to archive this exam (%s)? It will go to the archive and you will be able to restore it later</string>
+    <string name="unarchive_exam_confirmation">Are you sure you want to unarchive this exam (%s)? It will come back to your main exam tray</string>
     <string name="delete_exam_title">Permanently delete?</string>
     <string name="exam_deleted">Exam deleted</string>
-    <string name="exam_deletion_error">An error has occurred and the exam has not been deleted</string>
+    <string name="exam_deletion_error">An error has occurred and the exam has not been deleted:\n\n%s</string>
     <string name="logged_out_message">You have been logged out</string>
     <string name="relogin">Log in again</string>
     <string name="archive_exam_title">Archive exam?</string>
+    <string name="unarchive_exam_title">Unarchive exam?</string>
     <string name="exam_archived">Archived exam</string>
+    <string name="exam_unarchived">Unarchived exam</string>
+    <string name="exam_creating_unauthorized_error">You are not authorized to create an exam for this user</string>
+    <string name="exam_creating_error">An error has occurred and the exam has not been created:\n\n%s</string>
+    <string name="exam_archiving_error">An error has occurred and the exam has not been archived:\n\n%s</string>
+    <string name="exam_unarchiving_error">An error has occurred and the exam has not been unarchived:\n\n%s</string>
     <string name="archived">Archived</string>
     <string name="team">Team</string>
     <string name="patrol">Patrol</string>
@@ -79,4 +87,11 @@
     <string name="demoted_title">You\'ve been demoted</string>
     <string name="demoted_message">Unfortunately, you have been demoted. \nPlease be aware that you will no longer have access to certain features.</string>
     <string name="general_notification_channel_name">General</string>
+    <string name="exam_creaded">Exam created</string>
+    <string name="enable">Enable</string>
+    <string name="skip">Skip</string>
+    <string name="notifications_request_title">Get notified!</string>
+    <string name="notifications_request_message">Stay on top of your exams and get notified when something needs your attention</string>
+    <string name="permission_denied">Permission denied</string>
+    <string name="notifications_permission_denied_message">You will not receive any notifications, if you would like to change it, go to settings and allow notifications for this app.</string>
 </resources>

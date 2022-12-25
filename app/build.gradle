@@ -12,8 +12,8 @@ android {
         applicationId "com.czaplicki.eproba"
         minSdk 26
         targetSdk 33
-        versionCode 13
-        versionName 'alpha.13'
+        versionCode 14
+        versionName 'alpha.14'
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         javaCompileOptions {

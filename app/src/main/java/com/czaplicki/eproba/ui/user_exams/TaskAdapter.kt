@@ -11,6 +11,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
+import com.czaplicki.eproba.EprobaApplication
 import com.czaplicki.eproba.R
 import com.czaplicki.eproba.api.EprobaService
 import com.czaplicki.eproba.db.Exam
@@ -20,11 +21,10 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.google.android.material.textfield.TextInputLayout
 import com.google.gson.Gson
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
@@ -131,42 +131,23 @@ class TaskAdapter(
                 }
             if (exam.tasks[position].status == Task.Status.AWAITING_APPROVAL) {
                 builder.setNegativeButton(R.string.unsubmit_task) { dialog, _ ->
-                    service.unsubmitTask(exam.id, exam.tasks[position].id)
-                        .enqueue(object : Callback<Task> {
-                            override fun onResponse(
-                                call: Call<Task>,
-                                response: Response<Task>
-                            ) {
-                                if (response.isSuccessful) {
-                                    exam.tasks[viewHolder.adapterPosition].status =
-                                        Task.Status.PENDING
-                                    exam.tasks[viewHolder.adapterPosition].approver = user.id
-                                    exam.tasks[viewHolder.adapterPosition].approvalDate = null
-                                    viewHolder.status.setImageIcon(
-                                        Icon.createWithResource(
-                                            "com.czaplicki.eproba",
-                                            R.drawable.radio_button_unchecked_24px
-                                        )
-                                    )
-                                    viewHolder.status.tooltipText = null
-                                    dialog.dismiss()
-                                } else {
-                                    MaterialAlertDialogBuilder(
-                                        viewHolder.itemView.context,
-                                        com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
-                                    )
-                                        .setTitle(R.string.error_dialog_title)
-                                        .setIcon(R.drawable.ic_error)
-                                        .setMessage(R.string.task_unsubmission_error_message)
-                                        .setPositiveButton(android.R.string.ok) { dialog, _ ->
-                                            dialog.dismiss()
-                                        }
-                                        .show()
-                                    dialog.dismiss()
-                                }
-                            }
-
-                            override fun onFailure(call: Call<Task>, t: Throwable) {
+                    GlobalScope.launch {
+                        try {
+                            service.unsubmitTask(exam.id, exam.tasks[position].id)
+                            exam.tasks[viewHolder.adapterPosition].status =
+                                Task.Status.PENDING
+                            exam.tasks[viewHolder.adapterPosition].approver = user.id
+                            exam.tasks[viewHolder.adapterPosition].approvalDate = null
+                            viewHolder.status.setImageIcon(
+                                Icon.createWithResource(
+                                    "com.czaplicki.eproba",
+                                    R.drawable.radio_button_unchecked_24px
+                                )
+                            )
+                            viewHolder.status.tooltipText = null
+                            dialog.dismiss()
+                        } catch (e: Exception) {
+                            EprobaApplication.instance.currentActivity?.runOnUiThread {
                                 MaterialAlertDialogBuilder(
                                     viewHolder.itemView.context,
                                     com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
@@ -174,14 +155,12 @@ class TaskAdapter(
                                     .setTitle(R.string.error_dialog_title)
                                     .setIcon(R.drawable.ic_error)
                                     .setMessage(R.string.task_unsubmission_error_message)
-                                    .setPositiveButton(android.R.string.ok) { dialog, _ ->
-                                        dialog.dismiss()
-                                    }
+                                    .setPositiveButton(android.R.string.ok, null)
                                     .show()
-                                dialog.dismiss()
                             }
-                        })
-
+                            dialog.dismiss()
+                        }
+                    }
                 }
             } else if (exam.tasks[position].status == Task.Status.PENDING || exam.tasks[position].status == Task.Status.REJECTED) {
                 approverCandidates = users.filter {
@@ -226,44 +205,40 @@ class TaskAdapter(
                                         .setTitle(R.string.error_dialog_title)
                                         .setIcon(R.drawable.ic_error)
                                         .setMessage(R.string.task_submission_error_message)
-                                        .setPositiveButton(android.R.string.ok) { dialog, _ ->
-                                            dialog.dismiss()
-                                        }
+                                        .setPositiveButton(android.R.string.ok, null)
                                         .show()
                                     return@Submit
                                 }
-                                service.submitTask(
-                                    exam.id,
-                                    exam.tasks[position].id,
-                                    "{\"approver\": ${selectedApprover.id}}".toRequestBody("application/json".toMediaTypeOrNull())
-                                ).enqueue(object : Callback<Task> {
-                                    override fun onResponse(
-                                        call: Call<Task>,
-                                        response: Response<Task>
-                                    ) {
-                                        if (response.isSuccessful) {
-                                            exam.tasks[viewHolder.adapterPosition].status =
-                                                Task.Status.AWAITING_APPROVAL
-                                            exam.tasks[viewHolder.adapterPosition].approver =
-                                                user.id
-                                            exam.tasks[viewHolder.adapterPosition].approvalDate =
-                                                ZonedDateTime.now()
-                                            viewHolder.status.setImageIcon(
-                                                Icon.createWithResource(
-                                                    "com.czaplicki.eproba",
-                                                    R.drawable.schedule_24px
-                                                )
+                                GlobalScope.launch {
+                                    try {
+                                        service.submitTask(
+                                            exam.id,
+                                            exam.tasks[position].id,
+                                            "{\"approver\": ${selectedApprover.id}}".toRequestBody("application/json".toMediaTypeOrNull())
+                                        )
+                                        exam.tasks[viewHolder.adapterPosition].status =
+                                            Task.Status.AWAITING_APPROVAL
+                                        exam.tasks[viewHolder.adapterPosition].approver =
+                                            user.id
+                                        exam.tasks[viewHolder.adapterPosition].approvalDate =
+                                            ZonedDateTime.now()
+                                        viewHolder.status.setImageIcon(
+                                            Icon.createWithResource(
+                                                "com.czaplicki.eproba",
+                                                R.drawable.schedule_24px
                                             )
-                                            viewHolder.status.tooltipText =
-                                                viewHolder.itemView.context.getString(
-                                                    R.string.awaiting_approval,
-                                                    DateTimeFormatter.ofPattern("dd LLLL, yyyy")
-                                                        .format(ZonedDateTime.now()),
-                                                    DateTimeFormatter.ofPattern("HH:mm")
-                                                        .format(ZonedDateTime.now()),
-                                                    selectedApprover.nickname
-                                                )
-                                        } else {
+                                        )
+                                        viewHolder.status.tooltipText =
+                                            viewHolder.itemView.context.getString(
+                                                R.string.awaiting_approval,
+                                                DateTimeFormatter.ofPattern("dd LLLL, yyyy")
+                                                    .format(ZonedDateTime.now()),
+                                                DateTimeFormatter.ofPattern("HH:mm")
+                                                    .format(ZonedDateTime.now()),
+                                                selectedApprover.nickname
+                                            )
+                                    } catch (e: Exception) {
+                                        EprobaApplication.instance.currentActivity?.runOnUiThread {
                                             MaterialAlertDialogBuilder(
                                                 viewHolder.itemView.context,
                                                 com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
@@ -271,29 +246,12 @@ class TaskAdapter(
                                                 .setTitle(R.string.error_dialog_title)
                                                 .setIcon(R.drawable.ic_error)
                                                 .setMessage(R.string.task_submission_error_message)
-                                                .setPositiveButton(android.R.string.ok) { dialog, _ ->
-                                                    dialog.dismiss()
-                                                }
+                                                .setPositiveButton(android.R.string.ok, null)
                                                 .show()
-                                            dialog.dismiss()
                                         }
-                                    }
-
-                                    override fun onFailure(call: Call<Task>, t: Throwable) {
-                                        MaterialAlertDialogBuilder(
-                                            viewHolder.itemView.context,
-                                            com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
-                                        )
-                                            .setTitle(R.string.error_dialog_title)
-                                            .setIcon(R.drawable.ic_error)
-                                            .setMessage(R.string.task_submission_error_message)
-                                            .setPositiveButton(android.R.string.ok) { dialog, _ ->
-                                                dialog.dismiss()
-                                            }
-                                            .show()
                                         dialog.dismiss()
                                     }
-                                })
+                                }
                             }
                             .setNeutralButton(R.string.cancel) { dialog_2, _ ->
                                 dialog_2.dismiss()

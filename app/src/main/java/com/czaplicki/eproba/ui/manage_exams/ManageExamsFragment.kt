@@ -12,6 +12,7 @@ import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
@@ -64,11 +65,12 @@ class ManageExamsFragment : Fragment() {
     var selectedTeams: MutableList<Team> = mutableListOf()
     var patrols: MutableList<Patrol> = mutableListOf()
     var selectedPatrols: MutableList<Patrol> = mutableListOf()
-    val sharedPreferences: SharedPreferences by lazy {
+    private val sharedPreferences: SharedPreferences by lazy {
         PreferenceManager.getDefaultSharedPreferences(
             requireContext()
         )
     }
+    var ignoreExamsLastSync = false
 
     class TeamFilterBottomSheet(val parent: ManageExamsFragment) : BottomSheetDialogFragment() {
 
@@ -285,14 +287,22 @@ class ManageExamsFragment : Fragment() {
 
         }
 
-        binding.chipArchive.setOnCheckedChangeListener { _, _ ->
+        binding.chipArchive.setOnCheckedChangeListener { _, isChecked ->
             selectedTeams.clear()
             selectedPatrols.clear()
             searchView?.setQuery("", false)
             searchView?.clearFocus()
             updateChips()
-            lifecycleScope.launch {
-                examDao.insert(*service.getArchivedExams().toTypedArray())
+            if (isChecked) {
+                lifecycleScope.launch {
+                    try {
+                        examDao.insert(*service.getArchivedExams().toTypedArray())
+                    } catch (e: Exception) {
+                        Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+                    }
+                }
+            } else {
+                filterArchived(false)
             }
         }
 
@@ -319,10 +329,19 @@ class ManageExamsFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         mSwipeRefreshLayout.setOnRefreshListener {
-            updateExams()
+            lifecycleScope.launch {
+                mSwipeRefreshLayout.isRefreshing = true
+                EprobaApplication.instance.apiHelper.getExams(ignoreLastSync = ignoreExamsLastSync)
+                mSwipeRefreshLayout.isRefreshing = false
+                ignoreExamsLastSync = !ignoreExamsLastSync
+            }
             getUsers()
         }
-        updateExams()
+        lifecycleScope.launch {
+            mSwipeRefreshLayout.isRefreshing = true
+            EprobaApplication.instance.apiHelper.getExams()
+            mSwipeRefreshLayout.isRefreshing = false
+        }
         (activity as? MainActivity)?.bottomNavigation?.setOnItemReselectedListener {
             recyclerView?.smoothSnapToPosition(0)
         }
@@ -373,93 +392,6 @@ class ManageExamsFragment : Fragment() {
                 }
             }
         }
-    }
-
-    private fun updateExams() {
-        lifecycleScope.launch {
-            mSwipeRefreshLayout.isRefreshing = true
-            EprobaApplication.instance.apiHelper.getExams()
-            mSwipeRefreshLayout.isRefreshing = false
-        }
-//        var lastSync = sharedPreferences.getLong("lastSync", 0)
-//        service.getExamsList()
-//            .enqueue(object : retrofit2.Callback<List<Exam>> {
-//                override fun onFailure(call: retrofit2.Call<List<Exam>>, t: Throwable) {
-//                    view?.let {
-//                        Snackbar.make(
-//                            it,
-//                            "Błąd połączenia z serwerem",
-//                            Snackbar.LENGTH_SHORT
-//                        ).show()
-//                    }
-//                    t.message?.let { Log.e("ManageExamsFragment", it) }
-//                    mSwipeRefreshLayout.isRefreshing = false
-//                }
-//
-//                override fun onResponse(
-//                    call: retrofit2.Call<List<Exam>>,
-//                    response: retrofit2.Response<List<Exam>>
-//                ) {
-//                    if (response.body() != null) {
-//                        lifecycleScope.launch {
-//                            examDao.nukeTable()
-//                            examDao.insert(*response.body()!!.toTypedArray())
-//                        }
-//                    } else {
-//                        view?.let {
-//                            Snackbar.make(
-//                                it,
-//                                "Błąd połączenia z serwerem",
-//                                Toast.LENGTH_SHORT
-//                            ).show()
-//                        }
-//                    }
-//                    mSwipeRefreshLayout.isRefreshing = false
-//                    val userIds: MutableSet<Long> = mutableSetOf()
-//                    response.body()?.forEach {
-//                        if (it.userId != null) userIds.add(it.userId!!)
-//                        if (it.supervisor != null) userIds.add(it.supervisor!!)
-//                        if (it.tasks.isNotEmpty()) it.tasks.forEach { task ->
-//                            if (task.approver != null) userIds.add(task.approver!!)
-//                        }
-//                    }
-//                    userIds.filter { id -> users.find { it.id == id } == null }.forEach { id ->
-//                        service.getUserCall(id)
-//                            .enqueue(object : retrofit2.Callback<User> {
-//                                override fun onFailure(
-//                                    call: retrofit2.Call<User>,
-//                                    t: Throwable
-//                                ) {
-//                                    view?.let {
-//                                        Snackbar.make(
-//                                            it,
-//                                            "Błąd połączenia z serwerem",
-//                                            Snackbar.LENGTH_SHORT
-//                                        ).show()
-//                                    }
-//                                }
-//
-//                                override fun onResponse(
-//                                    call: retrofit2.Call<User>,
-//                                    response: retrofit2.Response<User>
-//                                ) {
-//                                    if (response.body() != null) {
-//                                        users.add(response.body()!!)
-//                                        lifecycleScope.launch {
-//                                            userDao.insert(response.body()!!)
-//                                        }
-//                                        sharedPreferences.edit().putLong(
-//                                            "lastSync",
-//                                            System.currentTimeMillis()
-//                                        ).apply()
-//                                        recyclerView?.adapter?.notifyDataSetChanged()
-//                                    }
-//                                }
-//                            })
-//
-//                    }
-//                }
-//            })
     }
 
 

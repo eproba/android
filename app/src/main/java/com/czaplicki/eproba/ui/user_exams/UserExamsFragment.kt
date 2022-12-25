@@ -56,11 +56,12 @@ class UserExamsFragment : Fragment() {
     private val examDao: ExamDao = app.database.examDao()
     var users: MutableList<User> = mutableListOf()
     private val viewModel: ExamsViewModel by viewModels { ExamsViewModel.Factory }
-    val sharedPreferences: SharedPreferences by lazy {
+    private val sharedPreferences: SharedPreferences by lazy {
         PreferenceManager.getDefaultSharedPreferences(
             requireContext()
         )
     }
+    var ignoreExamsLastSync = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -136,7 +137,13 @@ class UserExamsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         mSwipeRefreshLayout.setOnRefreshListener {
-            updateExams()
+            lifecycleScope.launch {
+                mSwipeRefreshLayout.isRefreshing = true
+                app.apiHelper.getExams(userOnly = true, ignoreLastSync = ignoreExamsLastSync)
+                mSwipeRefreshLayout.isRefreshing = false
+                ignoreExamsLastSync = !ignoreExamsLastSync
+            }
+            (activity as MainActivity).user?.let { viewModel.userId = it.id }
             getUsers()
         }
         recyclerView!!.setOnScrollChangeListener { _, _, _, _, oldY ->
@@ -193,97 +200,16 @@ class UserExamsFragment : Fragment() {
         }
         (activity as MainActivity).user?.let { viewModel.userId = it.id }
         if (mAuthStateManager.current.isAuthorized) {
-            updateExams()
+            lifecycleScope.launch {
+                mSwipeRefreshLayout.isRefreshing = true
+                app.apiHelper.getExams(userOnly = true)
+                mSwipeRefreshLayout.isRefreshing = false
+            }
+            (activity as MainActivity).user?.let { viewModel.userId = it.id }
         }
         (activity as? MainActivity)?.bottomNavigation?.setOnItemReselectedListener {
             recyclerView?.smoothSnapToPosition(0)
         }
-    }
-
-    private fun updateExams() {
-        lifecycleScope.launch {
-            mSwipeRefreshLayout.isRefreshing = true
-            app.apiHelper.getExams(userOnly = true)
-            mSwipeRefreshLayout.isRefreshing = false
-        }
-        (activity as MainActivity).user?.let { viewModel.userId = it.id }
-//        service.getUserExamsCall()
-//            .enqueue(object : retrofit2.Callback<List<Exam>> {
-//                override fun onFailure(call: retrofit2.Call<List<Exam>>, t: Throwable) {
-//                    view?.let {
-//                        Snackbar.make(
-//                            it,
-//                            "Błąd połączenia z serwerem",
-//                            Snackbar.LENGTH_LONG
-//                        ).show()
-//                    }
-//                    mSwipeRefreshLayout.isRefreshing = false
-//                }
-//
-//                override fun onResponse(
-//                    call: retrofit2.Call<List<Exam>>,
-//                    response: retrofit2.Response<List<Exam>>
-//                ) {
-//                    if (response.body() != null) {
-//                        lifecycleScope.launch {
-//                            examDao.nukeTable()
-//                            examDao.insert(*response.body()!!.toTypedArray())
-//                        }
-//                    } else {
-//                        view?.let {
-//                            Snackbar.make(
-//                                it,
-//                                "Błąd połączenia z serwerem",
-//                                Snackbar.LENGTH_LONG
-//                            ).show()
-//                        }
-//                    }
-//                    mSwipeRefreshLayout.isRefreshing = false
-//                    val userIds: MutableSet<Long> = mutableSetOf()
-//                    response.body()?.forEach {
-//                        if (it.userId != null) userIds.add(it.userId!!)
-//                        if (it.supervisor != null) userIds.add(it.supervisor!!)
-//                        if (it.tasks.isNotEmpty()) it.tasks.forEach { task ->
-//                            if (task.approver != null) userIds.add(task.approver!!)
-//                        }
-//                    }
-//                    userIds.filter { id -> users.find { it.id == id } == null }.forEach { id ->
-//                        service.getUserCall(id)
-//                            .enqueue(object : retrofit2.Callback<User> {
-//                                override fun onFailure(
-//                                    call: retrofit2.Call<User>,
-//                                    t: Throwable
-//                                ) {
-//                                    view?.let {
-//                                        Snackbar.make(
-//                                            it,
-//                                            "Błąd połączenia z serwerem",
-//                                            Snackbar.LENGTH_SHORT
-//                                        ).show()
-//                                    }
-//                                }
-//
-//                                override fun onResponse(
-//                                    call: retrofit2.Call<User>,
-//                                    response: retrofit2.Response<User>
-//                                ) {
-//                                    if (response.body() != null) {
-//                                        users.add(response.body()!!)
-//                                        lifecycleScope.launch {
-//                                            userDao.insert(response.body()!!)
-//                                        }
-//                                        sharedPreferences.edit().putLong(
-//                                            "lastSync",
-//                                            System.currentTimeMillis()
-//                                        ).apply()
-//                                        recyclerView?.adapter?.notifyDataSetChanged()
-//                                    }
-//                                }
-//                            })
-//
-//                    }
-//                }
-//            })
     }
 
 

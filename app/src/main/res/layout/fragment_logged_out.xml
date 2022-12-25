@@ -32,7 +32,6 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="128dp"
         android:text="@string/relogin"
-        android:textColor="?attr/colorOnError"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

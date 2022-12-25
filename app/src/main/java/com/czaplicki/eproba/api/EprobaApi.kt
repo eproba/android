@@ -70,6 +70,7 @@ class AccessTokenInterceptor : Interceptor {
                     }
                 } catch (e: AuthorizationException) {
                     if (e == AuthorizationException.TokenRequestErrors.INVALID_GRANT || e == AuthorizationException.TokenRequestErrors.INVALID_REQUEST) {
+                        app.sharedPreferences.edit().clear().apply()
                         app.getActiveActivity()?.let { activity ->
                             LoggedOutScreen().show(
                                 (activity as AppCompatActivity).supportFragmentManager,
@@ -112,6 +113,7 @@ class TokenAuthenticator : Authenticator {
             return newRequestWithAccessToken(response.request, accessToken!!)
         } catch (e: AuthorizationException) {
             if (e == AuthorizationException.TokenRequestErrors.INVALID_GRANT || e == AuthorizationException.TokenRequestErrors.INVALID_REQUEST) {
+                app.sharedPreferences.edit().clear().apply()
                 app.getActiveActivity()?.let { activity ->
                     LoggedOutScreen().show(
                         (activity as AppCompatActivity).supportFragmentManager,

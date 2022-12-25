@@ -184,9 +184,7 @@ class ManagedTaskAdapter(
                                     .setTitle(R.string.error_dialog_title)
                                     .setIcon(R.drawable.ic_error)
                                     .setMessage(R.string.task_rejection_error_message)
-                                    .setPositiveButton(android.R.string.ok) { dialog, _ ->
-                                        dialog.dismiss()
-                                    }
+                                    .setPositiveButton(android.R.string.ok, null)
                                     .show()
                                 dialog.dismiss()
                             }
@@ -200,9 +198,7 @@ class ManagedTaskAdapter(
                                 .setTitle(R.string.error_dialog_title)
                                 .setIcon(R.drawable.ic_error)
                                 .setMessage(R.string.task_rejection_error_message)
-                                .setPositiveButton(android.R.string.ok) { dialog, _ ->
-                                    dialog.dismiss()
-                                }
+                                .setPositiveButton(android.R.string.ok, null)
                                 .show()
                             dialog.dismiss()
                         }
@@ -272,9 +268,7 @@ class ManagedTaskAdapter(
                                     .setTitle(R.string.error_dialog_title)
                                     .setIcon(R.drawable.ic_error)
                                     .setMessage(R.string.task_approval_error_message)
-                                    .setPositiveButton(android.R.string.ok) { dialog, _ ->
-                                        dialog.dismiss()
-                                    }
+                                    .setPositiveButton(android.R.string.ok, null)
                                     .show()
                                 dialog.dismiss()
                             }
@@ -288,9 +282,7 @@ class ManagedTaskAdapter(
                                 .setTitle(R.string.error_dialog_title)
                                 .setIcon(R.drawable.ic_error)
                                 .setMessage(R.string.task_approval_error_message)
-                                .setPositiveButton(android.R.string.ok) { dialog, _ ->
-                                    dialog.dismiss()
-                                }
+                                .setPositiveButton(android.R.string.ok, null)
                                 .show()
                             dialog.dismiss()
                         }

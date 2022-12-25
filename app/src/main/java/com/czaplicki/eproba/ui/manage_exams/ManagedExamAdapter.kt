@@ -13,6 +13,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.czaplicki.eproba.EprobaApplication
 import com.czaplicki.eproba.R
 import com.czaplicki.eproba.api.EprobaService
 import com.czaplicki.eproba.db.Exam
@@ -30,8 +31,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
-import retrofit2.Call
-import retrofit2.Callback
+import org.json.JSONObject
 import retrofit2.Response
 
 
@@ -150,6 +150,10 @@ class ManagedExamAdapter(
         viewHolder.menuButton.setOnClickListener {
             val popup = PopupMenu(viewHolder.itemView.context, viewHolder.menuButton)
             popup.menuInflater.inflate(R.menu.exam_menu, popup.menu)
+            popup.menu.findItem(R.id.archive_exam).title =
+                if (exam.isArchived) viewHolder.itemView.context.getString(
+                    R.string.unarchive_exam
+                ) else viewHolder.itemView.context.getString(R.string.archive_exam)
             popup.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
                     R.id.edit_exam -> {
@@ -180,16 +184,23 @@ class ManagedExamAdapter(
                                 dialog.dismiss()
                             }
                             .setPositiveButton(R.string.delete_exam) { dialog, _ ->
-                                service.deleteExam(exam.id).enqueue(object : Callback<Void> {
-                                    override fun onResponse(
-                                        call: Call<Void>,
-                                        response: Response<Void>
-                                    ) {
-                                        if (response.isSuccessful) {
-                                            GlobalScope.launch {
-                                                examDao.delete(exam)
-                                            }
-                                            dataSet.removeAt(viewHolder.adapterPosition)
+                                GlobalScope.launch {
+                                    try {
+                                        val response: Response<Void> = if (!exam.isArchived) {
+                                            service.deleteExam(exam.id)
+                                        } else {
+                                            service.deleteArchivedExam(exam.id)
+                                        }
+                                        if (!response.isSuccessful) {
+                                            throw Exception(response.errorBody()?.string()
+                                                ?.let { it1 ->
+                                                    JSONObject(it1).getString("detail")
+                                                        ?: response.errorBody()?.string()
+                                                })
+                                        }
+                                        examDao.delete(exam)
+                                        dataSet.removeAt(viewHolder.adapterPosition)
+                                        EprobaApplication.instance.currentActivity?.runOnUiThread {
                                             notifyItemRemoved(viewHolder.adapterPosition)
                                             Snackbar.make(
                                                 viewHolder.itemView.rootView,
@@ -199,39 +210,27 @@ class ManagedExamAdapter(
                                                 Snackbar.LENGTH_LONG
                                             ).show()
                                             dialog.dismiss()
-                                        } else {
+                                        }
+                                    } catch (e: Exception) {
+                                        EprobaApplication.instance.currentActivity?.runOnUiThread {
                                             MaterialAlertDialogBuilder(
                                                 viewHolder.itemView.context,
                                                 com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
                                             )
                                                 .setTitle(R.string.error_dialog_title)
                                                 .setIcon(R.drawable.ic_error)
-                                                .setMessage(R.string.exam_deletion_error)
-                                                .setPositiveButton(android.R.string.ok) { dialog, _ ->
-                                                    dialog.dismiss()
-                                                }
+                                                .setMessage(
+                                                    viewHolder.itemView.context.getString(
+                                                        R.string.exam_deletion_error,
+                                                        e.message
+                                                    )
+                                                )
+                                                .setPositiveButton(android.R.string.ok, null)
                                                 .show()
                                             dialog.dismiss()
                                         }
                                     }
-
-                                    override fun onFailure(call: Call<Void>, t: Throwable) {
-                                        MaterialAlertDialogBuilder(
-                                            viewHolder.itemView.context,
-                                            com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
-                                        )
-                                            .setTitle(R.string.error_dialog_title)
-                                            .setIcon(R.drawable.ic_error)
-                                            .setMessage(R.string.exam_deletion_error)
-                                            .setPositiveButton(android.R.string.ok) { dialog, _ ->
-                                                dialog.dismiss()
-                                            }
-                                            .show()
-                                        dialog.dismiss()
-                                    }
-                                })
-
-
+                                }
                             }
                             .show()
                         true
@@ -242,74 +241,72 @@ class ManagedExamAdapter(
                             viewHolder.itemView.context,
                             com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
                         )
-                            .setTitle(R.string.archive_exam_title)
+                            .setTitle(if (exam.isArchived) R.string.unarchive_exam_title else R.string.archive_exam_title)
                             .setMessage(
                                 viewHolder.itemView.context.getString(
-                                    R.string.archive_exam_confirmation,
+                                    if (exam.isArchived) R.string.unarchive_exam_confirmation else R.string.archive_exam_confirmation,
                                     exam.name + " - " + users.find { it.id == exam.userId }?.nicknameWithRank
                                 )
                             )
-                            .setIcon(R.drawable.archive_48px)
+                            .setIcon(if (exam.isArchived) R.drawable.unarchive_48px else R.drawable.archive_48px)
                             .setNeutralButton(R.string.cancel) { dialog, _ ->
                                 dialog.dismiss()
                             }
-                            .setPositiveButton(R.string.archive_exam) { dialog, _ ->
-                                service.updateExam(
-                                    exam.id,
-                                    "{\"is_archived\": true}".toRequestBody("application/json".toMediaTypeOrNull())
-                                ).enqueue(object : Callback<Exam> {
-                                    override fun onResponse(
-                                        call: Call<Exam>,
-                                        response: Response<Exam>
-                                    ) {
-                                        if (response.isSuccessful) {
-                                            GlobalScope.launch {
-                                                examDao.delete(exam)
+                            .setPositiveButton(if (exam.isArchived) R.string.unarchive_exam else R.string.archive_exam) { dialog, _ ->
+                                GlobalScope.launch {
+                                    try {
+                                        examDao.insert(
+                                            if (!exam.isArchived) {
+                                                service.updateExam(
+                                                    exam.id,
+                                                    "{\"is_archived\": true}".toRequestBody(
+                                                        "application/json".toMediaTypeOrNull()
+                                                    )
+                                                )
+                                            } else {
+                                                service.updateExamInArchive(
+                                                    exam.id,
+                                                    "{\"is_archived\": false}".toRequestBody(
+                                                        "application/json".toMediaTypeOrNull()
+                                                    )
+                                                )
                                             }
-                                            dataSet.removeAt(viewHolder.adapterPosition)
+                                        )
+                                        dataSet.removeAt(viewHolder.adapterPosition)
+                                        EprobaApplication.instance.currentActivity?.runOnUiThread {
                                             notifyItemRemoved(viewHolder.adapterPosition)
                                             Snackbar.make(
                                                 viewHolder.itemView.rootView,
                                                 viewHolder.itemView.context.getString(
-                                                    R.string.exam_archived
+                                                    if (exam.isArchived) R.string.exam_unarchived else R.string.exam_archived
                                                 ),
                                                 Snackbar.LENGTH_LONG
                                             ).show()
                                             dialog.dismiss()
-                                        } else {
+                                        }
+                                    } catch (e: Exception) {
+                                        EprobaApplication.instance.currentActivity?.runOnUiThread {
                                             MaterialAlertDialogBuilder(
                                                 viewHolder.itemView.context,
                                                 com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
                                             )
                                                 .setTitle(R.string.error_dialog_title)
                                                 .setIcon(R.drawable.ic_error)
-                                                .setMessage(R.string.exam_deletion_error)
-                                                .setPositiveButton(android.R.string.ok) { dialog, _ ->
-                                                    dialog.dismiss()
+                                                .setMessage(
+                                                    viewHolder.itemView.context.getString(
+                                                        if (exam.isArchived) R.string.exam_unarchiving_error else R.string.exam_archiving_error,
+                                                        e.message
+                                                    )
+                                                )
+                                                .setPositiveButton(android.R.string.ok) { errorDialog, _ ->
+                                                    errorDialog.dismiss()
                                                 }
                                                 .show()
                                             dialog.dismiss()
                                         }
                                     }
-
-                                    override fun onFailure(call: Call<Exam>, t: Throwable) {
-                                        MaterialAlertDialogBuilder(
-                                            viewHolder.itemView.context,
-                                            com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
-                                        )
-                                            .setTitle(R.string.error_dialog_title)
-                                            .setIcon(R.drawable.ic_error)
-                                            .setMessage(R.string.exam_deletion_error)
-                                            .setPositiveButton(android.R.string.ok) { dialog, _ ->
-                                                dialog.dismiss()
-                                            }
-                                            .show()
-                                        dialog.dismiss()
-                                    }
-                                })
-
+                                }
                             }
-
                             .show()
                         true
                     }

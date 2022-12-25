@@ -62,8 +62,8 @@ class EprobaApiHelper {
                     service.getExams()
                 } as MutableList<Exam>
                 examDao.nukeTable()
-                examDao.insert(*exams.toTypedArray())
-                examsUpdate.addedExams.addAll(exams)
+                examDao.insert(*exams.filter { !it.isDeleted }.toTypedArray())
+                examsUpdate.addedExams.addAll(exams.filter { !it.isDeleted })
             } else {
                 for (exam in if (userOnly) {
                     service.getUserExams(lastUserExamsUpdate)
@@ -163,7 +163,7 @@ class EprobaApiHelper {
             return users
         } catch (e: Exception) {
             Log.e("EprobaApiHelper", "getUsersCall: ", e)
-            return listOf()
+            return userDao.getAllNow()
         }
     }
 
@@ -209,9 +209,13 @@ class EprobaApiHelper {
             name = Build.MODEL,
             token = token,
         )
-        service.registerFCMDevice(
-            device.toJSONString().toRequestBody("application/json".toMediaType())
-        )
+        try {
+            service.registerFCMDevice(
+                device.toJSONString().toRequestBody("application/json".toMediaType())
+            )
+        } catch (e: Exception) {
+            Log.e("EprobaApiHelper", "registerFCMToken: ", e)
+        }
     }
 
 
