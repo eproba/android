@@ -33,6 +33,7 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import retrofit2.Response
+import java.time.format.DateTimeFormatter
 
 
 class ManagedExamAdapter(
@@ -51,6 +52,8 @@ class ManagedExamAdapter(
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val name: TextView
         val supervisor: TextView
+        val lastUpdate: TextView
+        val lastUpdateString: TextView
         val progressPercentage: TextView
         val adFrame: FrameLayout
         val taskList: RecyclerView
@@ -60,6 +63,8 @@ class ManagedExamAdapter(
             // Define click listener for the ViewHolder's View.
             name = view.findViewById(R.id.name)
             supervisor = view.findViewById(R.id.supervisor)
+            lastUpdate = view.findViewById(R.id.last_update)
+            lastUpdateString = view.findViewById(R.id.last_update_string)
             progressPercentage = view.findViewById(R.id.progressPercentage)
             adFrame = view.findViewById(R.id.ad_frame)
             taskList = view.findViewById(R.id.task_list) as RecyclerView
@@ -136,6 +141,10 @@ class ManagedExamAdapter(
         } else {
             viewHolder.supervisor.visibility = View.GONE
         }
+        viewHolder.lastUpdate.visibility = View.VISIBLE
+        viewHolder.lastUpdateString.visibility = View.VISIBLE
+        viewHolder.lastUpdate.text =
+            DateTimeFormatter.ofPattern("dd.MM.yyyy").format(exam.lastUpdate)
         viewHolder.progressPercentage.visibility = View.VISIBLE
         viewHolder.progressPercentage.text =
             if (exam.tasks.size == 0) "" else viewHolder.itemView.context.getString(

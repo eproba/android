@@ -193,7 +193,7 @@ class ManageExamsFragment : Fragment() {
         sharedPreferences.getLong("lastSync", 0).let {
             lifecycleScope.launch {
                 users.clear()
-                users.addAll(userDao.getAllNow())
+                users.addAll(userDao.getAll())
                 recyclerView?.adapter?.notifyDataSetChanged()
             }
             if (it == 0L || System.currentTimeMillis() - it > 3600000) {

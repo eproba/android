@@ -17,7 +17,7 @@ interface EprobaService {
     @GET("user/")
     suspend fun getUser(): User
 
-    @GET("user/{id}/")
+    @GET("users/{id}/")
     suspend fun getUser(@Path("id") id: Long): User
 
     @GET("users/")

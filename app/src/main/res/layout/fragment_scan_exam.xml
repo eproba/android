@@ -38,27 +38,43 @@
             app:layout_constraintTop_toBottomOf="@+id/textview_camera"
             tools:visibility="visible" />
 
+
         <Button
-            android:id="@+id/submitButton"
+            android:id="@+id/refresh_button"
+            style="@style/Widget.Material3.Button.ElevatedButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="@string/submit"
+            android:text="@string/select_image"
             android:visibility="gone"
-            app:layout_constraintEnd_toStartOf="@id/refreshButton"
+            app:layout_constraintEnd_toStartOf="@+id/edit_button"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textview_camera"
             tools:visibility="visible" />
 
         <Button
-            android:id="@+id/refreshButton"
+            android:id="@+id/edit_button"
+            style="?attr/materialButtonOutlinedStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Select image"
+            android:text="@string/edit"
+            android:visibility="gone"
+            app:layout_constraintEnd_toStartOf="@id/submit_button"
+            app:layout_constraintStart_toEndOf="@id/refresh_button"
+            app:layout_constraintTop_toBottomOf="@+id/textview_camera"
+            tools:visibility="visible" />
+
+
+        <Button
+            android:id="@+id/submit_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/submit"
             android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/submitButton"
+            app:layout_constraintStart_toEndOf="@+id/edit_button"
             app:layout_constraintTop_toBottomOf="@+id/textview_camera"
             tools:visibility="visible" />
 

@@ -1,19 +1,20 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
-    id 'com.google.devtools.ksp' version '1.7.21-1.0.8'
+    id 'com.google.devtools.ksp' version '1.8.10-1.0.9'
     id 'com.google.gms.google-services'
 }
 
 android {
     compileSdk 33
+    compileSdkPreview "UpsideDownCake"
 
     defaultConfig {
         applicationId "com.czaplicki.eproba"
         minSdk 26
         targetSdk 33
-        versionCode 14
-        versionName 'alpha.14'
+        versionCode 15
+        versionName 'beta.1'
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         javaCompileOptions {
@@ -29,7 +30,7 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -49,37 +50,41 @@ android {
 dependencies {
     // AndroidX
     implementation 'androidx.core:core-ktx:1.9.0'
-    implementation 'androidx.appcompat:appcompat:1.5.1'
-    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.5.1'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1'
-    implementation 'androidx.room:room-runtime:2.5.0-rc01'
-    implementation 'androidx.room:room-ktx:2.5.0-rc01'
-    implementation 'androidx.activity:activity-ktx:1.7.0-alpha02'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.6.1'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1'
+    implementation 'androidx.room:room-runtime:2.5.1'
+    implementation 'androidx.room:room-ktx:2.5.1'
+    implementation 'androidx.activity:activity-ktx:1.8.0-alpha02'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
     implementation 'androidx.navigation:navigation-fragment-ktx:2.5.3'
     implementation 'androidx.navigation:navigation-ui-ktx:2.5.3'
-    implementation 'androidx.preference:preference:1.2.0'
-    ksp 'androidx.room:room-compiler:2.5.0-rc01'
-    annotationProcessor 'androidx.room:room-compiler:2.5.0-rc01'
+    implementation 'androidx.preference:preference-ktx:1.2.0'
+    ksp 'androidx.room:room-compiler:2.5.1'
+    annotationProcessor 'androidx.room:room-compiler:2.5.1'
 
     // Firebase & Google
-    implementation platform('com.google.firebase:firebase-bom:31.1.1')
+    implementation platform('com.google.firebase:firebase-bom:31.3.0')
     implementation 'com.google.firebase:firebase-analytics-ktx'
-    implementation 'com.google.android.gms:play-services-ads:21.4.0'
+    implementation 'com.google.android.gms:play-services-ads:21.5.0'
     implementation 'com.google.firebase:firebase-messaging-ktx'
 
     // Network & JSON
     implementation 'com.squareup.okhttp3:okhttp:5.0.0-alpha.10'
-    implementation 'com.google.code.gson:gson:2.10'
+    implementation 'com.google.code.gson:gson:2.10.1'
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
 
-    implementation 'com.google.android.material:material:1.8.0-beta01'
+    implementation 'com.google.android.material:material:1.9.0-beta01'
     implementation 'com.google.mlkit:text-recognition:16.0.0-beta6'
     implementation 'net.openid:appauth:0.11.1'
-    implementation 'com.airbnb.android:lottie:5.2.0'
+    implementation 'com.airbnb.android:lottie:6.0.0'
     testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.4'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.0'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+
+    // Chucker
+    releaseImplementation "com.github.chuckerteam.chucker:library-no-op:3.5.2"
+    debugImplementation "com.github.chuckerteam.chucker:library:3.5.2"
 }

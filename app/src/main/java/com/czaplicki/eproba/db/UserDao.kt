@@ -5,7 +5,7 @@ import androidx.room.*
 @Dao
 interface UserDao {
     @Query("SELECT * FROM users")
-    suspend fun getAllNow(): List<User>
+    suspend fun getAll(): List<User>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(vararg users: User)

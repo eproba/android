@@ -99,7 +99,7 @@ class EprobaApiHelper {
 
     private suspend fun getMissingUsers(exams: List<Exam>) {
         val examsUserIds: MutableSet<Long> = mutableSetOf()
-        val users = userDao.getAllNow()
+        val users = userDao.getAll()
         exams.forEach {
             if (it.userId != null) examsUserIds.add(it.userId!!)
             if (it.supervisor != null) examsUserIds.add(it.supervisor!!)
@@ -163,7 +163,7 @@ class EprobaApiHelper {
             return users
         } catch (e: Exception) {
             Log.e("EprobaApiHelper", "getUsersCall: ", e)
-            return userDao.getAllNow()
+            return userDao.getAll()
         }
     }
 

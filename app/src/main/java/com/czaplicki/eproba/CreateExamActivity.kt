@@ -7,8 +7,11 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
+import androidx.preference.PreferenceManager
 import com.czaplicki.eproba.databinding.ActivityCreateExamBinding
+import com.czaplicki.eproba.db.User
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.gson.Gson
 
 class CreateExamActivity : AppCompatActivity() {
 
@@ -25,6 +28,15 @@ class CreateExamActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
 
         bottomNavigationView = binding.navView
+
+        if (Gson().fromJson(
+                PreferenceManager.getDefaultSharedPreferences(this).getString("user", null),
+                User::class.java
+            ).scout.function < 2
+        ) {
+            bottomNavigationView.menu.getItem(2).isVisible = false
+        }
+
 
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.

@@ -87,11 +87,25 @@
     <string name="demoted_title">You\'ve been demoted</string>
     <string name="demoted_message">Unfortunately, you have been demoted. \nPlease be aware that you will no longer have access to certain features.</string>
     <string name="general_notification_channel_name">General</string>
-    <string name="exam_creaded">Exam created</string>
+    <string name="exam_created">Exam created</string>
     <string name="enable">Enable</string>
     <string name="skip">Skip</string>
     <string name="notifications_request_title">Get notified!</string>
     <string name="notifications_request_message">Stay on top of your exams and get notified when something needs your attention</string>
     <string name="permission_denied">Permission denied</string>
     <string name="notifications_permission_denied_message">You will not receive any notifications, if you would like to change it, go to settings and allow notifications for this app.</string>
+    <string name="last_updated_at">Last updated at:</string>
+    <string name="supervisor">Supervisor</string>
+    <string name="use_template">Use template</string>
+    <string name="task">Task</string>
+    <string name="tasks">Tasks</string>
+    <string name="add_another_task">Add another task</string>
+    <string name="clear">Clear</string>
+    <string name="required_field">This field is required</string>
+    <string name="users_list_download_error">Couldn\'t download the list of users, please try again leater.</string>
+    <string name="at_least_one_task_is_required">At least one task is required</string>
+    <string name="fill_in_all_fields">Please fill in all fields</string>
+    <string name="user_does_not_exist">User doesn\'t exist</string>
+    <string name="select_image">Select image</string>
+    <string name="edit">Edit</string>
 </resources>

@@ -88,11 +88,25 @@
     <string name="demoted_title">Zostałeś/aś zdegradowany/a</string>
     <string name="demoted_message">Zostałeś/aś zdegradowany/a i utraciłeś/aś dostęp do niektórych funkcji.</string>
     <string name="general_notification_channel_name">Ogólne</string>
-    <string name="exam_creaded">Utworzono próbę</string>
+    <string name="exam_created">Utworzono próbę</string>
     <string name="enable">Włącz</string>
     <string name="skip">Pomiń</string>
     <string name="notifications_request_title">Otrzymuj powiadomienia!</string>
     <string name="notifications_request_message">Bądź na bieżąco ze swoimi próbami i otrzymuj powiadomienia, gdy coś będzie wymagało Twojej uwagi</string>
     <string name="permission_denied">Brak uprawnień</string>
     <string name="notifications_permission_denied_message">Nie będziesz otrzymywać powiadomień z aplikacji, jeśli będziesz chciał to zmienić, przejdź do ustawień i zezwól na powiadomienia dla Epróby.</string>
+    <string name="user_does_not_exist">Nie ma takiego użytkownika</string>
+    <string name="required_field">To pole jest wymagane</string>
+    <string name="last_updated_at">"Ostatnio edytowano: "</string>
+    <string name="supervisor">Opiekun</string>
+    <string name="use_template">Użyj szablonu</string>
+    <string name="task">Zadanie</string>
+    <string name="tasks">Zadania</string>
+    <string name="add_another_task">Dodaj kolejne zadanie</string>
+    <string name="clear">Wyczyść</string>
+    <string name="users_list_download_error">Nie udało się pobrać listy użytkowników</string>
+    <string name="at_least_one_task_is_required">Przynajmniej jedno zadanie jest wymagane</string>
+    <string name="fill_in_all_fields">Wypełnij wszystkie pola</string>
+    <string name="select_image">Wybierz zdjęcie</string>
+    <string name="edit">Edytuj</string>
 </resources>

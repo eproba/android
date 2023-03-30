@@ -12,6 +12,7 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.Navigation
 import androidx.preference.PreferenceManager
 import com.czaplicki.eproba.api.EprobaService
 import com.czaplicki.eproba.databinding.FragmentScanExamBinding
@@ -81,7 +82,7 @@ class ScanExamFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         (activity as? CreateExamActivity)?.bottomNavigationView?.setOnItemReselectedListener {
-            binding.scrollView.fullScroll(View.FOCUS_UP)
+            _binding?.scrollView?.fullScroll(View.FOCUS_UP)
             (activity as? CreateExamActivity)?.supportActionBar?.setDisplayHomeAsUpEnabled(
                 true
             )
@@ -108,7 +109,7 @@ class ScanExamFragment : Fragment() {
                     ?: 0) > tableTop && cornerPoints[3].y > tableTop && block.text.length > 10
             ) {
                 if (block.lines.size > 1 && averageLineHeight != null) {
-                    if (block.lines.size * 1.5 * averageLineHeight < block.boundingBox!!.height()) {
+                    if (block.lines.size * 3 * averageLineHeight < block.boundingBox!!.height()) {
                         block.lines.forEach { line ->
                             var task = line.text.replace("\n", " ")
                             while (task[0].isDigit() || task[0] == '.') {
@@ -155,6 +156,7 @@ class ScanExamFragment : Fragment() {
                     binding.textviewCamera.visibility = View.GONE
                     binding.submitButton.visibility = View.GONE
                     binding.refreshButton.visibility = View.GONE
+                    binding.editButton.visibility = View.GONE
                     getImage()
                 }
             } else {
@@ -256,6 +258,7 @@ class ScanExamFragment : Fragment() {
                             scannedExam.updateAverageLineHeight(line.boundingBox!!.height())
                         }
 
+
                     }
 
                 }
@@ -308,22 +311,39 @@ class ScanExamFragment : Fragment() {
                     submitExam(scannedExam.exam)
                 }
                 binding.refreshButton.visibility = View.VISIBLE
+                binding.editButton.visibility = View.VISIBLE
                 binding.refreshButton.setOnClickListener {
                     binding.textviewCamera.text = ""
                     binding.textviewCamera.visibility = View.GONE
                     binding.submitButton.visibility = View.GONE
                     binding.refreshButton.visibility = View.GONE
+                    binding.editButton.visibility = View.GONE
                     getImage()
+                }
+                binding.editButton.setOnClickListener {
+                    val exam = scannedExam.exam
+                    exam.name = binding.examName.editText?.text.toString()
+                    val bundle = Bundle()
+                    bundle.putString("initialData", Gson().toJson(exam))
+                    bundle.putString(
+                        "initialDataNickname",
+                        binding.userSelect.editText?.text.toString()
+                    )
+                    view?.let { it1 ->
+                        Navigation.findNavController(it1).navigate(R.id.navigation_compose, bundle)
+                    }
                 }
             }
             .addOnFailureListener { e ->
                 Toast.makeText(context, "Error processing image:\n$e", Toast.LENGTH_SHORT).show()
                 binding.refreshButton.visibility = View.VISIBLE
+                binding.editButton.visibility = View.GONE
                 binding.refreshButton.setOnClickListener {
                     binding.textviewCamera.text = ""
                     binding.textviewCamera.visibility = View.GONE
                     binding.submitButton.visibility = View.GONE
                     binding.refreshButton.visibility = View.GONE
+                    binding.editButton.visibility = View.GONE
                     getImage()
                 }
             }
@@ -338,7 +358,7 @@ class ScanExamFragment : Fragment() {
                 .show()
             return
         }
-        if (user.scout.function >= 2 && binding.userSelect.editText?.text.toString() != "") {
+        if (user.scout.function >= 2 && binding.userSelect.editText?.text.toString().isNotBlank()) {
             exam.userId =
                 users.find { it.nickname == binding.userSelect.editText?.text.toString() }?.id
         } else {
@@ -394,7 +414,7 @@ class ScanExamFragment : Fragment() {
                         requireContext(),
                         com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
                     )
-                        .setTitle(R.string.exam_creaded)
+                        .setTitle(R.string.exam_created)
                         .setIcon(R.drawable.ic_success)
                         .setPositiveButton(android.R.string.ok) { dialog, _ ->
                             dialog.dismiss()

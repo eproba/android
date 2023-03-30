@@ -3,6 +3,8 @@ package com.czaplicki.eproba.api
 import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
+import com.chuckerteam.chucker.api.ChuckerCollector
+import com.chuckerteam.chucker.api.ChuckerInterceptor
 import com.czaplicki.eproba.EprobaApplication
 import com.czaplicki.eproba.LoggedOutScreen
 import com.google.gson.GsonBuilder
@@ -29,6 +31,14 @@ class EprobaApi {
         if (retrofit == null) {
             client = OkHttpClient.Builder().callTimeout(10, SECONDS)
                 .addInterceptor(AccessTokenInterceptor())
+                .addInterceptor(
+                    ChuckerInterceptor.Builder(context)
+                        .collector(ChuckerCollector(context))
+                        .maxContentLength(250000L)
+                        .redactHeaders(emptySet())
+                        .alwaysReadResponseBody(false)
+                        .build()
+                )
                 .authenticator(TokenAuthenticator())
                 .build()
             val gson = GsonBuilder().registerTypeAdapter(

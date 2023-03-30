@@ -13,7 +13,7 @@
 
     <fragment
         android:id="@+id/navigation_compose"
-        android:name="com.czaplicki.eproba.ui.compose.ComposeFragment"
+        android:name="com.czaplicki.eproba.ui.compose_exam.ComposeFragment"
         android:label="@string/title_compose_exam"
         tools:layout="@layout/fragment_compose" />
 

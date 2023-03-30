@@ -111,7 +111,7 @@ class AcceptTasksFragment : Fragment() {
             } else {
                 lifecycleScope.launch {
                     users.clear()
-                    users.addAll(userDao.getAllNow())
+                    users.addAll(userDao.getAll())
                     recyclerView?.adapter?.notifyDataSetChanged()
                 }
             }
