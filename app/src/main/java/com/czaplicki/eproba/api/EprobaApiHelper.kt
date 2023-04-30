@@ -4,6 +4,7 @@ import android.os.Build
 import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import com.czaplicki.eproba.BuildConfig
 import com.czaplicki.eproba.DemotedScreen
 import com.czaplicki.eproba.EprobaApplication
 import com.czaplicki.eproba.MainActivity
@@ -49,6 +50,27 @@ class EprobaApiHelper {
         val updatedExams: MutableList<Exam> = mutableListOf(),
         val deletedExams: MutableList<Exam> = mutableListOf()
     )
+
+    suspend fun getAndProcessAppConfig(): APIState {
+        try {
+            val appConfig = service.getAppConfig()
+
+            sharedPreferences.edit().putBoolean("ads", appConfig.ads).apply()
+
+            if (BuildConfig.VERSION_CODE < appConfig.minVersion) {
+                return APIState.UPDATE_REQUIRED
+            }
+
+            if (appConfig.maintenance) {
+                return APIState.MAINTENANCE
+            }
+
+            return APIState.OK
+
+        } catch (e: Exception) {
+            return APIState.ERROR
+        }
+    }
 
     suspend fun getExams(userOnly: Boolean = false, ignoreLastSync: Boolean = false): ExamUpdate {
         var exams: MutableList<Exam> = examDao.getAllNow() as MutableList<Exam>

@@ -28,6 +28,7 @@ import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import androidx.preference.PreferenceManager
+import com.czaplicki.eproba.api.APIState
 import com.czaplicki.eproba.databinding.ActivityMainBinding
 import com.czaplicki.eproba.db.User
 import com.google.android.gms.ads.MobileAds
@@ -35,6 +36,7 @@ import com.google.android.gms.ads.RequestConfiguration
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.gson.Gson
 import kotlinx.coroutines.launch
@@ -189,7 +191,24 @@ class MainActivity : AppCompatActivity() {
                 NotificationManager.IMPORTANCE_DEFAULT
             )
         )
-
+        lifecycleScope.launch {
+            when (EprobaApplication.instance.apiHelper.getAndProcessAppConfig()) {
+                APIState.MAINTENANCE -> {
+                    val maintenanceScreen = MaintenanceScreen()
+                    maintenanceScreen.show(supportFragmentManager, "maintenance")
+                }
+                APIState.UPDATE_REQUIRED -> {
+                    Snackbar.make(
+                        binding.root,
+                        "Update required, please update the app to keep using it",
+                        Snackbar.LENGTH_LONG
+                    ).show() // TODO: add in app update
+                }
+                else -> {
+                    // Do nothing
+                }
+            }
+        }
     }
 
     override fun onResume() {

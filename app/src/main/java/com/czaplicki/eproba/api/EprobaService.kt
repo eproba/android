@@ -11,6 +11,9 @@ import retrofit2.http.*
 
 interface EprobaService {
 
+    @GET("app_config/")
+    suspend fun getAppConfig(): AppConfig
+
     @GET("user/")
     fun getUserCall(): Call<User>
 

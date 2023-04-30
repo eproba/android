@@ -57,7 +57,7 @@
     <string name="delete_exam">Delete</string>
     <string name="archive_exam">Archive</string>
     <string name="unarchive_exam">Unarchive</string>
-    <string name="not_implemented_yet">Not implemented yet</string>
+    <string name="not_implemented_yet">Not available yet</string>
     <string name="delete_exam_confirmation">Are you sure you want to delete this exam (%s)? You will not be able to restore it later</string>
     <string name="archive_exam_confirmation">Are you sure you want to archive this exam (%s)? It will go to the archive and you will be able to restore it later</string>
     <string name="unarchive_exam_confirmation">Are you sure you want to unarchive this exam (%s)? It will come back to your main exam tray</string>
@@ -108,4 +108,7 @@
     <string name="user_does_not_exist">User doesn\'t exist</string>
     <string name="select_image">Select image</string>
     <string name="edit">Edit</string>
+    <string name="try_again">Try again</string>
+    <string name="maintenance_screen_message">Sorry for the inconvenience but we\'re performing some maintenance right now. Please check back later.</string>
+    <string name="maintenance_screen_title">Maintenance in progress…</string>
 </resources>

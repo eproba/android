@@ -11,6 +11,7 @@
     <SwitchPreferenceCompat
         app:defaultValue="true"
         app:key="ads"
+        app:enabled="false"
         app:title="@string/display_ads" />
 
 </PreferenceScreen>
