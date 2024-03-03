@@ -1,6 +1,7 @@
 package com.czaplicki.eproba
 
 import android.os.Bundle
+import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import androidx.navigation.findNavController
@@ -50,5 +51,9 @@ class CreateExamActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
 
-
+    override fun finish() {
+        val view = window.decorView as ViewGroup
+        view.removeAllViews()
+        super.finish()
+    }
 }

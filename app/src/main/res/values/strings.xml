@@ -111,4 +111,8 @@
     <string name="try_again">Try again</string>
     <string name="maintenance_screen_message">Sorry for the inconvenience but we\'re performing some maintenance right now. Please check back later.</string>
     <string name="maintenance_screen_title">Maintenance in progress…</string>
+    <string name="title_edit_exam">Edit exam</string>
+    <string name="exam_saved_dialog_title">Exam saved</string>
+    <string name="exam_editing_unauthorized_error">You are not authorized to edit this exam</string>
+    <string name="exam_editing_error">An error has occurred and the exam has not been edited:\n\n%s</string>
 </resources>

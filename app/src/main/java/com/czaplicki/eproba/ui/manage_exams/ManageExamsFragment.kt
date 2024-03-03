@@ -247,7 +247,9 @@ class ManageExamsFragment : Fragment() {
                         )
                     }
                 }
-                filterArchived(binding.chipArchive.isChecked)
+                if (_binding != null) {
+                    filterArchived(binding.chipArchive.isChecked)
+                }
             }
         }
 
@@ -296,7 +298,11 @@ class ManageExamsFragment : Fragment() {
             if (isChecked) {
                 lifecycleScope.launch {
                     try {
-                        examDao.insert(*service.getArchivedExams().toTypedArray())
+                        val examsInArchive = service.getArchivedExams().toTypedArray()
+                        examDao.insert(*examsInArchive)
+                        if (examsInArchive.isEmpty()) {
+                            filterArchived(true)
+                        }
                     } catch (e: Exception) {
                         Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
                     }

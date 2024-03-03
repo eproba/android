@@ -230,6 +230,8 @@ class MainActivity : AppCompatActivity() {
             if (navController.currentDestination?.id == R.id.navigation_manage_exams || navController.currentDestination?.id == R.id.navigation_accept_tasks) {
                 navController.navigate(R.id.navigation_your_exams)
             }
+        } else if (navController.currentDestination?.id == R.id.navigation_edit_exam) {
+            bottomNavigation.visibility = View.GONE
         } else {
             bottomNavigation.visibility = View.VISIBLE
         }

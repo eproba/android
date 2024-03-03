@@ -1,6 +1,7 @@
 package com.czaplicki.eproba
 
 import android.os.Bundle
+import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import com.czaplicki.eproba.databinding.ActivityProfileBinding
@@ -25,5 +26,11 @@ class ProfileActivity : AppCompatActivity() {
     override fun onSupportNavigateUp(): Boolean {
         finish()
         return true
+    }
+
+    override fun finish() {
+        val view = window.decorView as ViewGroup
+        view.removeAllViews()
+        super.finish()
     }
 }

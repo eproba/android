@@ -134,6 +134,15 @@ class TokenAuthenticator : Authenticator {
             } else {
                 throw e
             }
+        } catch (e: IllegalStateException) {
+            app.sharedPreferences.edit().clear().apply()
+            app.getActiveActivity()?.let { activity ->
+                LoggedOutScreen().show(
+                    (activity as AppCompatActivity).supportFragmentManager,
+                    "loggedOut"
+                )
+            }
+            app.api.client.dispatcher.cancelAll()
         }
         return null
 

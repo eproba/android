@@ -1,5 +1,6 @@
 package com.czaplicki.eproba.ui.manage_exams
 
+import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,7 +11,7 @@ import android.widget.ImageView
 import android.widget.PopupMenu
 import android.widget.RatingBar
 import android.widget.TextView
-import android.widget.Toast
+import androidx.navigation.Navigation
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.czaplicki.eproba.EprobaApplication
@@ -27,6 +28,7 @@ import com.google.android.gms.ads.nativead.NativeAdView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.divider.MaterialDividerItemDecoration
 import com.google.android.material.snackbar.Snackbar
+import com.google.gson.Gson
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -67,7 +69,7 @@ class ManagedExamAdapter(
             lastUpdateString = view.findViewById(R.id.last_update_string)
             progressPercentage = view.findViewById(R.id.progressPercentage)
             adFrame = view.findViewById(R.id.ad_frame)
-            taskList = view.findViewById(R.id.task_list) as RecyclerView
+            taskList = view.findViewById<RecyclerView>(R.id.task_list)!!
             menuButton = view.findViewById(R.id.menu_button)
         }
     }
@@ -97,17 +99,22 @@ class ManagedExamAdapter(
         if (exam.id == -1L && exam.name == "no_exams") {
             viewHolder.name.text = viewHolder.itemView.context.getString(R.string.no_exams)
             viewHolder.supervisor.visibility = View.GONE
+            viewHolder.lastUpdate.visibility = View.GONE
+            viewHolder.lastUpdateString.visibility = View.GONE
             viewHolder.progressPercentage.visibility = View.GONE
             viewHolder.taskList.visibility = View.GONE
             viewHolder.menuButton.visibility = View.GONE
+            viewHolder.adFrame.visibility = View.GONE
             return
         } else if (exam.id == -1L && exam.name == "ad") {
             viewHolder.name.text = viewHolder.itemView.context.getString(R.string.advertisement)
             viewHolder.supervisor.visibility = View.GONE
+            viewHolder.lastUpdate.visibility = View.GONE
+            viewHolder.lastUpdateString.visibility = View.GONE
             viewHolder.progressPercentage.visibility = View.GONE
             viewHolder.taskList.visibility = View.GONE
-            viewHolder.adFrame.visibility = View.VISIBLE
             viewHolder.menuButton.visibility = View.GONE
+            viewHolder.adFrame.visibility = View.VISIBLE
             val builder = AdLoader.Builder(
                 viewHolder.itemView.context,
                 "ca-app-pub-7127294792989521/8405155665"
@@ -166,13 +173,14 @@ class ManagedExamAdapter(
             popup.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
                     R.id.edit_exam -> {
-                        Toast.makeText(
-                            viewHolder.itemView.context,
-                            viewHolder.itemView.context.getString(
-                                R.string.not_implemented_yet,
-                            ),
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        val bundle = Bundle()
+                        bundle.putString("initialData", Gson().toJson(dataSet[position]))
+                        bundle.putString(
+                            "initialDataNickname",
+                            users.find { it.id == exam.userId }?.nickname
+                        )
+                        Navigation.findNavController(viewHolder.itemView)
+                            .navigate(R.id.navigation_edit_exam, bundle)
                         true
                     }
 

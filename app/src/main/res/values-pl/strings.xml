@@ -112,4 +112,8 @@
     <string name="try_again">Spróbuj ponownie</string>
     <string name="maintenance_screen_title">Trwają prace serwisowe…</string>
     <string name="maintenance_screen_message">Przepraszamy za niedogodności, ale w tej chwili przeprowadzimy prace techniczne nad aplikacją. Spróbuj ponownie później.</string>
+    <string name="title_edit_exam">Edytuj próbę</string>
+    <string name="exam_saved_dialog_title">Próba została zapisana</string>
+    <string name="exam_editing_unauthorized_error">Nie jesteś autoryzowany do edycji tej próby</string>
+    <string name="exam_editing_error">Wystąpił błąd i próba nie została zedytowana:\n\n%s</string>
 </resources>
