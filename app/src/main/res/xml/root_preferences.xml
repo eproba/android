@@ -1,17 +1,58 @@
-<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <ListPreference
-        app:defaultValue="https://eproba.pl"
-        app:entries="@array/server_entries"
-        app:entryValues="@array/server_values"
-        app:key="server"
-        app:title="@string/select_server"
-        app:useSimpleSummaryProvider="true" />
+    <PreferenceCategory android:title="@string/settings_category_general">
 
-    <SwitchPreferenceCompat
-        app:defaultValue="true"
-        app:key="ads"
-        app:enabled="false"
-        app:title="@string/display_ads" />
+        <ListPreference
+            app:defaultValue="https://eproba.pl"
+            app:entries="@array/server_entries"
+            app:entryValues="@array/server_values"
+            app:key="server"
+            app:title="@string/select_server"
+            app:useSimpleSummaryProvider="true" />
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:enabled="false"
+            app:key="ads"
+            app:title="@string/display_ads" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/settings_category_about">
+
+        <Preference
+            app:key="version"
+            app:summary="1.0"
+            app:title="@string/app_version">
+            <intent
+                android:action="android.intent.action.VIEW"
+                android:data="https://play.google.com/store/apps/details?id=com.czaplicki.eproba" />
+        </Preference>
+
+        <Preference
+            app:key="author"
+            app:summary="Antoni Czaplicki"
+            app:title="@string/author">
+            <intent
+                android:action="android.intent.action.VIEW"
+                android:data="https://github.com/eproba/android/graphs/contributors" />
+        </Preference>
+
+        <Preference
+            app:key="privacy_policy"
+            app:title="@string/privacy_policy">
+            <intent
+                android:action="android.intent.action.VIEW"
+                android:data="https://eproba.pl/privacy-policy/" />
+        </Preference>
+
+        <Preference
+            app:key="feedback"
+            app:title="@string/feedback">
+            <intent
+                android:action="android.intent.action.VIEW"
+                android:data="https://github.com/eproba/android/issues" />
+        </Preference>
+
+    </PreferenceCategory>
 
 </PreferenceScreen>

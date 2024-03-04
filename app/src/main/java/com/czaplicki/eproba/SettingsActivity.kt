@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.ListPreference
+import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import net.openid.appauth.AuthState
@@ -47,6 +48,8 @@ class SettingsActivity : AppCompatActivity() {
                 }
                 true
             }
+            val appVersion = findPreference<Preference>("version")
+            appVersion?.summary = BuildConfig.VERSION_NAME
         }
     }
 

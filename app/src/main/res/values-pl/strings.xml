@@ -116,4 +116,10 @@
     <string name="exam_saved_dialog_title">Próba została zapisana</string>
     <string name="exam_editing_unauthorized_error">Nie jesteś autoryzowany do edycji tej próby</string>
     <string name="exam_editing_error">Wystąpił błąd i próba nie została zedytowana:\n\n%s</string>
+    <string name="settings_category_general">Ogólne</string>
+    <string name="settings_category_about">O aplikacji</string>
+    <string name="app_version">Wersja</string>
+    <string name="author">Autor</string>
+    <string name="privacy_policy">Polityka prywatności</string>
+    <string name="feedback">Prześlij opinie</string>
 </resources>

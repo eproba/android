@@ -4,10 +4,16 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.Navigation
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -19,13 +25,11 @@ import com.czaplicki.eproba.MainActivity
 import com.czaplicki.eproba.databinding.FragmentEditExamBinding
 import com.czaplicki.eproba.db.Exam
 import com.czaplicki.eproba.db.Task
-import com.czaplicki.eproba.db.User
 import com.czaplicki.eproba.ui.compose_exam.EditTaskAdapter
 import com.czaplicki.eproba.ui.compose_exam.ItemMoveCallback
 import com.czaplicki.eproba.ui.compose_exam.StartDragListener
 import com.google.android.material.R
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.google.gson.Gson
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaType
@@ -43,9 +47,7 @@ class EditExamFragment : Fragment() {
     private val binding get() = _binding!!
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = FragmentEditExamBinding.inflate(inflater, container, false)
 
@@ -67,8 +69,7 @@ class EditExamFragment : Fragment() {
 
 
         val exam: Exam = Gson().fromJson(
-            arguments?.getString("initialData"),
-            Exam::class.java
+            arguments?.getString("initialData"), Exam::class.java
         )
 
         val root: View = binding.root
@@ -86,15 +87,13 @@ class EditExamFragment : Fragment() {
         )
 
         taskRecyclerView.adapter =
-            EditTaskAdapter(
-                exam.tasks.map { it.task }.toMutableList(),
-                object : StartDragListener {
-                    override fun requestDrag(viewHolder: RecyclerView.ViewHolder?) {
-                        if (viewHolder != null) {
-                            touchHelper?.startDrag(viewHolder)
-                        }
+            EditTaskAdapter(exam.tasks.map { it.task }.toMutableList(), object : StartDragListener {
+                override fun requestDrag(viewHolder: RecyclerView.ViewHolder?) {
+                    if (viewHolder != null) {
+                        touchHelper?.startDrag(viewHolder)
                     }
-                })
+                }
+            })
         val callback: ItemTouchHelper.Callback =
             ItemMoveCallback(taskRecyclerView.adapter as EditTaskAdapter)
         touchHelper = ItemTouchHelper(callback)
@@ -136,8 +135,7 @@ class EditExamFragment : Fragment() {
                     try {
                         EprobaApplication.instance.database.examDao().update(
                             EprobaApplication.instance.service.updateExam(
-                                exam.id,
-                                Exam(
+                                exam.id, Exam(
                                     id = exam.id,
                                     name = name,
                                     userId = exam.userId,
@@ -149,14 +147,12 @@ class EditExamFragment : Fragment() {
                             MaterialAlertDialogBuilder(
                                 requireContext(),
                                 R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
-                            )
-                                .setTitle(com.czaplicki.eproba.R.string.exam_saved_dialog_title)
+                            ).setTitle(com.czaplicki.eproba.R.string.exam_saved_dialog_title)
                                 .setIcon(com.czaplicki.eproba.R.drawable.ic_success)
                                 .setPositiveButton(android.R.string.ok) { dialog, _ ->
                                     dialog.dismiss()
                                     Navigation.findNavController(root).popBackStack()
-                                }
-                                .show()
+                                }.show()
                         }
                     } catch (e: Exception) {
                         e.printStackTrace()
@@ -165,12 +161,10 @@ class EditExamFragment : Fragment() {
                                 MaterialAlertDialogBuilder(
                                     requireContext(),
                                     R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
-                                )
-                                    .setTitle(com.czaplicki.eproba.R.string.error_dialog_title)
+                                ).setTitle(com.czaplicki.eproba.R.string.error_dialog_title)
                                     .setMessage(com.czaplicki.eproba.R.string.exam_editing_unauthorized_error)
                                     .setIcon(com.czaplicki.eproba.R.drawable.ic_error)
-                                    .setPositiveButton(android.R.string.ok, null)
-                                    .show()
+                                    .setPositiveButton(android.R.string.ok, null).show()
 
                             }
                         } else {
@@ -178,17 +172,13 @@ class EditExamFragment : Fragment() {
                                 MaterialAlertDialogBuilder(
                                     requireContext(),
                                     R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered
-                                )
-                                    .setTitle(com.czaplicki.eproba.R.string.error_dialog_title)
+                                ).setTitle(com.czaplicki.eproba.R.string.error_dialog_title)
                                     .setMessage(
                                         getString(
-                                            com.czaplicki.eproba.R.string.exam_editing_error,
-                                            e
+                                            com.czaplicki.eproba.R.string.exam_editing_error, e
                                         )
-                                    )
-                                    .setIcon(com.czaplicki.eproba.R.drawable.ic_error)
-                                    .setPositiveButton(android.R.string.ok, null)
-                                    .show()
+                                    ).setIcon(com.czaplicki.eproba.R.drawable.ic_error)
+                                    .setPositiveButton(android.R.string.ok, null).show()
                             }
                         }
                     }
@@ -197,6 +187,18 @@ class EditExamFragment : Fragment() {
             }
         }
 
+        val menuHost: MenuHost = requireActivity()
+        menuHost.addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menu.findItem(com.czaplicki.eproba.R.id.app_bar_search).isVisible = false
+                menu.findItem(com.czaplicki.eproba.R.id.settings).isVisible = false
+                menu.findItem(com.czaplicki.eproba.R.id.account).isVisible = false
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                return false
+            }
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
         return root
     }
 
