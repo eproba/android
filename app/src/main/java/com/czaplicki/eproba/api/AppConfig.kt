@@ -7,6 +7,10 @@ data class AppConfig(
     val maintenance: Boolean,
     @SerializedName("min_version")
     val minVersion: Int,
+    @SerializedName("the_end")
+    val theEnd: Boolean,
+    @SerializedName("end_messages")
+    val endMessages: List<String>,
 )
 
 enum class APIState {
@@ -14,4 +18,5 @@ enum class APIState {
     MAINTENANCE,
     UPDATE_REQUIRED,
     ERROR,
+    END_OF_LIFE,
 }

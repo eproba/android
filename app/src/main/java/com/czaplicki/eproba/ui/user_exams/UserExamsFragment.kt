@@ -23,9 +23,12 @@ import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.czaplicki.eproba.AuthStateManager
+import com.czaplicki.eproba.EndScreen
 import com.czaplicki.eproba.EprobaApplication
 import com.czaplicki.eproba.MainActivity
+import com.czaplicki.eproba.MaintenanceScreen
 import com.czaplicki.eproba.R
+import com.czaplicki.eproba.api.APIState
 import com.czaplicki.eproba.api.EprobaService
 import com.czaplicki.eproba.databinding.FragmentFirstBinding
 import com.czaplicki.eproba.db.Exam
@@ -142,6 +145,21 @@ class UserExamsFragment : Fragment() {
                 app.apiHelper.getExams(userOnly = true, ignoreLastSync = ignoreExamsLastSync)
                 mSwipeRefreshLayout.isRefreshing = false
                 ignoreExamsLastSync = !ignoreExamsLastSync
+                when (EprobaApplication.instance.apiHelper.getAndProcessAppConfig()) {
+                    APIState.END_OF_LIFE -> {
+                        val endScreen = EndScreen()
+                        endScreen.show(parentFragmentManager, "end")
+                    }
+
+                    APIState.MAINTENANCE -> {
+                        val maintenanceScreen = MaintenanceScreen()
+                        maintenanceScreen.show(parentFragmentManager, "maintenance")
+                    }
+
+                    else -> {
+                        // Do nothing
+                    }
+                }
             }
             (activity as MainActivity).user?.let { viewModel.userId = it.id }
             getUsers()

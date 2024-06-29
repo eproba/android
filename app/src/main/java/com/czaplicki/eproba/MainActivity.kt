@@ -17,6 +17,7 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
+import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.MenuProvider
@@ -36,7 +37,10 @@ import com.google.android.gms.ads.RequestConfiguration
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-import com.google.android.material.snackbar.Snackbar
+import com.google.android.play.core.appupdate.AppUpdateManagerFactory
+import com.google.android.play.core.appupdate.AppUpdateOptions
+import com.google.android.play.core.install.model.AppUpdateType
+import com.google.android.play.core.install.model.UpdateAvailability
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.gson.Gson
 import kotlinx.coroutines.launch
@@ -63,6 +67,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var mAuthStateManager: AuthStateManager
     private val service = EprobaApplication.instance.service
     var user: User? = null
+    private val appUpdateManager by lazy { AppUpdateManagerFactory.create(this) }
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -178,6 +183,10 @@ class MainActivity : AppCompatActivity() {
         connectivityManager.registerDefaultNetworkCallback(networkCallback)
         if (!isOnline(this)) {
             binding.networkStatus.visibility = View.VISIBLE
+            if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("theEnd", false)) {
+                val endScreen = EndScreen()
+                endScreen.show(supportFragmentManager, "end")
+            }
         }
 
         // Create channel to show notifications.
@@ -193,17 +202,45 @@ class MainActivity : AppCompatActivity() {
         )
         lifecycleScope.launch {
             when (EprobaApplication.instance.apiHelper.getAndProcessAppConfig()) {
+
+                APIState.END_OF_LIFE -> {
+                    val endScreen = EndScreen()
+                    endScreen.show(supportFragmentManager, "end")
+                }
+
+
                 APIState.MAINTENANCE -> {
                     val maintenanceScreen = MaintenanceScreen()
                     maintenanceScreen.show(supportFragmentManager, "maintenance")
                 }
+
                 APIState.UPDATE_REQUIRED -> {
-                    Snackbar.make(
-                        binding.root,
-                        "Update required, please update the app to keep using it",
-                        Snackbar.LENGTH_LONG
-                    ).show() // TODO: add in app update
+                    val appUpdateInfoTask = appUpdateManager.appUpdateInfo
+                    appUpdateInfoTask.addOnSuccessListener { appUpdateInfo ->
+                        if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE) {
+                            val activityResultLauncher = registerForActivityResult(
+                                ActivityResultContracts.StartIntentSenderForResult()
+                            ) { result: ActivityResult ->
+                                // handle callback
+                                if (result.resultCode != RESULT_OK) {
+                                    val errorScreen = ErrorScreen("Update failed")
+                                    errorScreen.show(supportFragmentManager, "error")
+                                }
+                            }
+                            appUpdateManager.startUpdateFlowForResult(
+                                appUpdateInfo,
+                                activityResultLauncher,
+                                AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE).build()
+                            )
+                        } else {
+                            val errorScreen =
+                                ErrorScreen("Update is required, but no update is available")
+                            errorScreen.show(supportFragmentManager, "error")
+                        }
+                    }
                 }
+
+
                 else -> {
                     // Do nothing
                 }
@@ -242,6 +279,30 @@ class MainActivity : AppCompatActivity() {
         } else {
             binding.devServerStatus.visibility = View.GONE
         }
+
+
+        appUpdateManager
+            .appUpdateInfo
+            .addOnSuccessListener { appUpdateInfo ->
+                val activityResultLauncher = registerForActivityResult(
+                    ActivityResultContracts.StartIntentSenderForResult()
+                ) { result: ActivityResult ->
+                    // handle callback
+                    if (result.resultCode != RESULT_OK) {
+                        val errorScreen = ErrorScreen("Update failed")
+                        errorScreen.show(supportFragmentManager, "error")
+                    }
+                }
+                if (appUpdateInfo.updateAvailability()
+                    == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS
+                ) {
+                    // If an in-app update is already running, resume the update.
+                    appUpdateManager.startUpdateFlowForResult(
+                        appUpdateInfo,
+                        activityResultLauncher,
+                        AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE).build())
+                }
+            }
     }
 
 

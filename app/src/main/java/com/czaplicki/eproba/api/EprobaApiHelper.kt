@@ -57,13 +57,23 @@ class EprobaApiHelper {
 
             sharedPreferences.edit().putBoolean("ads", appConfig.ads).apply()
 
-            if (BuildConfig.VERSION_CODE < appConfig.minVersion) {
-                return APIState.UPDATE_REQUIRED
+            if (appConfig.theEnd) {
+                if (appConfig.endMessages.isNotEmpty()) {
+                    sharedPreferences.edit()
+                        .putString("endMessages", gson.toJson(appConfig.endMessages)).apply()
+                }
+                sharedPreferences.edit().putBoolean("theEnd", true).apply()
+                return APIState.END_OF_LIFE
             }
 
             if (appConfig.maintenance) {
                 return APIState.MAINTENANCE
             }
+
+            if (BuildConfig.VERSION_CODE < appConfig.minVersion) {
+                return APIState.UPDATE_REQUIRED
+            }
+
 
             return APIState.OK
 

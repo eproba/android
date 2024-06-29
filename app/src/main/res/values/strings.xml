@@ -26,7 +26,7 @@
     <string name="approved">On %s at %s, the task was approved by %s</string>
     <string name="rejected">On %s at %s, the task was rejected by %s</string>
     <string name="someone">someone</string>
-    <string name="welcome_message">Welcome to the eproba app, \nplease log in to get started</string>
+    <string name="welcome_message">Welcome to the Epróba app, \nplease log in to get started</string>
     <string name="title_activity_create_exam">Create Exam</string>
     <string name="title_scan_exam">Scan</string>
     <string name="title_compose_exam">Compose</string>
@@ -121,4 +121,9 @@
     <string name="author">Author</string>
     <string name="privacy_policy">Privacy Policy</string>
     <string name="feedback">Feedback</string>
+    <string name="exit_app">Exit</string>
+    <string name="logo">Epróba logo</string>
+    <string name="the_end_screen_title">The Epróba service has ended its operations.</string>
+    <string name="the_end_signature" translatable="false">~ Czuwaj!\n\"Czapla\"</string>
+    <string name="the_end_message">After nearly 4 years of operation, Epróba has been closed. We thank all users for using the service.\nIf you have any questions, please contact antoni.czaplicki@zhr.pl.</string>
 </resources>

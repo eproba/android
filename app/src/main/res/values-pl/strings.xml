@@ -27,7 +27,7 @@
     <string name="approved">%s o %s zadanie zostało zatwierdzone przez %s</string>
     <string name="rejected">%s o %s zadanie zostało odrzucone przez %s</string>
     <string name="someone">kogoś</string>
-    <string name="welcome_message">Witaj w aplikacji epróba,\nzaloguj się aby rozpocząć</string>
+    <string name="welcome_message">Witaj w aplikacji Epróba,\nzaloguj się aby rozpocząć</string>
     <string name="title_scan_exam">Skanuj</string>
     <string name="title_templates">Szablony</string>
     <string name="title_compose_exam">Stwórz</string>
@@ -122,4 +122,8 @@
     <string name="author">Autor</string>
     <string name="privacy_policy">Polityka prywatności</string>
     <string name="feedback">Prześlij opinie</string>
+    <string name="exit_app">Zamknij aplikację</string>
+    <string name="logo">Logo Epróba</string>
+    <string name="the_end_screen_title">"Epróba zakończyła swoją działalność "</string>
+    <string name="the_end_message">Po prawie 4 latach działalności, Epróba została zamknięta. Dziękujemy wszystkim użytkownikom za korzystanie z serwisu. W razie pytań prosimy o kontakt na adres antoni.czaplicki@zhr.pl.</string>
 </resources>
