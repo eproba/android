@@ -61,9 +61,14 @@ class EprobaApiHelper {
                 if (appConfig.endMessages.isNotEmpty()) {
                     sharedPreferences.edit()
                         .putString("endMessages", gson.toJson(appConfig.endMessages)).apply()
+                } else {
+                    sharedPreferences.edit().putString("endMessages", null).apply()
                 }
                 sharedPreferences.edit().putBoolean("theEnd", true).apply()
                 return APIState.END_OF_LIFE
+            } else {
+                sharedPreferences.edit().putBoolean("theEnd", false).apply()
+                sharedPreferences.edit().putString("endMessages", null).apply()
             }
 
             if (appConfig.maintenance) {
@@ -124,6 +129,9 @@ class EprobaApiHelper {
             }
         } catch (e: Exception) {
             Log.e("EprobaApiHelper", "getExams: ", e)
+            if (e is java.lang.IllegalStateException && e.message?.startsWith("Expected BEGIN_ARRAY but was BEGIN_OBJECT") == true) {
+                examDao.nukeTable() // Clear the table if the API returns an object instead of an array, as it means the API is down and the data may be corrupted, so it's better to start fresh. Exams will be re-downloaded on the next sync.
+            }
         }
         getMissingUsers(examDao.getAllNow())
         return examsUpdate

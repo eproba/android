@@ -1,10 +1,10 @@
 package com.czaplicki.eproba
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import androidx.fragment.app.DialogFragment
 import com.czaplicki.eproba.databinding.FragmentTheEndBinding
 import com.google.gson.Gson
@@ -20,7 +20,10 @@ class EndScreen() : DialogFragment() {
         super.onCreate(savedInstanceState)
         isCancelable = false
 
-        Log.d("EndScreen", "The end")
+        activity?.window?.setFlags(
+            WindowManager.LayoutParams.FLAG_SECURE,
+            WindowManager.LayoutParams.FLAG_SECURE
+        )
 
         setStyle(STYLE_NORMAL, com.google.android.material.R.style.MaterialAlertDialog_Material3)
     }
