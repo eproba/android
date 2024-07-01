@@ -16,3 +16,6 @@ local.properties
 /.idea/
 /app/schemas/
 /app/release/
+
+# Sentry Config File
+sentry.properties

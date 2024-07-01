@@ -3,6 +3,7 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     id 'com.google.devtools.ksp' version "2.0.0-1.0.21"
     id 'com.google.gms.google-services'
+    id "io.sentry.android.gradle" version "4.8.0"
 }
 
 android {
@@ -12,8 +13,8 @@ android {
         applicationId "com.czaplicki.eproba"
         minSdk 26
         targetSdk 35
-        versionCode 20240602 // RRRRMMVV (RRRR - year, MM - month, VV - version) e.g. 20230100
-        versionName 'βeta.4.1'
+        versionCode 20240701 // RRRRMMVV (RRRR - year, MM - month, VV - version) e.g. 20230100
+        versionName 'βeta.4.3'
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         javaCompileOptions {
@@ -86,4 +87,13 @@ dependencies {
     // Chucker
     releaseImplementation 'com.github.chuckerteam.chucker:library-no-op:4.0.0'
     debugImplementation 'com.github.chuckerteam.chucker:library:4.0.0'
+}
+
+sentry {
+    org = "antoni-dn"
+    projectName = "eproba-android"
+
+    // this will upload your source code to Sentry to show it as part of the stack traces
+    // disable if you don't want to expose your sources
+    includeSourceContext = true
 }

@@ -4,6 +4,7 @@ import com.google.gson.annotations.SerializedName
 
 data class AppConfig(
     val ads: Boolean,
+    @SerializedName("api_maintenance")
     val maintenance: Boolean,
     @SerializedName("min_version")
     val minVersion: Int,

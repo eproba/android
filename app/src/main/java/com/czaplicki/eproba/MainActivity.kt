@@ -18,6 +18,8 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.activity.result.ActivityResult
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.MenuProvider
@@ -67,6 +69,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var mAuthStateManager: AuthStateManager
     private val service = EprobaApplication.instance.service
     var user: User? = null
+    private lateinit var appUpdateActivityResultLauncher: ActivityResultLauncher<IntentSenderRequest>
     private val appUpdateManager by lazy { AppUpdateManagerFactory.create(this) }
 
 
@@ -218,18 +221,9 @@ class MainActivity : AppCompatActivity() {
                     val appUpdateInfoTask = appUpdateManager.appUpdateInfo
                     appUpdateInfoTask.addOnSuccessListener { appUpdateInfo ->
                         if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE) {
-                            val activityResultLauncher = registerForActivityResult(
-                                ActivityResultContracts.StartIntentSenderForResult()
-                            ) { result: ActivityResult ->
-                                // handle callback
-                                if (result.resultCode != RESULT_OK) {
-                                    val errorScreen = ErrorScreen("Update failed")
-                                    errorScreen.show(supportFragmentManager, "error")
-                                }
-                            }
                             appUpdateManager.startUpdateFlowForResult(
                                 appUpdateInfo,
-                                activityResultLauncher,
+                                appUpdateActivityResultLauncher,
                                 AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE).build()
                             )
                         } else {
@@ -244,6 +238,16 @@ class MainActivity : AppCompatActivity() {
                 else -> {
                     // Do nothing
                 }
+            }
+        }
+
+        appUpdateActivityResultLauncher = registerForActivityResult(
+            ActivityResultContracts.StartIntentSenderForResult()
+        ) { result: ActivityResult ->
+            // handle callback
+            if (result.resultCode != RESULT_OK) {
+                val errorScreen = ErrorScreen("Update failed")
+                errorScreen.show(supportFragmentManager, "error")
             }
         }
     }
@@ -284,22 +288,13 @@ class MainActivity : AppCompatActivity() {
         appUpdateManager
             .appUpdateInfo
             .addOnSuccessListener { appUpdateInfo ->
-                val activityResultLauncher = registerForActivityResult(
-                    ActivityResultContracts.StartIntentSenderForResult()
-                ) { result: ActivityResult ->
-                    // handle callback
-                    if (result.resultCode != RESULT_OK) {
-                        val errorScreen = ErrorScreen("Update failed")
-                        errorScreen.show(supportFragmentManager, "error")
-                    }
-                }
                 if (appUpdateInfo.updateAvailability()
                     == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS
                 ) {
                     // If an in-app update is already running, resume the update.
                     appUpdateManager.startUpdateFlowForResult(
                         appUpdateInfo,
-                        activityResultLauncher,
+                        appUpdateActivityResultLauncher,
                         AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE).build())
                 }
             }
