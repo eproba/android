@@ -20,9 +20,9 @@
         android:theme="@style/Theme.Epróba"
         tools:targetApi="34">
         <activity
-            android:name=".CreateExamActivity"
+            android:name=".CreateWorksheetActivity"
             android:exported="false"
-            android:label="@string/title_activity_create_exam"
+            android:label="@string/title_activity_create_worksheet"
             android:parentActivityName=".MainActivity"
             android:theme="@style/Theme.Epróba" />
         <activity

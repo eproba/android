@@ -4,7 +4,7 @@
     <PreferenceCategory android:title="@string/settings_category_general">
 
         <ListPreference
-            app:defaultValue="https://eproba.pl"
+            app:defaultValue="https://eproba.zhr.pl"
             app:entries="@array/server_entries"
             app:entryValues="@array/server_values"
             app:key="server"
@@ -42,7 +42,7 @@
             app:title="@string/privacy_policy">
             <intent
                 android:action="android.intent.action.VIEW"
-                android:data="https://eproba.pl/privacy-policy/" />
+                android:data="https://eproba.zhr.pl/privacy-policy/" />
         </Preference>
 
         <Preference

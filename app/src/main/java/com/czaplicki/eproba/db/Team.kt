@@ -4,11 +4,12 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
+import java.util.UUID
 
 @Entity(tableName = "teams")
 data class Team(
     @PrimaryKey
-    val id: Long,
+    val id: UUID,
     val name: String,
     @ColumnInfo(name = "short_name")
     @SerializedName("short_name")
@@ -17,7 +18,7 @@ data class Team(
 
 @Entity(tableName = "patrols")
 data class Patrol(
-    val id: Long,
+    val id: UUID,
     val name: String,
-    val teamId: Long,
+    val teamId: UUID,
 )

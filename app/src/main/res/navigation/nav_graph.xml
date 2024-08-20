@@ -3,11 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@+id/navigation_your_exams">
+    app:startDestination="@+id/navigation_your_worksheets">
 
     <fragment
-        android:id="@+id/navigation_your_exams"
-        android:name="com.czaplicki.eproba.ui.user_exams.UserExamsFragment"
+        android:id="@+id/navigation_your_worksheets"
+        android:name="com.czaplicki.eproba.ui.user_worksheets.UserWorksheetsFragment"
         android:label="@string/first_fragment_label"
         tools:layout="@layout/fragment_first">
 
@@ -34,29 +34,29 @@
         android:label="fragment_login"
         tools:layout="@layout/fragment_login">
         <action
-            android:id="@+id/action_LoginFragment_to_navigation_your_exams"
-            app:destination="@id/navigation_your_exams"
-            app:popUpTo="@id/navigation_your_exams"
+            android:id="@+id/action_LoginFragment_to_navigation_your_worksheets"
+            app:destination="@id/navigation_your_worksheets"
+            app:popUpTo="@id/navigation_your_worksheets"
             app:popUpToInclusive="true" />
     </fragment>
     <activity
-        android:id="@+id/createExamActivity"
-        android:name="com.czaplicki.eproba.CreateExamActivity"
-        android:label="CreateExamActivity"
-        tools:layout="@layout/activity_create_exam" />
+        android:id="@+id/createWorksheetActivity"
+        android:name="com.czaplicki.eproba.CreateWorksheetActivity"
+        android:label="CreateWorksheetActivity"
+        tools:layout="@layout/activity_create_worksheet" />
     <fragment
-        android:id="@+id/navigation_manage_exams"
-        android:name="com.czaplicki.eproba.ui.manage_exams.ManageExamsFragment"
-        android:label="@string/title_manage_exams"
-        tools:layout="@layout/fragment_manage_exams" />
+        android:id="@+id/navigation_manage_worksheets"
+        android:name="com.czaplicki.eproba.ui.manage_worksheets.ManageWorksheetsFragment"
+        android:label="@string/title_manage_worksheets"
+        tools:layout="@layout/fragment_manage_worksheets" />
     <fragment
-        android:id="@+id/navigation_edit_exam"
-        android:name="com.czaplicki.eproba.ui.edit_exam.EditExamFragment"
-        android:label="@string/title_edit_exam"
-        tools:layout="@layout/fragment_edit_exam" />
+        android:id="@+id/navigation_edit_worksheet"
+        android:name="com.czaplicki.eproba.ui.edit_worksheet.EditWorksheetFragment"
+        android:label="@string/title_edit_worksheet"
+        tools:layout="@layout/fragment_edit_worksheet" />
     <action
-        android:id="@+id/action_global_createExamActivity"
-        app:destination="@id/createExamActivity" />
+        android:id="@+id/action_global_createWorksheetActivity"
+        app:destination="@id/createWorksheetActivity" />
     <fragment
         android:id="@+id/navigation_accept_tasks"
         android:name="com.czaplicki.eproba.ui.accept_tasks.AcceptTasksFragment"

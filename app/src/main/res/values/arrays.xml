@@ -2,11 +2,9 @@
     <!-- Reply Preference -->
     <string-array name="server_entries">
         <item>@string/main_server</item>
-        <item>@string/dev_server</item>
     </string-array>
 
     <string-array name="server_values">
-        <item>https://eproba.pl</item>
-        <item>https://dev.eproba.pl</item>
+        <item>https://eproba.zhr.pl</item>
     </string-array>
 </resources>

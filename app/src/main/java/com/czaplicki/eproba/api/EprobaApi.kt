@@ -53,7 +53,7 @@ class EprobaApi {
                 .baseUrl(
                     "${
                         PreferenceManager.getDefaultSharedPreferences(context)
-                            .getString("server", "https://eproba.pl")
+                            .getString("server", "https://eproba.zhr.pl")
                     }/api/"
                 )
                 .addConverterFactory(GsonConverterFactory.create(gson))

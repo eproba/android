@@ -40,6 +40,9 @@ class EprobaApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        if (sharedPreferences.getString("server", "https://eproba.zhr.pl") == "https://eproba.pl") {
+            sharedPreferences.edit().putString("server", "https://eproba.zhr.pl").apply()
+        }
         instance = this
         registerActivityLifecycleCallbacks(activeActivityCallbacks)
         // Apply dynamic color

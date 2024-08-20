@@ -7,9 +7,9 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.czaplicki.eproba.R
-import com.czaplicki.eproba.db.Exam
+import com.czaplicki.eproba.db.Worksheet
 
-class TemplateTaskAdapter(private val exam: Exam) :
+class TemplateTaskAdapter(private val worksheet: Worksheet) :
     RecyclerView.Adapter<TemplateTaskAdapter.ViewHolder>() {
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -34,10 +34,10 @@ class TemplateTaskAdapter(private val exam: Exam) :
 
     // Replace the contents of a view (invoked by the layout manager)
     override fun onBindViewHolder(viewHolder: ViewHolder, position: Int) {
-        viewHolder.task.text = exam.tasks[position].task
+        viewHolder.task.text = worksheet.tasks[position].task
         viewHolder.status.visibility = View.GONE
     }
 
     // Return the size of your dataset (invoked by the layout manager)
-    override fun getItemCount() = exam.tasks.size
+    override fun getItemCount() = worksheet.tasks.size
 }

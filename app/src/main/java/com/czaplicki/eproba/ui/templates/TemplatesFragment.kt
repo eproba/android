@@ -7,12 +7,13 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.czaplicki.eproba.CreateExamActivity
+import com.czaplicki.eproba.CreateWorksheetActivity
 import com.czaplicki.eproba.EprobaApplication
 import com.czaplicki.eproba.databinding.FragmentTemplatesBinding
-import com.czaplicki.eproba.db.Exam
+import com.czaplicki.eproba.db.Worksheet
 import com.google.android.material.color.MaterialColors
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 class TemplatesFragment : Fragment() {
 
@@ -32,14 +33,14 @@ class TemplatesFragment : Fragment() {
 
 
         val recyclerView = binding.recyclerView
-        val examList: MutableList<Exam> = mutableListOf(Exam(-1L, "no_exams"))
+        val worksheetLists: MutableList<Worksheet> = mutableListOf(Worksheet(UUID.fromString("00000000-0000-0000-0000-000000000000"), "no_worksheets"))
         lifecycleScope.launch {
-            examList.clear()
-            examList.addAll(EprobaApplication.instance.service.getTemplates())
+            worksheetLists.clear()
+            worksheetLists.addAll(EprobaApplication.instance.service.getTemplates())
             recyclerView.adapter?.notifyDataSetChanged()
         }
         recyclerView.layoutManager = LinearLayoutManager(view?.context)
-        recyclerView.adapter = TemplateExamAdapter(examList)
+        recyclerView.adapter = TemplateWorksheetAdapter(worksheetLists)
         val swipeRefreshLayout = binding.swipeRefreshLayout
         swipeRefreshLayout.setColorSchemeColors(
             MaterialColors.getColor(
@@ -54,15 +55,15 @@ class TemplatesFragment : Fragment() {
             )
         )
 
-        (requireActivity() as CreateExamActivity).supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        (requireActivity() as CreateWorksheetActivity).supportActionBar?.setDisplayHomeAsUpEnabled(true)
         return root
     }
 
     override fun onResume() {
         super.onResume()
-        (activity as? CreateExamActivity)?.bottomNavigationView?.setOnItemReselectedListener {
+        (activity as? CreateWorksheetActivity)?.bottomNavigationView?.setOnItemReselectedListener {
 //            binding.scrollView.fullScroll(View.FOCUS_UP)
-            (activity as? CreateExamActivity)?.supportActionBar?.setDisplayHomeAsUpEnabled(
+            (activity as? CreateWorksheetActivity)?.supportActionBar?.setDisplayHomeAsUpEnabled(
                 true
             )
         }

@@ -10,13 +10,14 @@ import com.czaplicki.eproba.EprobaApplication
 import com.czaplicki.eproba.MainActivity
 import com.czaplicki.eproba.PromotedScreen
 import com.czaplicki.eproba.R
-import com.czaplicki.eproba.db.Exam
+import com.czaplicki.eproba.db.Worksheet
 import com.czaplicki.eproba.db.FCMDevice
 import com.czaplicki.eproba.db.User
 import com.google.gson.Gson
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.time.Instant
+import java.util.UUID
 import kotlin.properties.Delegates
 
 class EprobaApiHelper {
@@ -25,30 +26,30 @@ class EprobaApiHelper {
     val service: EprobaService = app.service
     private val sharedPreferences = app.sharedPreferences
     val gson = Gson()
-    private val examDao = app.database.examDao()
+    private val worksheetDao = app.database.worksheetDao()
     private val userDao = app.database.userDao()
     var user: User? = gson.fromJson(sharedPreferences.getString("user", null), User::class.java)
-    var lastExamsUpdate by Delegates.observable(
+    var lastWorksheetsUpdate by Delegates.observable(
         sharedPreferences.getLong(
-            "lastExamsUpdate",
+            "lastWorksheetsUpdate",
             0L
         )
     ) { _, _, newValue ->
-        sharedPreferences.edit().putLong("lastExamsUpdate", newValue).apply()
+        sharedPreferences.edit().putLong("lastWorksheetsUpdate", newValue).apply()
     }
-    var lastUserExamsUpdate by Delegates.observable(
+    var lastUserWorksheetsUpdate by Delegates.observable(
         sharedPreferences.getLong(
-            "lastUserExamsUpdate",
+            "lastUserWorksheetsUpdate",
             0L
         )
     ) { _, _, newValue ->
-        sharedPreferences.edit().putLong("lastUserExamsUpdate", newValue).apply()
+        sharedPreferences.edit().putLong("lastUserWorksheetsUpdate", newValue).apply()
     }
 
-    data class ExamUpdate(
-        val addedExams: MutableList<Exam> = mutableListOf(),
-        val updatedExams: MutableList<Exam> = mutableListOf(),
-        val deletedExams: MutableList<Exam> = mutableListOf()
+    data class WorksheetUpdate(
+        val addedWorksheets: MutableList<Worksheet> = mutableListOf(),
+        val updatedWorksheets: MutableList<Worksheet> = mutableListOf(),
+        val deletedWorksheets: MutableList<Worksheet> = mutableListOf()
     )
 
     suspend fun getAndProcessAppConfig(): APIState {
@@ -57,19 +58,6 @@ class EprobaApiHelper {
 
             sharedPreferences.edit().putBoolean("ads", appConfig.ads).apply()
 
-            if (appConfig.theEnd) {
-                if (appConfig.endMessages.isNotEmpty()) {
-                    sharedPreferences.edit()
-                        .putString("endMessages", gson.toJson(appConfig.endMessages)).apply()
-                } else {
-                    sharedPreferences.edit().putString("endMessages", null).apply()
-                }
-                sharedPreferences.edit().putBoolean("theEnd", true).apply()
-                return APIState.END_OF_LIFE
-            } else {
-                sharedPreferences.edit().putBoolean("theEnd", false).apply()
-                sharedPreferences.edit().putString("endMessages", null).apply()
-            }
 
             if (appConfig.maintenance) {
                 return APIState.MAINTENANCE
@@ -79,7 +67,6 @@ class EprobaApiHelper {
                 return APIState.UPDATE_REQUIRED
             }
 
-
             return APIState.OK
 
         } catch (e: Exception) {
@@ -87,67 +74,67 @@ class EprobaApiHelper {
         }
     }
 
-    suspend fun getExams(userOnly: Boolean = false, ignoreLastSync: Boolean = false): ExamUpdate {
-        var exams: MutableList<Exam> = examDao.getAllNow() as MutableList<Exam>
-        val examsUpdate = ExamUpdate()
+    suspend fun getWorksheets(userOnly: Boolean = false, ignoreLastSync: Boolean = false): WorksheetUpdate {
+        var worksheets: MutableList<Worksheet> = worksheetDao.getAllNow() as MutableList<Worksheet>
+        val worksheetsUpdate = WorksheetUpdate()
         try {
-            if ((!userOnly && lastExamsUpdate + 2592000L < Instant.now().epochSecond) || (userOnly && lastUserExamsUpdate + 2592000L < Instant.now().epochSecond) || ignoreLastSync) {
-                examsUpdate.deletedExams.addAll(exams)
-                exams = if (userOnly) {
-                    service.getUserExams()
+            if ((!userOnly && lastWorksheetsUpdate + 2592000L < Instant.now().epochSecond) || (userOnly && lastUserWorksheetsUpdate + 2592000L < Instant.now().epochSecond) || ignoreLastSync) {
+                worksheetsUpdate.deletedWorksheets.addAll(worksheets)
+                worksheets = if (userOnly) {
+                    service.getUserWorksheets()
                 } else {
-                    service.getExams()
-                } as MutableList<Exam>
-                examDao.nukeTable()
-                examDao.insert(*exams.filter { !it.isDeleted }.toTypedArray())
-                examsUpdate.addedExams.addAll(exams.filter { !it.isDeleted })
+                    service.getWorksheets()
+                } as MutableList<Worksheet>
+                worksheetDao.nukeTable()
+                worksheetDao.insert(*worksheets.filter { !it.isDeleted }.toTypedArray())
+                worksheetsUpdate.addedWorksheets.addAll(worksheets.filter { !it.isDeleted })
             } else {
-                for (exam in if (userOnly) {
-                    service.getUserExams(lastUserExamsUpdate)
+                for (worksheet in if (userOnly) {
+                    service.getUserWorksheets(lastUserWorksheetsUpdate)
                 } else {
-                    service.getExams(lastExamsUpdate)
+                    service.getWorksheets(lastWorksheetsUpdate)
                 }) {
-                    if (exam.isDeleted) {
-                        examDao.delete(exam)
-                        examsUpdate.deletedExams.add(exam)
+                    if (worksheet.isDeleted) {
+                        worksheetDao.delete(worksheet)
+                        worksheetsUpdate.deletedWorksheets.add(worksheet)
                     } else {
-                        if (examDao.getNow(exam.id) == null) {
-                            examDao.insert(exam)
-                            examsUpdate.addedExams.add(exam)
+                        if (worksheetDao.getNow(worksheet.id) == null) {
+                            worksheetDao.insert(worksheet)
+                            worksheetsUpdate.addedWorksheets.add(worksheet)
                         } else {
-                            examDao.update(exam)
-                            examsUpdate.updatedExams.add(exam)
+                            worksheetDao.update(worksheet)
+                            worksheetsUpdate.updatedWorksheets.add(worksheet)
                         }
                     }
                 }
             }
             if (userOnly) {
-                lastUserExamsUpdate = Instant.now().epochSecond
+                lastUserWorksheetsUpdate = Instant.now().epochSecond
             } else {
-                lastExamsUpdate = Instant.now().epochSecond
-                lastUserExamsUpdate = Instant.now().epochSecond
+                lastWorksheetsUpdate = Instant.now().epochSecond
+                lastUserWorksheetsUpdate = Instant.now().epochSecond
             }
         } catch (e: Exception) {
-            Log.e("EprobaApiHelper", "getExams: ", e)
+            Log.e("EprobaApiHelper", "getWorksheets: ", e)
             if (e is java.lang.IllegalStateException && e.message?.startsWith("Expected BEGIN_ARRAY but was BEGIN_OBJECT") == true) {
-                examDao.nukeTable() // Clear the table if the API returns an object instead of an array, as it means the API is down and the data may be corrupted, so it's better to start fresh. Exams will be re-downloaded on the next sync.
+                worksheetDao.nukeTable() // Clear the table if the API returns an object instead of an array, as it means the API is down and the data may be corrupted, so it's better to start fresh. Worksheets will be re-downloaded on the next sync.
             }
         }
-        getMissingUsers(examDao.getAllNow())
-        return examsUpdate
+        getMissingUsers(worksheetDao.getAllNow())
+        return worksheetsUpdate
     }
 
-    private suspend fun getMissingUsers(exams: List<Exam>) {
-        val examsUserIds: MutableSet<Long> = mutableSetOf()
+    private suspend fun getMissingUsers(worksheets: List<Worksheet>) {
+        val worksheetsUserIds: MutableSet<UUID> = mutableSetOf()
         val users = userDao.getAll()
-        exams.forEach {
-            if (it.userId != null) examsUserIds.add(it.userId!!)
-            if (it.supervisor != null) examsUserIds.add(it.supervisor!!)
+        worksheets.forEach {
+            if (it.userId != null) worksheetsUserIds.add(it.userId!!)
+            if (it.supervisor != null) worksheetsUserIds.add(it.supervisor!!)
             if (it.tasks.isNotEmpty()) it.tasks.forEach { task ->
-                if (task.approver != null) examsUserIds.add(task.approver!!)
+                if (task.approver != null) worksheetsUserIds.add(task.approver!!)
             }
         }
-        examsUserIds.filter { id -> users.find { it.id == id } == null }.forEach { id ->
+        worksheetsUserIds.filter { id -> users.find { it.id == id } == null }.forEach { id ->
             try {
                 userDao.insert(service.getUser(id))
             } catch (e: Exception) {
@@ -159,8 +146,8 @@ class EprobaApiHelper {
     suspend fun getUser(): User {
         try {
             val newUser = service.getUser()
-            if (user != null && newUser.scout.function != user?.scout?.function) {
-                handleUserFunctionChange(user!!.scout.function, newUser.scout.function)
+            if (user != null && newUser.function != user?.function) {
+                handleUserFunctionChange(user!!.function, newUser.function)
             }
             user = newUser
             sharedPreferences.edit().putString("user", gson.toJson(user)).apply()
@@ -176,28 +163,12 @@ class EprobaApiHelper {
             userDao.nukeTable()
             userDao.insert(*users.toTypedArray())
             val newUser = users.find { it.id == user?.id }
-            if (newUser != null && user != null && (
-                        newUser.firstName != user?.firstName ||
-                                newUser.lastName != user?.lastName ||
-                                newUser.nickname != user?.nickname ||
-                                newUser.scout.patrolId != user?.scout?.patrolId ||
-                                newUser.scout.function != user?.scout?.function ||
-                                newUser.scout.rank != user?.scout?.rank ||
-                                newUser.scout.patrolName != user?.scout?.patrolName ||
-                                newUser.scout.teamId != user?.scout?.teamId ||
-                                newUser.scout.teamName != user?.scout?.teamName)
+            if (newUser != null && user != null && (gson.toJson(newUser) != gson.toJson(user))
             ) {
-                if (newUser.scout.function != user?.scout?.function) {
-                    handleUserFunctionChange(user!!.scout.function, newUser.scout.function)
+                if (newUser.function != user?.function) {
+                    handleUserFunctionChange(user!!.function, newUser.function)
                 }
-                user = User(
-                    newUser.id,
-                    newUser.firstName,
-                    newUser.lastName,
-                    newUser.nickname,
-                    user!!.email,
-                    newUser.scout
-                )
+                user = newUser
                 sharedPreferences.edit().putString("user", gson.toJson(user)).apply()
             }
             return users
@@ -225,7 +196,7 @@ class EprobaApiHelper {
                 )
                 when (activity) {
                     is MainActivity -> {
-                        activity.navController.navigate(R.id.navigation_your_exams)
+                        activity.navController.navigate(R.id.navigation_your_worksheets)
                         activity.bottomNavigation.visibility = View.GONE
                     }
                 }
@@ -233,11 +204,11 @@ class EprobaApiHelper {
         }
     }
 
-    suspend fun getExamsWithTasksToApprove(): List<Exam> {
+    suspend fun getWorksheetsWithTasksToApprove(): List<Worksheet> {
         return try {
-            val exams = service.getTasksTBC()
-            getMissingUsers(exams)
-            exams
+            val worksheets = service.getTasksTBC()
+            getMissingUsers(worksheets)
+            worksheets
         } catch (e: Exception) {
             Log.e("EprobaApiHelper", "getTasksToApprove: ", e)
             listOf()

@@ -4,11 +4,12 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
+import java.util.UUID
 
 @Entity(tableName = "users")
 data class User(
     @PrimaryKey
-    val id: Long,
+    val id: UUID,
     @ColumnInfo(name = "first_name")
     @SerializedName("first_name")
     val firstName: String?,
@@ -17,8 +18,20 @@ data class User(
     val lastName: String?,
     val nickname: String?,
     val email: String?,
-    val scout: Scout
-) {
+    @ColumnInfo(name = "patrol")
+    @SerializedName("patrol")
+    val patrolId: UUID?,
+    @ColumnInfo(name = "patrol_name")
+    @SerializedName("patrol_name")
+    val patrolName: String?,
+    @ColumnInfo(name = "team")
+    @SerializedName("team")
+    val teamId: UUID?,
+    @ColumnInfo(name = "team_name")
+    @SerializedName("team_name")
+    val teamName: String?,
+    val rank: String,
+    val function: Int,) {
     val fullName: String
         get() = "$firstName $lastName"
 
@@ -26,25 +39,8 @@ data class User(
         get() = "$fullName \"$nickname\""
 
     val nicknameWithRank: String
-        get() = if (scout.rank != " ") "${scout.rank} $nickname" else "$nickname"
-}
+        get() = if (rank != " ") "$rank $nickname" else "$nickname"
 
-data class Scout(
-    @ColumnInfo(name = "patrol")
-    @SerializedName("patrol")
-    val patrolId: Long?,
-    @ColumnInfo(name = "patrol_name")
-    @SerializedName("patrol_name")
-    val patrolName: String?,
-    @ColumnInfo(name = "team")
-    @SerializedName("team")
-    val teamId: Long?,
-    @ColumnInfo(name = "team_name")
-    @SerializedName("team_name")
-    val teamName: String?,
-    val rank: String,
-    val function: Int,
-) {
 
     val functionName: String
         get() = when (function) {

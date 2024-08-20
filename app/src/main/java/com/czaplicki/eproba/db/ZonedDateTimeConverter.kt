@@ -29,7 +29,7 @@ class ZonedDateTimeConverter {
     }
 
     @TypeConverter
-    fun ZonedDateTimeToString(exams: ZonedDateTime): String? {
-        return gson.toJson(exams)
+    fun ZonedDateTimeToString(worksheets: ZonedDateTime): String? {
+        return gson.toJson(worksheets)
     }
 }

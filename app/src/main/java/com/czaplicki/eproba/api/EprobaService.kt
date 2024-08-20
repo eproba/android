@@ -1,6 +1,6 @@
 package com.czaplicki.eproba.api
 
-import com.czaplicki.eproba.db.Exam
+import com.czaplicki.eproba.db.Worksheet
 import com.czaplicki.eproba.db.FCMDevice
 import com.czaplicki.eproba.db.Task
 import com.czaplicki.eproba.db.User
@@ -8,11 +8,12 @@ import okhttp3.RequestBody
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.http.*
+import java.util.UUID
 
 interface EprobaService {
 
-    @GET("app_config/")
-    suspend fun getAppConfig(): AppConfig
+    @GET("api-config/")
+    suspend fun getAppConfig(): ApiConfig
 
     @GET("user/")
     fun getUserCall(): Call<User>
@@ -21,75 +22,75 @@ interface EprobaService {
     suspend fun getUser(): User
 
     @GET("users/{id}/")
-    suspend fun getUser(@Path("id") id: Long): User
+    suspend fun getUser(@Path("id") id: UUID): User
 
     @GET("users/")
     suspend fun getUsers(): List<User>
 
-    @GET("exam/?user")
-    suspend fun getUserExams(): List<Exam>
+    @GET("worksheets/?user")
+    suspend fun getUserWorksheets(): List<Worksheet>
 
-    @GET("exam/?user")
-    suspend fun getUserExams(@Query("last_sync") lastSync: Long): List<Exam>
+    @GET("worksheets/?user")
+    suspend fun getUserWorksheets(@Query("last_sync") lastSync: Long): List<Worksheet>
 
-    @GET("exam/?templates")
-    suspend fun getTemplates(): List<Exam>
+    @GET("worksheets/?templates")
+    suspend fun getTemplates(): List<Worksheet>
 
-    @GET("exam/?archived")
-    suspend fun getArchivedExams(): List<Exam>
+    @GET("worksheets/?archived")
+    suspend fun getArchivedWorksheets(): List<Worksheet>
 
-    @GET("exam/")
-    suspend fun getExams(): List<Exam>
+    @GET("worksheets/")
+    suspend fun getWorksheets(): List<Worksheet>
 
-    @GET("exam/")
-    suspend fun getExams(@Query("last_sync") lastSync: Long): List<Exam>
+    @GET("worksheets/")
+    suspend fun getWorksheets(@Query("last_sync") lastSync: Long): List<Worksheet>
 
-    @GET("exam/tasks/tbc/")
-    suspend fun getTasksTBC(): List<Exam>
+    @GET("worksheets/tasks/tbc/")
+    suspend fun getTasksTBC(): List<Worksheet>
 
-    @GET("exam/{id}/")
-    suspend fun getExam(@Path("id") id: Long): Exam
+    @GET("worksheets/{id}/")
+    suspend fun getWorksheet(@Path("id") id: UUID): Worksheet
 
-    @DELETE("exam/{id}/")
-    suspend fun deleteExam(@Path("id") id: Long): Response<Void>
+    @DELETE("worksheets/{id}/")
+    suspend fun deleteWorksheet(@Path("id") id: UUID): Response<Void>
 
-    @DELETE("exam/{id}/?archived")
-    suspend fun deleteArchivedExam(@Path("id") id: Long): Response<Void>
+    @DELETE("worksheets/{id}/?archived")
+    suspend fun deleteArchivedWorksheet(@Path("id") id: UUID): Response<Void>
 
-    @PATCH("exam/{exam_id}/task/{task_id}/")
+    @PATCH("worksheets/{worksheet_id}/task/{task_id}/")
     fun updateTaskStatus(
-        @Path("exam_id") examId: Long,
-        @Path("task_id") taskId: Long,
+        @Path("worksheet_id") worksheetId: UUID,
+        @Path("task_id") taskId: UUID,
         @Body status: RequestBody
     ): Call<Task>
 
-    @POST("exam/{exam_id}/task/{task_id}/submit")
+    @POST("worksheets/{worksheet_id}/task/{task_id}/submit")
     suspend fun submitTask(
-        @Path("exam_id") examId: Long,
-        @Path("task_id") taskId: Long,
+        @Path("worksheet_id") worksheetId: UUID,
+        @Path("task_id") taskId: UUID,
         @Body approver: RequestBody
     ): Task
 
-    @POST("exam/{exam_id}/task/{task_id}/unsubmit")
+    @POST("worksheets/{worksheet_id}/task/{task_id}/unsubmit")
     suspend fun unsubmitTask(
-        @Path("exam_id") examId: Long,
-        @Path("task_id") taskId: Long
+        @Path("worksheet_id") worksheetId: UUID,
+        @Path("task_id") taskId: UUID
     ): Task
 
-    @PATCH("exam/{exam_id}/")
-    suspend fun updateExam(
-        @Path("exam_id") examId: Long,
+    @PATCH("worksheets/{worksheet_id}/")
+    suspend fun updateWorksheet(
+        @Path("worksheet_id") worksheetId: UUID,
         @Body body: RequestBody
-    ): Exam
+    ): Worksheet
 
-    @PATCH("exam/{exam_id}/?archived")
-    suspend fun updateExamInArchive(
-        @Path("exam_id") examId: Long,
+    @PATCH("worksheets/{worksheet_id}/?archived")
+    suspend fun updateWorksheetInArchive(
+        @Path("worksheet_id") worksheetId: UUID,
         @Body body: RequestBody
-    ): Exam
+    ): Worksheet
 
-    @POST("exam/")
-    suspend fun createExam(@Body body: RequestBody): Exam
+    @POST("worksheets/")
+    suspend fun createWorksheet(@Body body: RequestBody): Worksheet
 
     @POST("fcm/devices/")
     suspend fun registerFCMDevice(@Body body: RequestBody): FCMDevice

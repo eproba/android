@@ -20,14 +20,13 @@ import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.czaplicki.eproba.AuthStateManager
-import com.czaplicki.eproba.EndScreen
 import com.czaplicki.eproba.EprobaApplication
 import com.czaplicki.eproba.MainActivity
 import com.czaplicki.eproba.MaintenanceScreen
 import com.czaplicki.eproba.api.APIState
 import com.czaplicki.eproba.api.EprobaService
-import com.czaplicki.eproba.databinding.FragmentManageExamsBinding
-import com.czaplicki.eproba.db.Exam
+import com.czaplicki.eproba.databinding.FragmentManageWorksheetsBinding
+import com.czaplicki.eproba.db.Worksheet
 import com.czaplicki.eproba.db.Task
 import com.czaplicki.eproba.db.User
 import com.czaplicki.eproba.db.UserDao
@@ -37,16 +36,17 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
 import kotlinx.coroutines.launch
 import net.openid.appauth.AuthorizationService
+import java.util.UUID
 
 class AcceptTasksFragment : Fragment() {
 
-    private var _binding: FragmentManageExamsBinding? = null
+    private var _binding: FragmentManageWorksheetsBinding? = null
 
     private lateinit var mAuthStateManager: AuthStateManager
     private lateinit var authService: AuthorizationService
     private var recyclerView: RecyclerView? = null
     private lateinit var mSwipeRefreshLayout: SwipeRefreshLayout
-    var examList: MutableList<Exam> = mutableListOf()
+    var worksheetList: MutableList<Worksheet> = mutableListOf()
     private val binding get() = _binding!!
     private val userDao: UserDao by lazy { (activity?.application as EprobaApplication).database.userDao() }
     private val service: EprobaService = EprobaApplication.instance.service
@@ -64,12 +64,12 @@ class AcceptTasksFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentManageExamsBinding.inflate(inflater, container, false)
+        _binding = FragmentManageWorksheetsBinding.inflate(inflater, container, false)
         mAuthStateManager = AuthStateManager.getInstance(requireContext())
         authService = AuthorizationService(requireContext())
         recyclerView = binding.recyclerView
         recyclerView?.layoutManager = LinearLayoutManager(view?.context)
-        recyclerView?.adapter = AcceptTasksAdapter(examList, users, service)
+        recyclerView?.adapter = AcceptTasksAdapter(worksheetList, users, service)
         mSwipeRefreshLayout = binding.swipeRefreshLayout
         mSwipeRefreshLayout.setColorSchemeColors(
             MaterialColors.getColor(
@@ -96,7 +96,7 @@ class AcceptTasksFragment : Fragment() {
             }
         }, viewLifecycleOwner, Lifecycle.State.RESUMED)
         mSwipeRefreshLayout.setOnRefreshListener {
-            updateExams()
+            updateWorksheets()
             getUsers()
 
         }
@@ -149,15 +149,10 @@ class AcceptTasksFragment : Fragment() {
         super.onResume()
         mSwipeRefreshLayout = binding.swipeRefreshLayout
         mSwipeRefreshLayout.setOnRefreshListener {
-            updateExams()
+            updateWorksheets()
             getUsers()
             lifecycleScope.launch {
                 when (EprobaApplication.instance.apiHelper.getAndProcessAppConfig()) {
-                    APIState.END_OF_LIFE -> {
-                        val endScreen = EndScreen()
-                        endScreen.show(parentFragmentManager, "end")
-                    }
-
                     APIState.MAINTENANCE -> {
                         val maintenanceScreen = MaintenanceScreen()
                         maintenanceScreen.show(parentFragmentManager, "maintenance")
@@ -169,28 +164,28 @@ class AcceptTasksFragment : Fragment() {
                 }
             }
         }
-        updateExams()
+        updateWorksheets()
         (activity as? MainActivity)?.bottomNavigation?.setOnItemReselectedListener {
             recyclerView?.smoothSnapToPosition(0)
         }
     }
 
-    private fun updateExams() {
+    private fun updateWorksheets() {
         mSwipeRefreshLayout.isRefreshing = true
         lifecycleScope.launch {
             try {
-                examList.clear()
-                examList.addAll(EprobaApplication.instance.apiHelper.getExamsWithTasksToApprove())
-                Log.d("examList", examList.toString())
-                for (exam in examList) {
-                    exam.tasks.removeIf { it.status != Task.Status.AWAITING_APPROVAL || it.approver != user.id }
+                worksheetList.clear()
+                worksheetList.addAll(EprobaApplication.instance.apiHelper.getWorksheetsWithTasksToApprove())
+                Log.d("worksheetList", worksheetList.toString())
+                for (worksheet in worksheetList) {
+                    worksheet.tasks.removeIf { it.status != Task.Status.AWAITING_APPROVAL || it.approver != user.id }
                 }
-                if (examList.isEmpty()) {
-                    examList.add(Exam(id = -1, name = "no_exams"))
+                if (worksheetList.isEmpty()) {
+                    worksheetList.add(Worksheet(id = UUID.fromString("00000000-0000-0000-0000-000000000000"), name = "no_worksheets"))
                 }
                 if (sharedPreferences
                         .getBoolean("ads", true)
-                ) examList.add(Exam(id = -1, name = "ad"))
+                ) worksheetList.add(Worksheet(id = UUID.fromString("00000000-0000-0000-0000-000000000000"), name = "ad"))
 
                 recyclerView?.adapter?.notifyDataSetChanged()
                 mSwipeRefreshLayout.isRefreshing = false
@@ -204,8 +199,8 @@ class AcceptTasksFragment : Fragment() {
             }
         }
 //        service.getTasksTBC()
-//            .enqueue(object : retrofit2.Callback<List<Exam>> {
-//                override fun onFailure(call: retrofit2.Call<List<Exam>>, t: Throwable) {
+//            .enqueue(object : retrofit2.Callback<List<Worksheet>> {
+//                override fun onFailure(call: retrofit2.Call<List<Worksheet>>, t: Throwable) {
 //                    view?.let {
 //                        Snackbar.make(
 //                            it,
@@ -218,21 +213,21 @@ class AcceptTasksFragment : Fragment() {
 //                }
 //
 //                override fun onResponse(
-//                    call: retrofit2.Call<List<Exam>>,
-//                    response: retrofit2.Response<List<Exam>>
+//                    call: retrofit2.Call<List<Worksheet>>,
+//                    response: retrofit2.Response<List<Worksheet>>
 //                ) {
 //                    if (response.body() != null) {
-//                        examList.clear()
-//                        examList.addAll(response.body()!!)
-//                        for (exam in examList) {
-//                            exam.tasks.removeIf { it.status != Task.Status.AWAITING_APPROVAL || it.approver != user.id }
+//                        worksheetList.clear()
+//                        worksheetList.addAll(response.body()!!)
+//                        for (worksheet in worksheetList) {
+//                            worksheet.tasks.removeIf { it.status != Task.Status.AWAITING_APPROVAL || it.approver != user.id }
 //                        }
-//                        if (examList.isEmpty()) {
-//                            examList.add(Exam(id = -1, name = "no_exams"))
+//                        if (worksheetList.isEmpty()) {
+//                            worksheetList.add(Worksheet(id = -1, name = "no_worksheets"))
 //                        }
 //                        if (sharedPreferences
 //                                .getBoolean("ads", true)
-//                        ) examList.add(Exam(id = -1, name = "ad"))
+//                        ) worksheetList.add(Worksheet(id = -1, name = "ad"))
 //                    } else {
 //                        view?.let {
 //                            Snackbar.make(

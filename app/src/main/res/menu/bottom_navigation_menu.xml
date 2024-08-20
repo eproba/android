@@ -2,14 +2,14 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/navigation_your_exams"
-        android:icon="@drawable/ic_your_exams"
-        android:title="@string/title_your_exams" />
+        android:id="@+id/navigation_your_worksheets"
+        android:icon="@drawable/ic_your_worksheets"
+        android:title="@string/title_your_worksheets" />
 
     <item
-        android:id="@+id/navigation_manage_exams"
-        android:icon="@drawable/ic_manage_exams"
-        android:title="@string/title_manage_exams" />
+        android:id="@+id/navigation_manage_worksheets"
+        android:icon="@drawable/ic_manage_worksheets"
+        android:title="@string/title_manage_worksheets" />
 
     <item
         android:id="@+id/navigation_accept_tasks"

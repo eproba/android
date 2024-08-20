@@ -1,0 +1,11 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/edit_worksheet"
+        android:title="@string/edit_worksheet" />
+    <item
+        android:id="@+id/delete_worksheet"
+        android:title="@string/delete_worksheet" />
+    <item
+        android:id="@+id/archive_worksheet"
+        android:title="@string/archive_worksheet" />
+</menu>

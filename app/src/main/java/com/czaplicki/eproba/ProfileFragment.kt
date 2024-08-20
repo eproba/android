@@ -53,8 +53,8 @@ class ProfileFragment : Fragment() {
             lifecycleScope.launch((Dispatchers.IO)) {
                 EprobaApplication.instance.database.clearAllTables()
             }
-            EprobaApplication.instance.apiHelper.lastExamsUpdate = 0L
-            EprobaApplication.instance.apiHelper.lastUserExamsUpdate = 0L
+            EprobaApplication.instance.apiHelper.lastWorksheetsUpdate = 0L
+            EprobaApplication.instance.apiHelper.lastUserWorksheetsUpdate = 0L
             Toast.makeText(requireContext(), "Logged out", Toast.LENGTH_SHORT).show()
             requireActivity().finish()
         }

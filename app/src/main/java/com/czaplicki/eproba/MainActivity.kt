@@ -93,15 +93,15 @@ class MainActivity : AppCompatActivity() {
         bottomNavigation.setupWithNavController(navController)
 
         fab.setOnClickListener {
-            navController.navigate(R.id.action_global_createExamActivity)
+            navController.navigate(R.id.action_global_createWorksheetActivity)
         }
         navController.addOnDestinationChangedListener { _, destination, _ ->
             when (destination.id) {
-                R.id.navigation_your_exams, R.id.navigation_manage_exams -> {
+                R.id.navigation_your_worksheets, R.id.navigation_manage_worksheets -> {
                     fab.show()
                     if (user == null) {
                         bottomNavigation.visibility = View.GONE
-                    } else if (user!!.scout.function < 2) {
+                    } else if (user!!.function < 2) {
                         bottomNavigation.visibility = View.GONE
                     } else {
                         bottomNavigation.visibility = View.VISIBLE
@@ -112,7 +112,7 @@ class MainActivity : AppCompatActivity() {
                     fab.hide()
                     if (user == null) {
                         bottomNavigation.visibility = View.GONE
-                    } else if (user!!.scout.function < 2) {
+                    } else if (user!!.function < 2) {
                         bottomNavigation.visibility = View.GONE
                     } else {
                         bottomNavigation.visibility = View.VISIBLE
@@ -186,10 +186,6 @@ class MainActivity : AppCompatActivity() {
         connectivityManager.registerDefaultNetworkCallback(networkCallback)
         if (!isOnline(this)) {
             binding.networkStatus.visibility = View.VISIBLE
-            if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("theEnd", false)) {
-                val endScreen = EndScreen()
-                endScreen.show(supportFragmentManager, "end")
-            }
         }
 
         // Create channel to show notifications.
@@ -205,12 +201,6 @@ class MainActivity : AppCompatActivity() {
         )
         lifecycleScope.launch {
             when (EprobaApplication.instance.apiHelper.getAndProcessAppConfig()) {
-
-                APIState.END_OF_LIFE -> {
-                    val endScreen = EndScreen()
-                    endScreen.show(supportFragmentManager, "end")
-                }
-
 
                 APIState.MAINTENANCE -> {
                     val maintenanceScreen = MaintenanceScreen()
@@ -258,7 +248,7 @@ class MainActivity : AppCompatActivity() {
             navController.navigate(R.id.action_global_loginFragment)
         } else if (navController.currentDestination?.id == R.id.LoginFragment && mAuthStateManager.current.isAuthorized) {
             Log.d("Login", "Logged in")
-            navController.navigate(R.id.action_LoginFragment_to_navigation_your_exams)
+            navController.navigate(R.id.action_LoginFragment_to_navigation_your_worksheets)
         }
         user = Gson().fromJson(
             PreferenceManager.getDefaultSharedPreferences(this).getString("user", null),
@@ -266,18 +256,18 @@ class MainActivity : AppCompatActivity() {
         )
         if (user == null || !mAuthStateManager.current.isAuthorized) {
             bottomNavigation.visibility = View.GONE
-        } else if (user!!.scout.function < 2) {
+        } else if (user!!.function < 2) {
             bottomNavigation.visibility = View.GONE
-            if (navController.currentDestination?.id == R.id.navigation_manage_exams || navController.currentDestination?.id == R.id.navigation_accept_tasks) {
-                navController.navigate(R.id.navigation_your_exams)
+            if (navController.currentDestination?.id == R.id.navigation_manage_worksheets || navController.currentDestination?.id == R.id.navigation_accept_tasks) {
+                navController.navigate(R.id.navigation_your_worksheets)
             }
-        } else if (navController.currentDestination?.id == R.id.navigation_edit_exam) {
+        } else if (navController.currentDestination?.id == R.id.navigation_edit_worksheet) {
             bottomNavigation.visibility = View.GONE
         } else {
             bottomNavigation.visibility = View.VISIBLE
         }
         if (PreferenceManager.getDefaultSharedPreferences(this)
-                .getString("server", "https://eproba.pl") != "https://eproba.pl"
+                .getString("server", "https://eproba.zhr.pl") != "https://eproba.zhr.pl"
         ) {
             binding.devServerStatus.visibility = View.VISIBLE
         } else {
@@ -329,7 +319,7 @@ class MainActivity : AppCompatActivity() {
         val redirectUri = Uri.parse("com.czaplicki.eproba://oauth2redirect")
         val clientId = "57wXiwkX1865qziVedFEXXum01m9QHJ6MDMVD03i"
         val baseUrl = PreferenceManager.getDefaultSharedPreferences(this)
-            .getString("server", "https://eproba.pl")
+            .getString("server", "https://eproba.zhr.pl")
         val builder = AuthorizationRequest.Builder(
             AuthorizationServiceConfiguration(
                 Uri.parse("$baseUrl/oauth2/authorize/"), // authorization endpoint
@@ -410,14 +400,14 @@ class MainActivity : AppCompatActivity() {
                         .edit()
                         .putString("user", Gson().toJson(response.body()))
                         .apply()
-                    if (response.body()!!.scout.function < 2) {
+                    if (response.body()!!.function < 2) {
                         bottomNavigation.visibility = View.GONE
                     } else {
                         bottomNavigation.visibility = View.VISIBLE
                     }
                     user = response.body()!!
                     EprobaApplication.instance.apiHelper.user = user
-                    navController.navigate(R.id.navigation_your_exams)
+                    navController.navigate(R.id.navigation_your_worksheets)
                     if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                         NotificationsRequestScreen().show(supportFragmentManager, "notifications")
                     }

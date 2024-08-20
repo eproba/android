@@ -23,7 +23,7 @@
             android:layout_height="match_parent"
             android:clipToPadding="false"
             android:paddingBottom="108dp"
-            tools:listitem="@layout/template_exam_item" />
+            tools:listitem="@layout/template_worksheet_item" />
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

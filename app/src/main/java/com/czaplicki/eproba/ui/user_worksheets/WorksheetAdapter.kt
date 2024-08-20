@@ -1,16 +1,20 @@
-package com.czaplicki.eproba.ui.accept_tasks
+package com.czaplicki.eproba.ui.user_worksheets
 
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.Button
+import android.widget.FrameLayout
+import android.widget.ImageView
+import android.widget.RatingBar
+import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.czaplicki.eproba.R
 import com.czaplicki.eproba.api.EprobaService
 import com.czaplicki.eproba.db.Worksheet
+import com.czaplicki.eproba.db.Task
 import com.czaplicki.eproba.db.User
-import com.czaplicki.eproba.ui.manage_worksheets.ManagedTaskAdapter
 import com.google.android.gms.ads.AdLoader
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.nativead.NativeAd
@@ -18,14 +22,19 @@ import com.google.android.gms.ads.nativead.NativeAdView
 import com.google.android.material.divider.MaterialDividerItemDecoration
 import java.util.UUID
 
-class AcceptTasksAdapter(
-    private val dataSet: MutableList<Worksheet>,
+
+class WorksheetAdapter(
+    private var dataSet: MutableList<Worksheet>,
     private val users: List<User>,
-    var service: EprobaService
+    private val service: EprobaService
 ) :
-    RecyclerView.Adapter<AcceptTasksAdapter.ViewHolder>() {
+    RecyclerView.Adapter<WorksheetAdapter.ViewHolder>() {
 
 
+    /**
+     * Provide a reference to the type of views that you are using
+     * (custom ViewHolder).
+     */
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val name: TextView
         val supervisor: TextView
@@ -64,15 +73,16 @@ class AcceptTasksAdapter(
 
         // Get element from your dataset at this position and replace the
         // contents of the view with that element
-        viewHolder.progressPercentage.visibility = View.GONE
         if (dataSet[position].id == UUID.fromString("00000000-0000-0000-0000-000000000000") && dataSet[position].name == "no_worksheets") {
-            viewHolder.name.text = viewHolder.itemView.context.getString(R.string.no_tasks)
+            viewHolder.name.text = viewHolder.itemView.context.getString(R.string.no_worksheets)
             viewHolder.supervisor.visibility = View.GONE
+            viewHolder.progressPercentage.visibility = View.GONE
             viewHolder.taskList.visibility = View.GONE
             return
         } else if (dataSet[position].id == UUID.fromString("00000000-0000-0000-0000-000000000000") && dataSet[position].name == "ad" && position == itemCount - 1) {
             viewHolder.name.text = viewHolder.itemView.context.getString(R.string.advertisement)
             viewHolder.supervisor.visibility = View.GONE
+            viewHolder.progressPercentage.visibility = View.GONE
             viewHolder.taskList.visibility = View.GONE
             viewHolder.adFrame.visibility = View.VISIBLE
             val builder = AdLoader.Builder(
@@ -96,8 +106,7 @@ class AcceptTasksAdapter(
             return
         }
 
-        viewHolder.name.text =
-            dataSet[position].name + " - " + users.find { it.id == dataSet[position].userId }?.nicknameWithRank
+        viewHolder.name.text = dataSet[position].name
         if (dataSet[position].supervisor != null) {
             viewHolder.supervisor.visibility = View.VISIBLE
             viewHolder.supervisor.text =
@@ -105,9 +114,14 @@ class AcceptTasksAdapter(
         } else {
             viewHolder.supervisor.visibility = View.GONE
         }
+        viewHolder.progressPercentage.visibility = View.VISIBLE
+        viewHolder.progressPercentage.text =
+            if (dataSet[position].tasks.size == 0) "" else viewHolder.itemView.context.getString(
+                R.string.progress_percentage,
+                dataSet[position].tasks.filter { it.status == Task.Status.APPROVED }.size * 100 / dataSet[position].tasks.size
+            )
         viewHolder.taskList.visibility = View.VISIBLE
-        viewHolder.taskList.adapter =
-            ManagedTaskAdapter(dataSet[position], users, viewHolder.progressPercentage, service)
+        viewHolder.taskList.adapter = TaskAdapter(dataSet[position], users, service)
         viewHolder.adFrame.visibility = View.GONE
     }
 
