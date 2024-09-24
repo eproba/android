@@ -17,6 +17,6 @@ class FCMDevice(
 ) {
 
     fun toJSONString(): String {
-        return "{\"name\": \"$name\", \"registration_id\": \"$token\", \"device_id\": \"$deviceId\", \"type\": \"$type\"}"
+        return "{\"name\": \"${name?.replace("\"", "\\\"")}\", \"registration_id\": \"$token\", \"device_id\": \"$deviceId\", \"type\": \"$type\"}"
     }
 }

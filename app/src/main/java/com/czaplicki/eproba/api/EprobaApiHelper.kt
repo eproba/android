@@ -216,8 +216,27 @@ class EprobaApiHelper {
     }
 
     suspend fun registerFCMToken(token: String) {
+        val deviceName = gson.toJson(
+            mapOf(
+                "os" to mapOf(
+                    "name" to "Android",
+                    "version" to Build.VERSION.RELEASE
+                ),
+                "device" to mapOf(
+                    "type" to "mobile",
+                    "vendor" to Build.MANUFACTURER,
+                    "model" to Build.MODEL
+                ),
+                "browser" to mapOf(
+                    "name" to "app",
+                    "version" to BuildConfig.VERSION_NAME,
+                    "major" to BuildConfig.VERSION_CODE,
+                    "type" to "release"
+                )
+            )
+        )
         val device = FCMDevice(
-            name = Build.MODEL,
+            name = deviceName,
             token = token,
         )
         try {
