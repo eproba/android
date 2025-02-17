@@ -28,7 +28,7 @@ class EprobaFirebaseMessagingService : FirebaseMessagingService() {
         EprobaApplication.instance.currentActivity?.runOnUiThread {
             Toast.makeText(
                 EprobaApplication.instance.currentActivity,
-                remoteMessage.notification?.body,
+                remoteMessage.notification?.body ?: "Received a new FCM message",
                 Toast.LENGTH_SHORT
             ).show()
         }

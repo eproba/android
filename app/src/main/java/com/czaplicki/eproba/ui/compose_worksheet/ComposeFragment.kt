@@ -60,7 +60,8 @@ class ComposeFragment : Fragment() {
 
             override fun afterTextChanged(s: Editable?) {
                 if (s.toString().isBlank()) {
-                    binding.worksheetName.error = getString(com.czaplicki.eproba.R.string.required_field)
+                    binding.worksheetName.error =
+                        getString(com.czaplicki.eproba.R.string.required_field)
                 } else {
                     binding.worksheetName.error = null
                 }
@@ -142,12 +143,14 @@ class ComposeFragment : Fragment() {
         lifecycleScope.launch {
             users = EprobaApplication.instance.apiHelper.getUsers()
             (_binding?.userSelect?.editText as? MaterialAutoCompleteTextView)?.setSimpleItems(
-                users.filter { it.teamId == user.teamId }.map { it.nickname }
-                    .toTypedArray()
+                users.filter { it.teamId == user.teamId && it.nickname != null }
+                    .map { it.nickname!! }.distinct().sorted().toTypedArray()
             )
         }
 
-        (requireActivity() as CreateWorksheetActivity).supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        (requireActivity() as CreateWorksheetActivity).supportActionBar?.setDisplayHomeAsUpEnabled(
+            true
+        )
 
         binding.addTaskLayout.setOnClickListener {
             (taskRecyclerView.adapter as EditTaskAdapter).addTask()
@@ -200,8 +203,11 @@ class ComposeFragment : Fragment() {
                     ).show()
                 }
                 if (name.isBlank()) {
-                    binding.worksheetName.error = getString(com.czaplicki.eproba.R.string.required_field)
-                    binding.worksheetName.editText?.addTextChangedListener(worksheetNameFieldTextWatcher)
+                    binding.worksheetName.error =
+                        getString(com.czaplicki.eproba.R.string.required_field)
+                    binding.worksheetName.editText?.addTextChangedListener(
+                        worksheetNameFieldTextWatcher
+                    )
                 }
                 if (nickname.isBlank()) {
                     binding.userSelect.error =
@@ -225,7 +231,12 @@ class ComposeFragment : Fragment() {
                                 Worksheet(
                                     name = name,
                                     userId = userId,
-                                    tasks = tasks.map { Task(UUID.fromString("00000000-0000-0000-0000-000000000000"), it) }.toMutableList()
+                                    tasks = tasks.map {
+                                        Task(
+                                            UUID.fromString("00000000-0000-0000-0000-000000000000"),
+                                            it
+                                        )
+                                    }.toMutableList()
                                 ).toJson().toRequestBody("application/json".toMediaType())
                             )
                         )
