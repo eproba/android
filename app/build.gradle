@@ -13,8 +13,8 @@ android {
         applicationId "com.czaplicki.eproba"
         minSdk 26
         targetSdk 35
-        versionCode 20250200 // RRRRMMVV (RRRR - year, MM - month, VV - version) e.g. 20230100
-        versionName 'βeta.5.2'
+        versionCode 20250201 // RRRRMMVV (RRRR - year, MM - month, VV - version) e.g. 20230100
+        versionName 'βeta.5.3'
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         javaCompileOptions {
