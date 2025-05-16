@@ -16,7 +16,7 @@ class Worksheet(
     @PrimaryKey
     var id: UUID = UUID.fromString("00000000-0000-0000-0000-000000000000"),
     var name: String? = null,
-    @SerializedName("user") var userId: UUID? = null,
+    @SerializedName("user_id") var userId: UUID? = null,
     var supervisor: UUID? = null,
     @SerializedName("deleted") var isDeleted: Boolean = false,
     @SerializedName("is_archived") var isArchived: Boolean = false,
@@ -50,7 +50,7 @@ class Worksheet(
     fun toJson(): String {
         return """{
 "name": "${name?.replace("\"", "\\\"")}",
-"user": "$userId",
+"user_id": "$userId",
 "tasks": 
     [${tasks.joinToString { "\n{\"task\":\"${it.task.replace("\"", "\\\"")}\"}" }}
     ]
