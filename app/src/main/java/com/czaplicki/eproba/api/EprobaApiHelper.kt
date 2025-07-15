@@ -61,7 +61,7 @@ class EprobaApiHelper {
             sharedPreferences.edit().putBoolean("ads", appConfig.ads).apply()
 
 
-            if (appConfig.eolScreenEnabled || Instant.now().isBefore(appConfig.eolDate.toInstant())) {
+            if (appConfig.eolScreenEnabled || Instant.now().isAfter(appConfig.eolDate.toInstant())) {
                 return APIState.EOL
             }
 
