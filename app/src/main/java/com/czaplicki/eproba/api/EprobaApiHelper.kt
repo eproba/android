@@ -17,6 +17,8 @@ import com.google.gson.Gson
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.time.Instant
+import java.time.ZonedDateTime
+import java.util.Date
 import java.util.UUID
 import kotlin.properties.Delegates
 
@@ -58,6 +60,10 @@ class EprobaApiHelper {
 
             sharedPreferences.edit().putBoolean("ads", appConfig.ads).apply()
 
+
+            if (appConfig.eolScreenEnabled || Instant.now().isBefore(appConfig.eolDate.toInstant())) {
+                return APIState.EOL
+            }
 
             if (appConfig.maintenance) {
                 return APIState.MAINTENANCE

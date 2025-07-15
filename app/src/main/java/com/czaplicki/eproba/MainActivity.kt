@@ -202,6 +202,11 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             when (EprobaApplication.instance.apiHelper.getAndProcessAppConfig()) {
 
+                APIState.EOL -> {
+                    val eolScreen = EOLScreen(service.getAppConfig())
+                    eolScreen.show(supportFragmentManager, "eol")
+                }
+
                 APIState.MAINTENANCE -> {
                     val maintenanceScreen = MaintenanceScreen()
                     maintenanceScreen.show(supportFragmentManager, "maintenance")

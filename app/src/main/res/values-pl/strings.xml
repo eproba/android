@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Epróba</string>
+    <string name="app_name">Epróba Legacy</string>
     <string name="action_settings">Ustawienia</string>
     <string name="camera_fragment_label">Zeskanuj próbę</string>
     <string name="previous">Poprzedni ekran</string>

@@ -27,6 +27,7 @@ import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.czaplicki.eproba.AuthStateManager
+import com.czaplicki.eproba.EOLScreen
 import com.czaplicki.eproba.EprobaApplication
 import com.czaplicki.eproba.MainActivity
 import com.czaplicki.eproba.MaintenanceScreen
@@ -342,6 +343,12 @@ class ManageWorksheetsFragment : Fragment() {
                 mSwipeRefreshLayout.isRefreshing = false
                 ignoreWorksheetsLastSync = !ignoreWorksheetsLastSync
                 when (EprobaApplication.instance.apiHelper.getAndProcessAppConfig()) {
+
+                    APIState.EOL -> {
+                        val eolScreen = EOLScreen(service.getAppConfig())
+                        eolScreen.show(parentFragmentManager, "eol")
+                    }
+
                     APIState.MAINTENANCE -> {
                         val maintenanceScreen = MaintenanceScreen()
                         maintenanceScreen.show(parentFragmentManager, "maintenance")
